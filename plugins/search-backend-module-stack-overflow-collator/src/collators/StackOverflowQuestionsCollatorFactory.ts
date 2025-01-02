@@ -1,19 +1,3 @@
-/*
- * Copyright 2022 The Backstage Authors
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 import {
   DocumentCollatorFactory,
   IndexableDocument,
@@ -31,7 +15,7 @@ import { LoggerService } from '@backstage/backend-plugin-api';
  */
 export interface StackOverflowDocument extends IndexableDocument {
   answers: number;
-  tags: string[];
+  tags: object[];
 }
 
 /**
@@ -50,6 +34,7 @@ export type StackOverflowQuestionsRequestParams = {
  */
 export type StackOverflowQuestionsCollatorFactoryOptions = {
   baseUrl?: string;
+  teams?: boolean;
   maxPage?: number;
   apiKey?: string;
   apiAccessToken?: string;
@@ -60,6 +45,7 @@ export type StackOverflowQuestionsCollatorFactoryOptions = {
 
 const DEFAULT_BASE_URL = 'https://api.stackexchange.com/2.3';
 const DEFAULT_MAX_PAGE = 100;
+
 /**
  * Search collator responsible for collecting stack overflow questions to index.
  *
@@ -70,6 +56,8 @@ export class StackOverflowQuestionsCollatorFactory
 {
   protected requestParams: StackOverflowQuestionsRequestParams;
   private readonly baseUrl: string | undefined;
+  private readonly apiVersion: string;
+  private readonly teams: boolean;
   private readonly apiKey: string | undefined;
   private readonly apiAccessToken: string | undefined;
   private readonly teamName: string | undefined;
@@ -79,6 +67,8 @@ export class StackOverflowQuestionsCollatorFactory
 
   private constructor(options: StackOverflowQuestionsCollatorFactoryOptions) {
     this.baseUrl = options.baseUrl;
+    this.apiVersion = this.getApiVersionFromUrl(options.baseUrl);
+    this.teams = options.teams || false;
     this.apiKey = options.apiKey;
     this.apiAccessToken = options.apiAccessToken;
     this.teamName = options.teamName;
@@ -98,6 +88,18 @@ export class StackOverflowQuestionsCollatorFactory
     }
   }
 
+  // Helper function to extract API version from baseUrl
+  private getApiVersionFromUrl(baseUrl?: string): string {
+    if (!baseUrl) return 'v2.3';
+    const urlSegments = baseUrl.split('/');
+
+    if (urlSegments.includes('v3')) {
+      return 'v3';
+    }
+
+    return 'v2.3';
+  }
+
   static fromConfig(
     config: Config,
     options: StackOverflowQuestionsCollatorFactoryOptions,
@@ -109,6 +111,7 @@ export class StackOverflowQuestionsCollatorFactory
     const teamName = config.getOptionalString('stackoverflow.teamName');
     const baseUrl =
       config.getOptionalString('stackoverflow.baseUrl') || DEFAULT_BASE_URL;
+    const teams = config.getOptionalBoolean('stackoverflow.teams') || false;
     const maxPage = options.maxPage || DEFAULT_MAX_PAGE;
     const requestParams = config
       .getOptionalConfig('stackoverflow.requestParams')
@@ -116,6 +119,7 @@ export class StackOverflowQuestionsCollatorFactory
 
     return new StackOverflowQuestionsCollatorFactory({
       baseUrl,
+      teams,
       maxPage,
       apiKey,
       apiAccessToken,
@@ -130,10 +134,34 @@ export class StackOverflowQuestionsCollatorFactory
   }
 
   async *execute(): AsyncGenerator<StackOverflowDocument> {
+    this.logger.info(`Stack Overflow API Version: ${this.apiVersion}`);
+
     if (!this.baseUrl) {
       this.logger.debug(
         `No stackoverflow.baseUrl configured in your app-config.yaml`,
       );
+    }
+
+    if (!this.apiVersion) {
+      this.logger.debug(`No API version was provided, defaulting to API v2.3.`);
+    }
+
+    if (this.apiVersion === 'v3' && this.apiKey && !this.apiAccessToken) {
+      this.logger.debug(
+        `API Version 3 requires an API apiAccessToken to authenticate instead of an API key.`,
+      );
+    }
+
+    if (this.apiVersion === 'v2.3' && !this.apiKey && !this.teams) {
+      this.logger.warn(
+        "To retrieve results using API v2.3 on Enterprise, you must provide an API Key. If you're retrieving data from the public forum, you can safely ignore this warning."
+      )
+    }
+
+    if (this.teams && !this.teamName) {
+      this.logger.debug(
+        "When stackoverflow.teams is enabled you must define stackoverflow.teamName"
+      )
     }
 
     if (this.apiKey && this.teamName) {
@@ -162,14 +190,41 @@ export class StackOverflowQuestionsCollatorFactory
       ? `${params ? '&' : '?'}key=${this.apiKey}`
       : '';
 
-    const teamParam = this.teamName
-      ? `${params ? '&' : '?'}team=${this.teamName}`
-      : '';
+    const teamParam =
+      this.teamName || this.apiVersion !== 'v3'
+        ? `${params ? '&' : '?'}team=${this.teamName}`
+        : '';
 
     // PAT change requires team name as a parameter
-    const requestUrl = this.apiKey
-      ? `${this.baseUrl}/questions${params}${apiKeyParam}`
-      : `${this.baseUrl}/questions${params}${teamParam}`;
+    // Determine the request URL based on API version and teams configuration
+    let requestUrl;
+
+    if (this.apiVersion === 'v3') {
+      if (this.teams && !this.teamName) {
+        throw new Error(
+          'stackoverflow.teamName is required when stackoverflow.teams is true.',
+        );
+      }
+      if (this.teams) {
+        requestUrl = `${this.baseUrl}/teams/${this.teamName}/questions${params}`;
+      } else {
+        requestUrl = `${this.baseUrl}/questions${params}`;
+      }
+    }
+    else {
+      if (this.teams && !this.teamName) {
+        throw new Error (
+          'stackoverflow.teamName is required when stackoverflow.teams is true.'
+        )
+      } if (this.teams && this.apiKey) {
+        throw new Error (
+          "when stackoverflow.teams is enabled the stackoverflow.apiKey value should be removed."
+        )
+      }
+      requestUrl = this.apiKey
+        ? `${this.baseUrl}/questions${params}${apiKeyParam}`
+        : `${this.baseUrl}/questions${params}${teamParam}`;
+    }
 
     let hasMorePages = true;
     let page = 1;
@@ -182,21 +237,50 @@ export class StackOverflowQuestionsCollatorFactory
       }
       const res = await fetch(
         `${requestUrl}&page=${page}`,
-        this.apiAccessToken
+        this.apiVersion === 'v3' && this.apiAccessToken
           ? {
               headers: {
-                'X-API-Access-Token': this.apiAccessToken,
+                Authorization: `Bearer ${this.apiAccessToken}`, // Use Bearer token for v3
+              },
+            }
+          : this.apiAccessToken
+          ? {
+              headers: {
+                'X-API-Access-Token': this.apiAccessToken, // Default behavior for v2.3
               },
             }
           : undefined,
       );
 
       const data = await res.json();
+
+      if (this.apiVersion === 'v3') {
+        for (const question of data.items ?? []) {
+          // In API v3 tags are an object that will contain additional information, such as id, tag description and url...
+          const tags =
+            question.tags?.map((tag: { name: string }) => ({
+              // id: tag.id
+              // description: tag.description
+              // location: tag.webUrl
+              name: tag.name,
+            })) || [];
+
+          yield {
+            title: question.title,
+            location: question.webUrl,
+            text: question.owner?.name || 'Deleted user',
+            tags: tags,
+            answers: question.answerCount,
+          };
+        }
+        return;
+      }
+
       for (const question of data.items ?? []) {
         yield {
           title: question.title,
           location: question.link,
-          text: question.owner.display_name,
+          text: question.owner?.display_name || 'Deleted user',
           tags: question.tags,
           answers: question.answer_count,
         };

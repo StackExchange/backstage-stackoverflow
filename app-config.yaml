@@ -6,13 +6,15 @@ organization:
   name: My Company
 
 stackoverflow:
-  baseUrl: https://api.stackoverflowteams.com/2.3
-  teamName: moises-test-team
-  apiAccessToken: 86XlWRL3QsZjZkyj9HUGMw))
-  requestParams: 
-    pagesize: 100
-    order: desc
-    sort: activity
+  baseUrl: ${STACK_OVERFLOW_TEAMS_URL}
+  teams: true
+  teamName: ${STACK_OVERFLOW_TEAM_NAME}
+  apiAccessToken: ${STACK_OVERFLOW_API_ACCESS_TOKEN}
+  schedule: {
+    frequency: {seconds: 20},
+    timeout: { minutes: 5 },
+    initialDelay: { seconds: 3}
+  }
 
 backend:
   # Used for enabling authentication, secret is shared by all backend plugins

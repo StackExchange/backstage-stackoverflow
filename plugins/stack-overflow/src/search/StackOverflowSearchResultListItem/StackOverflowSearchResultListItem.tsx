@@ -94,8 +94,12 @@ export const StackOverflowSearchResultListItem = (
           />
           <Chip label={`Answer(s): ${result.answers}`} size="small" />
           {result.tags &&
-            result.tags.map((tag: string) => (
-              <Chip key={tag} label={`Tag: ${tag}`} size="small" />
+            result.tags.map((tag: { name: string } | string) => (
+              <Chip
+                key={typeof tag === 'string' ? tag : tag.name} // Handling both API v2.3 (string) and API v3 (object) scenarios
+                label={`Tag: ${typeof tag === 'string' ? tag : tag.name}`}
+                size="small"
+              />
             ))}
         </Box>
       </ListItem>
