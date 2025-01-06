@@ -60,7 +60,7 @@ Follow these steps to install and run the plugin locally:
     
 4.  The installation will scaffold the Backstage application and include the necessary plugins. You can find the Stack Overflow plugins as dependencies inside the `package.json` files in the `/app` and `/backend` folders. The internal link between them is created using Yarn workspaces.
     
-    For example, the backend plugin under the `/backend` folder will appear as:
+    For example, the frontend plugin under the `/app` folder will appear as:
     
     ```json
     "@backstage-community/plugin-stack-overflow": "workspace:*"
