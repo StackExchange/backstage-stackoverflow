@@ -37,12 +37,7 @@ This repository adds new features to the Stack Overflow plugins for [Backstage.i
 
 Follow these steps to install and run the plugin locally:
 
-1.  Clone the repository:
-    
-    ```bash
-    git clone https://github.com/EstoesMoises/backstage-stackoverflow.git
-    
-    ```
+1. Fork and clone the repository
     
 2.  Navigate into the project directory:
     
