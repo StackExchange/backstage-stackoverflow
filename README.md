@@ -134,6 +134,10 @@ yarn dev
 
 ```
 
+### More information
+
+You can find more information about the Backstage.io integration and setup from scratch on the comprehensive article - [Backstage.io Integration with Stack Overflow for Teams](https://stackoverflowteams.help/en/articles/9692515-backstage-io-integration)
+
 ## Contributing
 
 Feel free to fork this repository and submit pull requests. Contributions, suggestions, and bug reports are welcome!
