@@ -84,9 +84,9 @@ Frontend - https://github.com/backstage/community-plugins/tree/main/workspaces/s
 
 Backend (search collator) - https://github.com/backstage/backstage/tree/master/plugins/search-backend-module-stack-overflow-collator
 
-### 1. Fork and clone the repository
+1. Fork and clone the repository
 
-### 2. Make sure you are using the sample-app branch
+2. Make sure you are using the sample-app branch
 
 ```bash
 
@@ -94,7 +94,7 @@ git checkout sample-app
 
 ```
 
-### 3. Install Dependencies
+3. Install Dependencies
 
 After cloning the repository, this will default to the main branch. Run the following command to install all the required dependencies:
 
@@ -104,7 +104,7 @@ yarn install
 
 ```
 
-### 4. Update Credentials
+4. Update Credentials
 
 The `app-config.yaml` uses environtment variables. You can change the config according to your needs, wether you are connecting the plugin to a Teams or Enterprise instance. To changes these variables, follow the steps below:
 
@@ -114,7 +114,7 @@ The `app-config.yaml` uses environtment variables. You can change the config acc
 
 - Change the name of the file to just `.env`
 
-### 5. Run the Development Environment
+5. Run the Development Environment
 
 Once the dependencies are installed and variables are set up, run the following command to start the development environment on `localhost`:
 
