@@ -1,8 +1,8 @@
 # Backstage - Stack Overflow for Teams Plugin
 
-## Sample application
+## Demo application
 
-Follow the steps below to set up and run the sample integration of Backstage with Stack Overflow.
+Follow the steps below to set up and run a demo integration of Backstage with Stack Overflow.
 
 Currently, the plugins information will be pulled from the Backstage and Backstage Community repositories for the Backstage Plugins:
 
@@ -12,11 +12,11 @@ Backend (search collator) - https://github.com/backstage/backstage/tree/master/p
 
 1. Fork and clone the repository
 
-2. Make sure you are using the sample-app branch
+2. Make sure you are using the demo-app branch
 
 ```bash
 
-git checkout example-app
+git checkout demo-app
 
 ```
 
