@@ -91,13 +91,17 @@ export class StackOverflowQuestionsCollatorFactory
   // Helper function to extract API version from baseUrl
   private getApiVersionFromUrl(baseUrl?: string): string {
     if (!baseUrl) return 'v2.3';
-    const urlSegments = baseUrl.split('/');
+    const url = baseUrl.trim();
 
-    if (urlSegments.includes('v3')) {
+    if (url.endsWith('2.3')) {
+      return 'v2.3';
+    }
+
+    if (url.endsWith('v3')) {
       return 'v3';
     }
 
-    return 'v2.3';
+    return 'unsupported';
   }
 
   static fromConfig(
@@ -133,6 +137,8 @@ export class StackOverflowQuestionsCollatorFactory
     return Readable.from(this.execute());
   }
 
+// Error logging and debugging
+
   async *execute(): AsyncGenerator<StackOverflowDocument> {
     this.logger.info(`Stack Overflow API Version: ${this.apiVersion}`);
 
@@ -140,6 +146,13 @@ export class StackOverflowQuestionsCollatorFactory
       this.logger.debug(
         `No stackoverflow.baseUrl configured in your app-config.yaml`,
       );
+      this.logger.info(
+        `No stackoverflow.baseUrl configured, returning public forum questions.`
+      )
+    }
+
+    if(this.apiVersion === 'unsupported') {
+      this.logger.error(`Unsupported Stack Overflow API version detected. Please verify your BaseURL and ensure it uses either API v2.3 or API v3.`)
     }
 
     if (!this.apiVersion) {
@@ -147,19 +160,20 @@ export class StackOverflowQuestionsCollatorFactory
     }
 
     if (this.apiVersion === 'v3' && this.apiKey && !this.apiAccessToken) {
-      this.logger.debug(
+      this.logger.error(
         `API Version 3 requires an API apiAccessToken to authenticate instead of an API key.`,
       );
     }
 
-    if (this.apiVersion === 'v2.3' && !this.apiKey && !this.teams) {
-      this.logger.warn(
-        "To retrieve results using API v2.3 on Enterprise, you must provide an API Key. If you're retrieving data from the public forum, you can safely ignore this warning."
+    if (this.apiVersion === 'v2.3' && !this.apiKey && !this.teams && this.baseUrl) {
+      this.logger.error(
+        "To retrieve results using API v2.3 on Enterprise, you must provide an API Key."
       )
     }
+    
 
     if (this.teams && !this.teamName) {
-      this.logger.debug(
+      this.logger.error(
         "When stackoverflow.teams is enabled you must define stackoverflow.teamName"
       )
     }
@@ -201,7 +215,7 @@ export class StackOverflowQuestionsCollatorFactory
 
     if (this.apiVersion === 'v3') {
       if (this.teams && !this.teamName) {
-        throw new Error(
+        this.logger.error(
           'stackoverflow.teamName is required when stackoverflow.teams is true.',
         );
       }
@@ -213,11 +227,11 @@ export class StackOverflowQuestionsCollatorFactory
     }
     else {
       if (this.teams && !this.teamName) {
-        throw new Error (
+        this.logger.error (
           'stackoverflow.teamName is required when stackoverflow.teams is true.'
         )
       } if (this.teams && this.apiKey) {
-        throw new Error (
+        this.logger.error (
           "when stackoverflow.teams is enabled the stackoverflow.apiKey value should be removed."
         )
       }
