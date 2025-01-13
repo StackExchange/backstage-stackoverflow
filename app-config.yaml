@@ -6,13 +6,19 @@ organization:
   name: My Company
 
 stackoverflow:
-  baseUrl: ${STACK_OVERFLOW_TEAMS_URL}
-  teams: true
-  teamName: ${STACK_OVERFLOW_TEAM_NAME}
-  apiAccessToken: ${STACK_OVERFLOW_API_ACCESS_TOKEN}
+# Teams B&B
+  # baseUrl: ${STACK_OVERFLOW_TEAMS_URL} 
+  # teamName: ${STACK_OVERFLOW_TEAM_NAME}
+  # apiAccessToken: ${STACK_OVERFLOW_API_ACCESS_TOKEN}
+
+# Enterprise
+  baseUrl: ${STACK_OVERFLOW_INSTANCE_URL} 
+  apiKey: ${STACK_OVERFLOW_ENTERPRISE_KEY}
+
+# Schedule (optionally dictate how often to rebuild the index of questions)
   schedule: {
-    frequency: {seconds: 20},
-    timeout: { minutes: 5 },
+    frequency: {minutes: 10},
+    timeout: { minutes: 15 },
     initialDelay: { seconds: 3}
   }
 
