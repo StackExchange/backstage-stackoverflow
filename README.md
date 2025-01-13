@@ -17,25 +17,20 @@ This repository adds new features to the Stack Overflow plugins for [Backstage.i
 
 #### Completed:
 
--  **API Integration**: Full integration with Stack Overflow for Teams (Enterprise and B&B tiers) using API v3.
+-   **API Integration**: Full integration with Stack Overflow for Teams (Enterprise and B&B tiers) using API v3.
 
 #### In Progress:
 
--  **Error Logging**: Improving logging for better debugging and issue tracking.
-
--  **Backend Development**: Building backend routers for secure access to Stack Overflow Teams API.
+-   **Error Logging**: Improving logging for better debugging and issue tracking.
+-   **Backend Development**: Building backend routers for secure access to Stack Overflow Teams API.
 
 #### Upcoming:
 
--  **Frontend Development**:
-
-- User interface for the home page (leaderboard, trending tags, unanswered questions).
-
-- Resolving the issue with client-side API requests, which is incompatible with private instances.
-
--  **Additional Features**:
-
-- Enhancing the UI/UX for improved user interaction and engagement.
+-   **Frontend Development**:
+    -   User interface for the home page (leaderboard, trending tags, unanswered questions).
+    -   Resolving the issue with client-side API requests, which is incompatible with private instances.
+-   **Additional Features**:
+    -   Enhancing the UI/UX for improved user interaction and engagement.
 
 ## Installation
 
