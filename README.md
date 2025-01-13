@@ -6,17 +6,12 @@ This repository adds new features to the Stack Overflow plugins for [Backstage.i
 
 ### Key Features:
 
--  **Enterprise & B&B API Support**: Fully integrated with Stack Overflow for Teams API v3, supporting both the Enterprise and B&B tiers.
-
--  **Home Page**: Displays key Stack Overflow data, including:
-
-- A leaderboard of active users or top contributors.
-
-- Trending tags.
-
-- Top unanswered questions.
-
--  **Backend API Integration**: Secure backend routers access the Stack Overflow Teams API via Keys or Tokens to retrieve relevant data.
+-   **Enterprise & B&B API Support**: Fully integrated with Stack Overflow for Teams API v3, supporting both the Enterprise and B&B tiers.
+-   **Home Page**: Displays key Stack Overflow data, including:
+    -   A leaderboard of active users or top contributors.
+    -   Trending tags.
+    -   Top unanswered questions.
+-   **Backend API Integration**: Secure backend routers access the Stack Overflow Teams API via Keys or Tokens to retrieve relevant data.
 
 ### Current Progress:
 
