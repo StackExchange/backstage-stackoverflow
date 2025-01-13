@@ -3,7 +3,7 @@
 
 ## Overview
 
-This repository is dedicated to developing a Stack Overflow plugin for [Backstage.io](https://backstage.io/), an open-source developer portal platform. The plugin integrates Stack Overflow for Teams (Enterprise and B&B tiers) with Backstage, enabling users to view and interact with content from their Stack Overflow instance directly within the Backstage environment.
+This repository adds new features to the Stack Overflow plugins for [Backstage.io](https://backstage.io/), an open-source developer portal platform. The plugin integrates Stack Overflow for Teams (Enterprise and B&B tiers) with Backstage, enabling users to view and interact with content from their Stack Overflow instance directly within the Backstage environment.
 
 ### Key Features:
 
