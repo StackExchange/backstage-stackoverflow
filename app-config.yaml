@@ -6,12 +6,12 @@ organization:
   name: My Company
 
 stackoverflow:
-  baseUrl: ${STACK_OVERFLOW_TEAMS_URL}
-  teams: true
-  teamName: ${STACK_OVERFLOW_TEAM_NAME}
-  apiAccessToken: ${STACK_OVERFLOW_API_ACCESS_TOKEN}
+  baseUrl: ${STACK_OVERFLOW_INSTANCE_URL}
+  teams: false
+  # teamName: ${STACK_OVERFLOW_TEAM_NAME}
+  apiKey: ${STACK_OVERFLOW_ENTERPRISE_ACCESS_TOKEN}
   schedule: {
-    frequency: {seconds: 20},
+    frequency: {minutes: 20},
     timeout: { minutes: 5 },
     initialDelay: { seconds: 3}
   }

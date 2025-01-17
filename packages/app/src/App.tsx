@@ -37,6 +37,7 @@ import { CatalogGraphPage } from '@backstage/plugin-catalog-graph';
 import { RequirePermission } from '@backstage/plugin-permission-react';
 import { catalogEntityCreatePermission } from '@backstage/plugin-catalog-common/alpha';
 import { HomePageStackOverflowQuestions } from '@backstage-community/plugin-stack-overflow';
+import { StackOverflowTeamsPage } from '@internal/backstage-plugin-stack-overflow-teams';
 
 const app = createApp({
   apis,
@@ -97,6 +98,7 @@ const routes = (
     </Route>
     <Route path="/settings" element={<UserSettingsPage />} />
     <Route path="/catalog-graph" element={<CatalogGraphPage />} />
+    <Route path="/stack-overflow-teams" element={<StackOverflowTeamsPage />} />
   </FlatRoutes>
 );
 
