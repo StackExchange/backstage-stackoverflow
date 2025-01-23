@@ -4,6 +4,7 @@ import {
 } from '@backstage/backend-plugin-api';
 import { createRouter } from './router';
 import { createStackOverflowService } from './services/StackOverflowService';
+import { StackOverflowConfig } from './services/StackOverflowService/types';
 
 /**
  * stackOverflowTeamsPlugin backend plugin
@@ -17,35 +18,24 @@ export const stackOverflowTeamsPlugin = createBackendPlugin({
       deps: {
         logger: coreServices.logger,
         httpRouter: coreServices.httpRouter,
-        config: coreServices.rootConfig
+        config: coreServices.rootConfig,
       },
-      // Pending fixing typescript errors
       async init({ logger, httpRouter, config }) {
+        const stackOverflowConfig: StackOverflowConfig = {
+          baseUrl: config.getString('stackoverflow.baseUrl'),
+          apiAccessToken: config.getString('stackoverflow.apiAccessToken'),
+          teamName: config.getOptionalString('stackoverflow.teamName'),
+        };
         const stackOverflowService = await createStackOverflowService({
-          config,
-          logger
+          config: stackOverflowConfig,
+          logger,
         });
-        // Remove unauthenticated access
-        httpRouter.addAuthPolicy({
-          path: '/tags',
-          allow: 'unauthenticated',
-        });
-        
-        httpRouter.addAuthPolicy({
-          path: '/questions',
-          allow: 'unauthenticated',
-        });
-        
-        httpRouter.addAuthPolicy({
-          path: '/users',
-          allow: 'unauthenticated',
-        });
-        
+
         httpRouter.use(
           await createRouter({
-            config,
+            stackOverflowConfig,
             logger,
-            stackOverflowService
+            stackOverflowService,
           }),
         );
       },

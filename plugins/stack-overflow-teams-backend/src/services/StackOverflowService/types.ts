@@ -35,7 +35,7 @@ export type PaginatedResponse<T> = {
 
 export type StackOverflowConfig = {
   baseUrl: string;
-  teamName: string | undefined;
+  teamName?: string;
   apiAccessToken: string;
 }
 
@@ -44,3 +44,5 @@ export interface StackOverflowAPI {
   getTags(): Promise<PaginatedResponse<Tag>>
   getUsers(): Promise<PaginatedResponse<User>>
 }
+
+
