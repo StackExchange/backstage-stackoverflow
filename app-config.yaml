@@ -9,12 +9,13 @@ stackoverflow:
   baseUrl: ${STACK_OVERFLOW_INSTANCE_URL}
   teams: false
   # teamName: ${STACK_OVERFLOW_TEAM_NAME}
-  apiKey: ${STACK_OVERFLOW_ENTERPRISE_ACCESS_TOKEN}
-  schedule: {
-    frequency: {minutes: 20},
-    timeout: { minutes: 5 },
-    initialDelay: { seconds: 3}
-  }
+  apiAccessToken: ${STACK_OVERFLOW_ENTERPRISE_ACCESS_TOKEN}
+  schedule:
+    {
+      frequency: { minutes: 20 },
+      timeout: { minutes: 5 },
+      initialDelay: { seconds: 3 },
+    }
 
 backend:
   # Used for enabling authentication, secret is shared by all backend plugins
