@@ -2,10 +2,25 @@ import React from 'react';
 import { Table, TableColumn } from '@backstage/core-components';
 import { Progress, ResponseErrorPanel } from '@backstage/core-components';
 import { useStackOverflowData } from './useStackOverflowData';
+import { Chip } from '@material-ui/core';
+import { Tag } from '../../types';
 
-const columns: TableColumn[] = [
-  { title: 'Tag Name', field: 'name' },
-  { title: 'Questions', field: 'count', type: 'numeric' },
+const columns: TableColumn<Tag>[] = [
+  {
+    title: 'Tag Name',
+    field: 'name',
+    render: row => (
+      <a
+        href={row.webUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{ cursor: 'pointer' }}
+      >
+        <Chip label={row.name} />
+      </a>
+    ),
+  },
+  { title: 'Questions', field: 'postCount', type: 'numeric' },
 ];
 
 export const StackOverflowTags = () => {

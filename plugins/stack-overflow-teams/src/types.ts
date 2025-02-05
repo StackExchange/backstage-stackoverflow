@@ -2,6 +2,15 @@ export type Question = {
     id: number
     title: string
     body: string
+    webUrl: string
+    score: number
+    viewCount: number
+    isAnswered: boolean
+    tags: [Tag];
+    bounty: {} | null;
+    creationDate: string;
+    lastActivityDate: string;
+    answerCount: number;
   }
   
   export type Tag = {
