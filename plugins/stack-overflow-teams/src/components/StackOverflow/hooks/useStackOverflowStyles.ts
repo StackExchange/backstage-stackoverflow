@@ -3,7 +3,7 @@ import { makeStyles, Theme } from '@material-ui/core/styles';
 /**
  * Reusable styles for Stack Overflow-themed components with dark mode support
  */
-const useStackOverflowStyles = makeStyles((theme: Theme) => ({
+export const useStackOverflowStyles = makeStyles((theme: Theme) => ({
   title: {
     color: theme.palette.type === 'dark' ? '#4CA8FF' : '#0077CC', // Brighter blue in dark mode
     fontWeight: 'bold',
@@ -35,5 +35,3 @@ const useStackOverflowStyles = makeStyles((theme: Theme) => ({
     },
   },
 }));
-
-export default useStackOverflowStyles;

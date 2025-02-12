@@ -14,12 +14,6 @@
  * limitations under the License.
  */
 
-export function decodeHtml(input: string) {
-  const textContainer = document.createElement('textarea');
-  textContainer.innerHTML = input;
-  return textContainer.value;
-}
-
 export function getTimeAgo(dateString: string) {
   const now = new Date();
   const date = new Date(dateString);
@@ -49,3 +43,5 @@ export function getTimeAgo(dateString: string) {
   }
   return `${seconds} second${seconds > 1 ? 's' : ''} ago`;
 }
+
+

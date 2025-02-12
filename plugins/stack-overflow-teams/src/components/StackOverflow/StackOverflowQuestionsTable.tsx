@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Table } from '@backstage/core-components';
 import { Progress, ResponseErrorPanel } from '@backstage/core-components';
-import { useStackOverflowData } from './useStackOverflowData';
+import { useStackOverflowData } from './hooks/';
 import { Question } from '../../api';
 import { Typography, Box, ButtonGroup, Button } from '@material-ui/core';
-import useStackOverflowStyles from '../useStackOverflowStyles'; // Import the reusable styles
+import { useStackOverflowStyles } from './hooks'; 
 
 type TableColumn<T> = {
   title: string;

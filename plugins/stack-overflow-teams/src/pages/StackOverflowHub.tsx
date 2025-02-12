@@ -8,11 +8,8 @@ import {
   HeaderLabel,
   SupportButton,
 } from '@backstage/core-components';
-import StackOverflowQuestionsTable from './StackOverflowQuestionsTable';
 import { SearchContextProvider } from '@backstage/plugin-search-react'
-import StackOverflowTags from './StackOverflowTags';
-import StackOverflowTopUsers from './StackOverflowTopUsers';
-import { StackOverflowQuestions } from './StackOverflowQuestions';
+import { StackOverflowQuestions, StackOverflowTags, StackOverflowUsers, StackOverflowQuestionsTable } from '../components/StackOverflow';
 
 export const StackOverflowHub = () => (
   <Page themeId="tool">
@@ -69,13 +66,13 @@ export const StackOverflowHub = () => (
           <Paper elevation={3}>
             <Box p={3}>
               <Typography variant="h5" gutterBottom>
-                Top Users
+                Users
               </Typography>
               <Typography variant="body1" color="textSecondary" gutterBottom>
-                Top users based on reputation
+                Users from your Stack Overflow Team
               </Typography>
               <Box mt={2}>
-                <StackOverflowTopUsers />
+                <StackOverflowUsers />
               </Box>
             </Box>
           </Paper>
@@ -89,7 +86,7 @@ export const StackOverflowHub = () => (
                 Stack Overflow Tags
               </Typography>
               <Typography variant="body1" color="textSecondary" gutterBottom>
-                Explore popular tags
+                Explore Stack Overflow Tags
               </Typography>
               <Box mt={2}>
                 <StackOverflowTags />

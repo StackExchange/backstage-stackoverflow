@@ -1,3 +1,10 @@
 export { stackOverflowTeamsPlugin, StackOverflowTeamsPage } from './plugin';
-export { StackOverflowSearchResultListItem } from './components/Read-Only'
-export { StackOverflowIcon } from './icons/StackOverflowIcon'
+export {
+  StackOverflowSearchResultListItem,
+  StackOverflowQuestions,
+  StackOverflowTags,
+  StackOverflowUsers,
+  StackOverflowQuestionsTable,
+} from './components/StackOverflow';
+export { StackOverflowIcon } from './icons';
+export { StackOverflowHub } from './pages';

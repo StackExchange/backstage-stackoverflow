@@ -1,7 +1,7 @@
 import React from 'react';
 import { Table, TableColumn, Link } from '@backstage/core-components';
 import { Progress, ResponseErrorPanel } from '@backstage/core-components';
-import { useStackOverflowData } from './useStackOverflowData';
+import { useStackOverflowData } from './hooks/';
 import { Chip } from '@material-ui/core';
 import { Tag } from '../../types';
 

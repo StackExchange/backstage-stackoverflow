@@ -25,7 +25,7 @@ import Chip from '@material-ui/core/Chip';
 import { useAnalytics } from '@backstage/core-plugin-api';
 import type { ResultHighlight } from '@backstage/plugin-search-common';
 import { HighlightedSearchResultText } from '@backstage/plugin-search-react';
-import { decodeHtml, getTimeAgo } from './utils';
+import { decodeHtml, getTimeAgo } from '../../utils'
 import { Avatar, Typography } from '@material-ui/core';
 
 /**

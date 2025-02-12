@@ -59,6 +59,6 @@ backend.add(import('@backstage/plugin-kubernetes-backend'));
 
 backend.add(import('@internal/backstage-plugin-stack-overflow-teams-backend'));
 
-backend.add(import('@internal/backstage-plugin-stack-overflow-teams-backend/src/questionsModule'));
+backend.add(import('@internal/backstage-plugin-stack-overflow-teams-backend/src/services/search'));
 
 backend.start();

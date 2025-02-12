@@ -16,7 +16,7 @@ export const StackOverflowTeamsPage = stackOverflowTeamsPlugin.provide(
   createRoutableExtension({
     name: 'StackOverflowTeamsPage',
     component: () =>
-      import('./components/Read-Only').then(m => m.StackOverflowHub),
+      import('./pages/').then(m => m.StackOverflowHub),
     mountPoint: rootRouteRef,
   }),
 );

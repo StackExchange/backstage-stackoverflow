@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useApi } from '@backstage/core-plugin-api'; 
 import { discoveryApiRef, fetchApiRef } from '@backstage/core-plugin-api';
-import { Question, Tag, User } from '../../api/index';
-import { createSOTeamsBackendClient } from '../../api/createSOTeamsBackendClient';
+import { Question, Tag, User } from '../../../api/index';
+import { createSOTeamsBackendClient } from '../../../api/createSOTeamsBackendClient';
 
 interface StackOverflowData {
   questions: Question[];

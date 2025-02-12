@@ -1,7 +1,7 @@
 import React from 'react';
 import { Table } from '@backstage/core-components';
 import { Progress, ResponseErrorPanel } from '@backstage/core-components';
-import { useStackOverflowData } from './useStackOverflowData';
+import { useStackOverflowData } from './hooks/';
 import { User } from '../../api';
 import { Chip, Typography } from '@material-ui/core';
 
@@ -60,7 +60,7 @@ const columns: TableColumn<User>[] = [
   },
 ];
 
-export const StackOverflowTopUsers = () => {
+export const StackOverflowUsers = () => {
   const { data, loading, error } = useStackOverflowData();
 
   if (loading) {
@@ -84,4 +84,4 @@ export const StackOverflowTopUsers = () => {
   );
 };
 
-export default StackOverflowTopUsers;
+export default StackOverflowUsers;

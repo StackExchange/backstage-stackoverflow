@@ -14,7 +14,8 @@ import {
   SearchResult,
   SearchPagination,
 } from '@backstage/plugin-search-react';
-import { StackOverflowIcon, StackOverflowSearchResultListItem } from '../../';
+import { StackOverflowSearchResultListItem } from './StackOverflowSearchResultListItem';
+import { StackOverflowIcon } from '../../icons'
 import { Content } from '@backstage/core-components';
 
 const useStyles = makeStyles((theme: Theme) => ({
