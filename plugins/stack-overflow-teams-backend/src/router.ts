@@ -22,7 +22,6 @@ export async function createRouter({
     try {
       const questions = await stackOverflowService.getQuestions();
       res.send(questions);
-      // Improve this typescript any type
     } catch (error: any) {
       // Fix type issue when including the error for some reason
       logger.error('Error fetching questions', { error });

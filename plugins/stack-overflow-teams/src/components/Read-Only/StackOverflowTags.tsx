@@ -1,5 +1,5 @@
 import React from 'react';
-import { Table, TableColumn } from '@backstage/core-components';
+import { Table, TableColumn, Link } from '@backstage/core-components';
 import { Progress, ResponseErrorPanel } from '@backstage/core-components';
 import { useStackOverflowData } from './useStackOverflowData';
 import { Chip } from '@material-ui/core';
@@ -10,14 +10,13 @@ const columns: TableColumn<Tag>[] = [
     title: 'Tag Name',
     field: 'name',
     render: row => (
-      <a
-        href={row.webUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        style={{ cursor: 'pointer' }}
+      <Link
+        to={row.webUrl}
+        noTrack
       >
-        <Chip label={row.name} />
-      </a>
+        <Chip label={row.name} 
+        clickable/>
+      </Link>
     ),
   },
   { title: 'Questions', field: 'postCount', type: 'numeric' },
