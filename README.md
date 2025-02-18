@@ -13,23 +13,28 @@ This repository adds new features to the Stack Overflow plugins for [Backstage.i
     -   Trending tags.
     -   Top unanswered questions.
 -   **Backend API Integration**: Secure backend routers access the Stack Overflow Teams API via Keys or Tokens to retrieve relevant data.
+-   **Ask Questions from Backstage**: Users can securely ask questions from Backstage leveraging OAuth PKCE Flow.
 
 ### Current Progress:
 
 #### Completed:
 
 -   **API Integration**: Full integration with Stack Overflow for Teams (Enterprise and B&B tiers) using API v3.
+-   **Home Page**: Displays key Stack Overflow data, including:
+    -   A leaderboard of active users or top contributors.
+    -   Trending tags.
+    -   Top unanswered questions.
+-   **Backend API Integration**: Secure backend routers access the Stack Overflow Teams API via Keys or Tokens to retrieve relevant data.
 
 #### In Progress:
 
 -   **Error Logging**: Improving logging for better debugging and issue tracking.
--   **Backend Development**: Building backend routers for secure access to Stack Overflow Teams API.
+-   **Ask Questions from Backstage**
 
 #### Upcoming:
 
 -   **Frontend Development**:
     -   User interface for the home page (leaderboard, trending tags, unanswered questions).
-    -   Resolving the issue with client-side API requests, which is incompatible with private instances.
 -   **Additional Features**:
     -   Enhancing the UI/UX for improved user interaction and engagement.
 
