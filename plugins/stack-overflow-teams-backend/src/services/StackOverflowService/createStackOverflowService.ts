@@ -1,4 +1,4 @@
-import { LoggerService } from '@backstage/backend-plugin-api/index';
+import { LoggerService } from '@backstage/backend-plugin-api';
 import {
   PaginatedResponse,
   Question,
@@ -7,6 +7,7 @@ import {
   Tag,
   User,
 } from './types';
+import { createStackOverflowApi } from '../../api';
 
 export async function createStackOverflowService({
   config,
@@ -18,45 +19,17 @@ export async function createStackOverflowService({
   logger.info('Initializing Stack Overflow Service');
 
   const { baseUrl, apiAccessToken, teamName } = config;
-
-  // Fetch data helper function
-
-  const fetchFromApi = async <T>(
-    endpoint: string,
-  ): Promise<PaginatedResponse<T>> => {
-    let url: string;
-    if (teamName) {
-      url = `${baseUrl}/teams/${teamName}${endpoint}`;
-    }
-    url = `${baseUrl}${endpoint}`;
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${apiAccessToken}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      logger.error('Failed to fetch data from Stack Overflow API');
-      // API V3 has meaningful errors, but will double check later on this
-      throw new Error(await response.text());
-    }
-    const data = await response.json();
-    return data;
-  };
+  const stackOverflowApi = createStackOverflowApi(baseUrl, logger);
 
   return {
-    async getQuestions(): Promise<PaginatedResponse<Question>> {
-      return fetchFromApi<Question>('/questions');
-    },
-
-    async getTags(): Promise<PaginatedResponse<Tag>> {
-      return fetchFromApi<Tag>('/tags');
-    },
-
-    async getUsers(): Promise<PaginatedResponse<User>> {
-      return fetchFromApi<User>('/users');
-    },
+    // OAUTH
+    
+    // GET
+    getQuestions: () => stackOverflowApi.GET<PaginatedResponse<Question>>('/questions', teamName, apiAccessToken),
+    getTags: () => stackOverflowApi.GET<PaginatedResponse<Tag>>('/tags', teamName, apiAccessToken),
+    getUsers: () => stackOverflowApi.GET<PaginatedResponse<User>>('/users', teamName, apiAccessToken),
+    // POST
+    postQuestions: (title: string, body: string, tags: string[], authToken: string) =>
+      stackOverflowApi.POST<Question>('/questions', { title, body, tags }, authToken, teamName),
   };
 }

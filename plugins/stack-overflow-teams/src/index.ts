@@ -6,5 +6,6 @@ export {
   StackOverflowUsers,
   StackOverflowQuestionsTable,
 } from './components/StackOverflow';
+export * from './components/StackOverflowAuth/StackAuthCallback'
 export { StackOverflowIcon } from './icons';
 export { StackOverflowHub } from './pages';

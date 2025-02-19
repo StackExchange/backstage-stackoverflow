@@ -27,6 +27,7 @@ import MenuIcon from '@material-ui/icons/Menu';
 import SearchIcon from '@material-ui/icons/Search';
 import { MyGroupsSidebarItem } from '@backstage/plugin-org';
 import GroupIcon from '@material-ui/icons/People';
+import { StackOverflowIcon } from '@internal/backstage-plugin-stack-overflow-teams';
 
 const useSidebarLogoStyles = makeStyles({
   root: {
@@ -75,9 +76,21 @@ export const Root = ({ children }: PropsWithChildren<{}>) => (
         <SidebarItem icon={ExtensionIcon} to="api-docs" text="APIs" />
         <SidebarItem icon={LibraryBooks} to="docs" text="Docs" />
         <SidebarItem icon={CreateComponentIcon} to="create" text="Create..." />
-        {/* End global nav */}
         <SidebarDivider />
+        <SidebarItem
+          icon={StackOverflowIcon}
+          to="stack-overflow-teams"
+          text="Stack Overflow"
+        />
+        <SidebarItem
+          icon={StackOverflowIcon}
+          to="stack-overflow"
+          text="Ask a Question"
+        />
+
         <SidebarScrollWrapper>
+          <SidebarDivider />
+          {/* End global nav */}
           {/* Items in this group will be scrollable if they run out of space */}
         </SidebarScrollWrapper>
       </SidebarGroup>

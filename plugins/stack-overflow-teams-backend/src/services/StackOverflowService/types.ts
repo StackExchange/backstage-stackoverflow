@@ -37,12 +37,17 @@ export type StackOverflowConfig = {
   baseUrl: string;
   teamName?: string;
   apiAccessToken: string;
+  clientId?: number;
+  redirectUri?: string;
+  authUrl?: string;
+  scopes?: string;
 }
 
 export interface StackOverflowAPI {
   getQuestions(): Promise<PaginatedResponse<Question>>
   getTags(): Promise<PaginatedResponse<Tag>>
   getUsers(): Promise<PaginatedResponse<User>>
+  postQuestions(title: string, body: string, tags: string[], authToken: string): Promise<Question>;
 }
 
 

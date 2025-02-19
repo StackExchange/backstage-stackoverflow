@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useApi } from '@backstage/core-plugin-api'; 
-import { discoveryApiRef, fetchApiRef } from '@backstage/core-plugin-api';
-import { Question, Tag, User } from '../../../api/index';
-import { createSOTeamsBackendClient } from '../../../api/createSOTeamsBackendClient';
+import { useApi } from '@backstage/core-plugin-api';
+import { Question, stackoverflowteamsApiRef, Tag, User } from '../../../api/';
 
 interface StackOverflowData {
   questions: Question[];
@@ -11,8 +9,7 @@ interface StackOverflowData {
 }
 
 export const useStackOverflowData = () => {
-  const discoveryApi = useApi(discoveryApiRef); 
-  const fetchApi = useApi(fetchApiRef); 
+  const stackOverflowTeamsApi = useApi(stackoverflowteamsApiRef);
   const [data, setData] = useState<StackOverflowData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -20,11 +17,9 @@ export const useStackOverflowData = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const apiClient = await createSOTeamsBackendClient(discoveryApi, fetchApi);
-        
-        const questionsResponse = await apiClient.getQuestions();
-        const tagsResponse = await apiClient.getTags();
-        const usersResponse = await apiClient.getUsers();
+        const questionsResponse = await stackOverflowTeamsApi.getQuestions();
+        const tagsResponse = await stackOverflowTeamsApi.getTags();
+        const usersResponse = await stackOverflowTeamsApi.getUsers();
 
         setData({
           questions: questionsResponse.items,
@@ -39,7 +34,7 @@ export const useStackOverflowData = () => {
     };
 
     fetchData();
-  }, [discoveryApi, fetchApi]);
+  }, [stackOverflowTeamsApi]);
 
   return { data, loading, error };
-}
+};

@@ -7,5 +7,5 @@ export type {
     StackOverflowAPI 
   } from '../types';
   
-export { createSOTeamsBackendClient } from './createSOTeamsBackendClient';
+export * from './StackOverflowAPI'
   

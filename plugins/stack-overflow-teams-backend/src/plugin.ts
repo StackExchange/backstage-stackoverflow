@@ -4,7 +4,7 @@ import {
 } from '@backstage/backend-plugin-api';
 import { createRouter } from './router';
 import { createStackOverflowService } from './services/StackOverflowService';
-import { StackOverflowConfig } from './services/StackOverflowService/types';
+import { StackOverflowConfig } from './services/StackOverflowService';
 
 /**
  * stackOverflowTeamsPlugin backend plugin
@@ -25,6 +25,9 @@ export const stackOverflowTeamsPlugin = createBackendPlugin({
           baseUrl: config.getString('stackoverflow.baseUrl'),
           apiAccessToken: config.getString('stackoverflow.apiAccessToken'),
           teamName: config.getOptionalString('stackoverflow.teamName'),
+          clientId: config.getOptionalNumber('stackoverflow.clientId'),
+          redirectUri: config.getOptionalString('stackoverflow.redirectUri'),
+          scopes: config.getOptionalString('scopes')
         };
         const stackOverflowService = await createStackOverflowService({
           config: stackOverflowConfig,

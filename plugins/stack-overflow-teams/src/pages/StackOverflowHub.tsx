@@ -8,8 +8,14 @@ import {
   HeaderLabel,
   SupportButton,
 } from '@backstage/core-components';
-import { SearchContextProvider } from '@backstage/plugin-search-react'
-import { StackOverflowQuestions, StackOverflowTags, StackOverflowUsers, StackOverflowQuestionsTable } from '../components/StackOverflow';
+import { SearchContextProvider } from '@backstage/plugin-search-react';
+import {
+  StackOverflowQuestions,
+  StackOverflowTags,
+  StackOverflowUsers,
+  StackOverflowQuestionsTable,
+} from '../components/StackOverflow';
+import { StackOverflowAuthStart } from '../components/StackOverflowAuth/StackAuthStart';
 
 export const StackOverflowHub = () => (
   <Page themeId="tool">
@@ -27,74 +33,7 @@ export const StackOverflowHub = () => (
           trending tags, and unanswered questions.
         </SupportButton>
       </ContentHeader>
-      <Grid container spacing={3}>
-        {/* Recent Questions Section */}
-        <Grid item xs={12}>
-          <Paper elevation={3}>
-            <Box p={3}>
-              <Typography variant="h5" gutterBottom>
-                Stack Overflow Questions
-              </Typography>
-              <Box mt={1}>
-                <SearchContextProvider>
-                <StackOverflowQuestions />
-                </SearchContextProvider>
-              </Box>
-            </Box>
-          </Paper>
-        </Grid>
-
-        {/* Recent Questions Section */}
-        {/* <Grid item xs={12}>
-          <Paper elevation={3}>
-            <Box p={3}>
-              <Typography variant="h5" gutterBottom>
-                Recent Stack Overflow Questions
-              </Typography>
-              <Typography variant="body1" color="textSecondary" gutterBottom>
-                View recent questions from Stack Overflow
-              </Typography>
-              <Box mt={2}>
-                <StackOverflowQuestionsTable />
-              </Box>
-            </Box>
-          </Paper>
-        </Grid> */}
-
-        {/* Top Users Section */}
-        <Grid item xs={12} md={6}>
-          <Paper elevation={3}>
-            <Box p={3}>
-              <Typography variant="h5" gutterBottom>
-                Users
-              </Typography>
-              <Typography variant="body1" color="textSecondary" gutterBottom>
-                Users from your Stack Overflow Team
-              </Typography>
-              <Box mt={2}>
-                <StackOverflowUsers />
-              </Box>
-            </Box>
-          </Paper>
-        </Grid>
-
-        {/* Tags Section */}
-        <Grid item xs={12} md={6}>
-          <Paper elevation={3}>
-            <Box p={3}>
-              <Typography variant="h5" gutterBottom>
-                Stack Overflow Tags
-              </Typography>
-              <Typography variant="body1" color="textSecondary" gutterBottom>
-                Explore Stack Overflow Tags
-              </Typography>
-              <Box mt={2}>
-                <StackOverflowTags />
-              </Box>
-            </Box>
-          </Paper>
-        </Grid>
-      </Grid>
+      <StackOverflowAuthStart />
     </Content>
   </Page>
 );

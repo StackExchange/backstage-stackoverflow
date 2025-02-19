@@ -172,17 +172,6 @@ export class StackOverflowQuestionsCollatorFactory
       );
     }
 
-    try {
-      if (Object.keys(this.requestParams).indexOf('key') >= 0) {
-        this.logger.warn(
-          'The API Key should be passed as a separate param to bypass encoding',
-        );
-        delete this.requestParams.key;
-      }
-    } catch (e) {
-      this.logger.error(`Caught ${e}`);
-    }
-
     const params = qs.stringify(this.requestParams, {
       arrayFormat: 'comma',
       addQueryPrefix: true,
