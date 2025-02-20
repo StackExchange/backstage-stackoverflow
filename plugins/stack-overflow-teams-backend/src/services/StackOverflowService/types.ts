@@ -40,7 +40,6 @@ export type StackOverflowConfig = {
   clientId?: number;
   redirectUri?: string;
   authUrl?: string;
-  scopes?: string;
 }
 
 export interface StackOverflowAPI {
@@ -49,5 +48,3 @@ export interface StackOverflowAPI {
   getUsers(): Promise<PaginatedResponse<User>>
   postQuestions(title: string, body: string, tags: string[], authToken: string): Promise<Question>;
 }
-
-

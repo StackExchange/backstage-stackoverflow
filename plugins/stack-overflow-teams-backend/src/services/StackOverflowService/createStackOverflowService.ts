@@ -22,8 +22,6 @@ export async function createStackOverflowService({
   const stackOverflowApi = createStackOverflowApi(baseUrl, logger);
 
   return {
-    // OAUTH
-    
     // GET
     getQuestions: () => stackOverflowApi.GET<PaginatedResponse<Question>>('/questions', teamName, apiAccessToken),
     getTags: () => stackOverflowApi.GET<PaginatedResponse<Tag>>('/tags', teamName, apiAccessToken),

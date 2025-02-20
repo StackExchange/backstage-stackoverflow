@@ -27,7 +27,6 @@ export const stackOverflowTeamsPlugin = createBackendPlugin({
           teamName: config.getOptionalString('stackoverflow.teamName'),
           clientId: config.getOptionalNumber('stackoverflow.clientId'),
           redirectUri: config.getOptionalString('stackoverflow.redirectUri'),
-          scopes: config.getOptionalString('scopes')
         };
         const stackOverflowService = await createStackOverflowService({
           config: stackOverflowConfig,

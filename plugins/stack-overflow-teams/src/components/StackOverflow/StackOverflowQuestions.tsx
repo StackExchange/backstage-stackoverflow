@@ -15,7 +15,7 @@ import {
   SearchPagination,
 } from '@backstage/plugin-search-react';
 import { StackOverflowSearchResultListItem } from './StackOverflowSearchResultListItem';
-import { StackOverflowIcon } from '../../icons'
+import { StackOverflowIcon } from '../../icons';
 import { Content } from '@backstage/core-components';
 
 const useStyles = makeStyles((theme: Theme) => ({
@@ -52,23 +52,25 @@ const filterAndSortResults = (results: any[], filters: any) => {
     filtered = [...filtered].sort(
       (a, b) =>
         new Date(b.document.creationDate).getTime() -
-        new Date(a.document.creationDate).getTime()
+        new Date(a.document.creationDate).getTime(),
     );
   }
   if (filters.showActiveOnly) {
     const now = new Date();
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     filtered = filtered.filter(
-      q => new Date(q.document.lastActivityDate) >= thirtyDaysAgo
+      q => new Date(q.document.lastActivityDate) >= thirtyDaysAgo,
     );
     filtered = [...filtered].sort(
       (a, b) =>
         new Date(b.document.lastActivityDate).getTime() -
-        new Date(a.document.lastActivityDate).getTime()
+        new Date(a.document.lastActivityDate).getTime(),
     );
   }
   if (filters.sortByScore) {
-    filtered = [...filtered].sort((a, b) => b.document.score - a.document.score);
+    filtered = [...filtered].sort(
+      (a, b) => b.document.score - a.document.score,
+    );
   }
 
   return filtered;
@@ -85,6 +87,7 @@ export const SearchPage = () => {
   });
   const [filteredResults, setFilteredResults] = useState<any[]>([]);
   const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [modalOpen, setModalOpen] = useState(false);
 
   const toggleFilter = (filterName: string) => {
     setFilters(prev => {
@@ -102,6 +105,7 @@ export const SearchPage = () => {
 
   return (
     <Content>
+      <Button onClick={() => setModalOpen(true)}>Ask a Question</Button>
       <Grid container spacing={2}>
         {/* Search Bar */}
         <Grid item xs={12}>
@@ -176,7 +180,7 @@ export const SearchPage = () => {
                         result={document}
                         icon={<StackOverflowIcon />}
                       />
-                    ) : null
+                    ) : null,
                   )}
                 </List>
               );

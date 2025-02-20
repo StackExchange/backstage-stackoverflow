@@ -34,6 +34,9 @@ export const StackOverflowHub = () => (
         </SupportButton>
       </ContentHeader>
       <StackOverflowAuthStart />
+      <SearchContextProvider>
+        <StackOverflowQuestions />
+      </SearchContextProvider>
     </Content>
   </Page>
 );

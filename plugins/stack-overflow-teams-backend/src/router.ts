@@ -33,7 +33,7 @@ export async function createRouter({
     );
   }
 
-  // OAuth routes
+  // OAuth Authentication routes
 
   router.get('/auth/start', async (req: Request, res: Response) => {
     const { url, codeVerifier, state } = await authService.getAuthUrl();
@@ -67,13 +67,13 @@ export async function createRouter({
       );
       // The cookie's max age is linked to the Token's expiration, the default expiration is 24 hours.
       res.clearCookie('socodeverifier');
-      res.clearCookie('state')
+      res.clearCookie('state');
       res.cookie('stackoverflow-access-token', accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        maxAge: expires
+        maxAge: expires,
       });
-      res.json({'response': 'ok'})
+      res.json({ response: 'ok' });
     } catch (error: any) {
       logger.error('Failed to exchange code for token', error);
       res
@@ -83,6 +83,25 @@ export async function createRouter({
         .json({ error: 'Failed to authenticate to Stack Overflow for Teams' });
     }
   });
+
+  router.get('/authStatus', async (req: Request, res: Response) => {
+    try {
+      const cookies = cookieParse(req);
+      const authToken = cookies['stackoverflow-access-token'];
+      if (!authToken) {
+        return res
+          .status(401)
+          .json({ error: 'Missing Stack Overflow Teams Access Token' });
+      }
+      return res
+        .status(200)
+        .json({ success: 'Stack Overflow Teams Access Token detected' });
+    } catch (error: any) {
+      throw new Error('Error confirming authentication status', error);
+    }
+  });
+
+  // Read routes
 
   router.get('/questions', async (_req: Request, res: Response) => {
     try {
@@ -123,13 +142,17 @@ export async function createRouter({
     }
   });
 
-  router.post('/questions', async (_req: Request, res: Response) => {
+  // Write routes
+
+  router.post('/questions', async (req: Request, res: Response) => {
     try {
-      const cookies = cookieParse(request);
-      const { title, body, tags } = request.body;
+      const cookies = cookieParse(req);
+      const { title, body, tags } = req.body;
       const authToken = cookies['stackoverflow-access-token'];
       if (!authToken) {
-        return res.status(401).json({ error: 'Unauthorized, no access token' });
+        return res
+          .status(401)
+          .json({ error: 'Missing Stack Overflow Teams Access Token' });
       }
       const question = await stackOverflowService.postQuestions(
         title,

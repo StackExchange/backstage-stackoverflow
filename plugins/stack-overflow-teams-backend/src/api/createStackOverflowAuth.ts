@@ -56,7 +56,7 @@ export function createStackOverflowAuth(
       validatedConfig.clientId
     }&redirect_uri=${encodeURIComponent(
       validatedConfig.redirectUri,
-    )}&code_challenge=${codeChallenge}&code_challenge_method=S256&state=${state}`;
+    )}&code_challenge=${codeChallenge}&code_challenge_method=S256&state=${state}&scope=write_access`;
 
     return { url: authUrl, codeVerifier, state };
   }
