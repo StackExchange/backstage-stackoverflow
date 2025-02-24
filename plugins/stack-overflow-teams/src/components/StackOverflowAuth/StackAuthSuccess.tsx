@@ -16,10 +16,10 @@ export const StackAuthSuccess = () => {
       height="100vh"
     >
       <StackOverflowIcon />
-      <Typography variant="h5" color="white" mt={2}>
+      <Typography variant="h5" mt={2}>
         You have successfully logged in with Stack Overflow!
       </Typography>
-      <Typography variant="body1" color="white" mt={1}>
+      <Typography variant="body1" mt={1}>
         You can now access all Stack Overflow features from Backstage
       </Typography>
       <Button

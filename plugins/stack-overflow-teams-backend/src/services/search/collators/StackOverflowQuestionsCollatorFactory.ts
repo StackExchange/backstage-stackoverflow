@@ -190,16 +190,17 @@ export class StackOverflowQuestionsCollatorFactory
       requestUrl = `${this.baseUrl}/questions${params}`;
     }
 
-    let hasMorePages = true;
     let page = 1;
-    while (hasMorePages) {
+    const pageSize = this.requestParams.pageSize || 15
+    let totalPages = Infinity
+    while (page <= totalPages) {
       if (page === this.maxPage) {
         this.logger.warn(
           `Over ${this.maxPage} requests to the Stack Overflow API have been made, which may not have been intended. Either specify requestParams that limit the questions returned, or configure a higher maxPage if necessary.`,
         );
         break;
       }
-      const res = await fetch(`${requestUrl}&page=${page}`, {
+      const res = await fetch(`${requestUrl}&page=${page}&pageSize=${pageSize}`, {
         headers: {
           Authorization: `Bearer ${this.apiAccessToken}`,
         },
@@ -234,7 +235,7 @@ export class StackOverflowQuestionsCollatorFactory
           lastActivityDate: question.lastActivityDate, 
         };
       }
-      return;
+      page++
     }
   }
 }
