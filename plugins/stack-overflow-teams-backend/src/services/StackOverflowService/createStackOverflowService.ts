@@ -26,6 +26,7 @@ export async function createStackOverflowService({
     getQuestions: () => stackOverflowApi.GET<PaginatedResponse<Question>>('/questions', teamName, apiAccessToken),
     getTags: () => stackOverflowApi.GET<PaginatedResponse<Tag>>('/tags', teamName, apiAccessToken),
     getUsers: () => stackOverflowApi.GET<PaginatedResponse<User>>('/users', teamName, apiAccessToken),
+    getMe: (authToken) => stackOverflowApi.GET<User>('/users/me', teamName, authToken),
     // POST
     postQuestions: (title: string, body: string, tags: string[], authToken: string) =>
       stackOverflowApi.POST<Question>('/questions', { title, body, tags }, authToken, teamName),

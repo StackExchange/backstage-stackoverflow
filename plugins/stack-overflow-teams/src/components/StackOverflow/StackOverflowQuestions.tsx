@@ -87,7 +87,6 @@ export const SearchPage = () => {
   });
   const [filteredResults, setFilteredResults] = useState<any[]>([]);
   const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [modalOpen, setModalOpen] = useState(false);
 
   const toggleFilter = (filterName: string) => {
     setFilters(prev => {
@@ -105,7 +104,6 @@ export const SearchPage = () => {
 
   return (
     <Content>
-      <Button onClick={() => setModalOpen(true)}>Ask a Question</Button>
       <Grid container spacing={2}>
         {/* Search Bar */}
         <Grid item xs={12}>

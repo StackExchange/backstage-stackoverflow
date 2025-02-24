@@ -61,7 +61,7 @@ const columns: TableColumn<User>[] = [
 ];
 
 export const StackOverflowUsers = () => {
-  const { data, loading, error } = useStackOverflowData();
+  const { data, loading, error } = useStackOverflowData('users');
 
   if (loading) {
     return <Progress />;
@@ -72,11 +72,11 @@ export const StackOverflowUsers = () => {
   }
 
   // Sort users by reputation (descending)
-  const sortedUsers = data?.users.sort((a, b) => b.reputation - a.reputation) || [];
+  const sortedUsers = data?.users?.sort((a, b) => b.reputation - a.reputation) || [];
 
   return (
     <Table
-      title="Top Users by Reputation"
+      title="Stack Overflow Users"
       options={{ search: true, paging: true }}
       columns={columns}
       data={sortedUsers} // Use the sorted users array

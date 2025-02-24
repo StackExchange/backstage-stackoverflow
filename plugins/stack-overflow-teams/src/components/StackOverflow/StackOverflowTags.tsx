@@ -23,7 +23,7 @@ const columns: TableColumn<Tag>[] = [
 ];
 
 export const StackOverflowTags = () => {
-  const { data, loading, error } = useStackOverflowData();
+  const { data, loading, error } = useStackOverflowData('tags');
 
   if (loading) {
     return <Progress />;

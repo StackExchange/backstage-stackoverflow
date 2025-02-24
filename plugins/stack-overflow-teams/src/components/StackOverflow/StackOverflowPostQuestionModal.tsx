@@ -1,7 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useApi } from '@backstage/core-plugin-api';
 import { stackoverflowteamsApiRef } from '../../api';
-import { Modal, Box, TextField, Button, Typography, Chip } from '@mui/material';
+import {
+  Modal,
+  Box,
+  TextField,
+  Button,
+  Typography,
+  Chip,
+  Link,
+} from '@mui/material';
+import { useStackOverflowStyles } from './hooks'; // Import the styles hook
+import { useNavigate } from 'react-router-dom'; // For navigation
 
 export const StackOverflowPostQuestionModal = () => {
   const stackOverflowApi = useApi(stackoverflowteamsApiRef);
@@ -14,20 +24,22 @@ export const StackOverflowPostQuestionModal = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [open, setOpen] = useState(false);
+  const classes = useStackOverflowStyles(); // Use the styles hook
+  const navigate = useNavigate(); // Hook for navigation
 
   useEffect(() => {
-    const checkAuth = async () => {
+    const openModal = async () => {
       const authStatus = await stackOverflowApi.getAuthStatus();
       setIsAuthenticated(authStatus);
+
+      setOpen(true);
     };
-    checkAuth();
-    const openModal = () => setOpen(true);
     window.addEventListener('openAskQuestionModal', openModal);
 
     return () => {
-      window.removeEventListener('openAskQuestionModal', openModal)
-    }
-  }, [open, stackOverflowApi]);
+      window.removeEventListener('openAskQuestionModal', openModal);
+    };
+  }, [stackOverflowApi]);
 
   const handleSubmit = async () => {
     if (!title || !body || tags.length === 0) {
@@ -59,6 +71,11 @@ export const StackOverflowPostQuestionModal = () => {
     }
   };
 
+  const handleLoginRedirect = () => {
+    setOpen(false);
+    navigate('/stack-overflow-teams');
+  };
+
   return (
     <Modal open={open} onClose={() => setOpen(false)}>
       <Box
@@ -74,13 +91,17 @@ export const StackOverflowPostQuestionModal = () => {
           borderRadius: 2,
         }}
       >
-        <Typography variant="h6" mb={2}>
+        <Typography variant="h6" mb={2} className={classes.title}>
           Ask a Stack Overflow Question
         </Typography>
 
         {!isAuthenticated ? (
           <Typography color="error">
-            You must be logged in to post a question.
+            Please{' '}
+            <Link component="button" onClick={handleLoginRedirect}>
+              log in
+            </Link>{' '}
+            to use this feature.
           </Typography>
         ) : success ? (
           <Typography color="success.main">
@@ -94,7 +115,8 @@ export const StackOverflowPostQuestionModal = () => {
               variant="outlined"
               margin="normal"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={e => setTitle(e.target.value)}
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1 } }}
             />
             <TextField
               label="Body"
@@ -104,7 +126,8 @@ export const StackOverflowPostQuestionModal = () => {
               multiline
               rows={4}
               value={body}
-              onChange={(e) => setBody(e.target.value)}
+              onChange={e => setBody(e.target.value)}
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1 } }}
             />
             <TextField
               label="Tags"
@@ -112,18 +135,23 @@ export const StackOverflowPostQuestionModal = () => {
               variant="outlined"
               margin="normal"
               value={tagInput}
-              onChange={(e) => setTagInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleTagAdd()}
+              onChange={e => setTagInput(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleTagAdd()}
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1 } }}
             />
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
               {tags.map((tag, index) => (
-                <Chip key={index} label={tag} onDelete={() => setTags(tags.filter((t) => t !== tag))} />
+                <Chip
+                  key={index}
+                  label={tag}
+                  onDelete={() => setTags(tags.filter(t => t !== tag))}
+                />
               ))}
             </Box>
             {error && <Typography color="error">{error}</Typography>}
             <Button
               variant="contained"
-              color="primary"
+              className={classes.button} // Apply Stack Overflow button styles
               fullWidth
               onClick={handleSubmit}
               disabled={loading}

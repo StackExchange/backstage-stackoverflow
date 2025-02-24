@@ -14,6 +14,7 @@ export type Tag = {
 
 export type User = {
   id: number
+  email: string
   name: string
   jobTitle: string | null
   department: string | null
@@ -46,5 +47,6 @@ export interface StackOverflowAPI {
   getQuestions(): Promise<PaginatedResponse<Question>>
   getTags(): Promise<PaginatedResponse<Tag>>
   getUsers(): Promise<PaginatedResponse<User>>
+  getMe(authToken: string): Promise<User> 
   postQuestions(title: string, body: string, tags: string[], authToken: string): Promise<Question>;
 }

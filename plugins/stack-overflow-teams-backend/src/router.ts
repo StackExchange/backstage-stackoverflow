@@ -1,5 +1,5 @@
 import { LoggerService } from '@backstage/backend-plugin-api';
-import express, { request, Request, Response } from 'express';
+import express, { Request, Response } from 'express';
 import Router from 'express-promise-router';
 import {
   StackOverflowAPI,
@@ -35,7 +35,7 @@ export async function createRouter({
 
   // OAuth Authentication routes
 
-  router.get('/auth/start', async (req: Request, res: Response) => {
+  router.get('/auth/start', async (_req: Request, res: Response) => {
     const { url, codeVerifier, state } = await authService.getAuthUrl();
 
     res.cookie('socodeverifier', codeVerifier, {
@@ -58,7 +58,11 @@ export async function createRouter({
 
     try {
       if (state !== storedState) {
-        throw new Error('State does not match the one sent to the user');
+        return res
+          .clearCookie('socodeverifier')
+          .clearCookie('state')
+          .status(401)
+          .json({ error: 'Invalid State' });
       }
 
       const { accessToken, expires } = await authService.exchangeCodeForToken(
@@ -66,17 +70,18 @@ export async function createRouter({
         codeVerifier,
       );
       // The cookie's max age is linked to the Token's expiration, the default expiration is 24 hours.
-      res.clearCookie('socodeverifier');
-      res.clearCookie('state');
-      res.cookie('stackoverflow-access-token', accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        maxAge: expires,
-      });
-      res.json({ response: 'ok' });
+      return res
+        .clearCookie('socodeverifier')
+        .clearCookie('state')
+        .cookie('stackoverflow-access-token', accessToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          maxAge: expires * 1000,
+        })
+        .json({ ok: true });
     } catch (error: any) {
       logger.error('Failed to exchange code for token', error);
-      res
+      return res
         .clearCookie('socodeverifier')
         .clearCookie('state')
         .status(500)
@@ -88,6 +93,7 @@ export async function createRouter({
     try {
       const cookies = cookieParse(req);
       const authToken = cookies['stackoverflow-access-token'];
+      // Need to add validation logic to remove the cookie if the token is invalid, pending enhancement to the createStackOverflowAuth.ts
       if (!authToken) {
         return res
           .status(401)
@@ -95,13 +101,43 @@ export async function createRouter({
       }
       return res
         .status(200)
-        .json({ success: 'Stack Overflow Teams Access Token detected' });
+        .json({ ok: 'Stack Overflow Teams Access Token detected' });
     } catch (error: any) {
-      throw new Error('Error confirming authentication status', error);
+      logger.error('Error getting authentication status:', error);
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
+  });
+
+  // Logout route
+
+  router.post('/logout', async (_req: Request, res: Response) => {
+    try {
+      res
+        .clearCookie('stackoverflow-access-token')
+        .status(200)
+        .json({ ok: true });
+    } catch (error: any) {
+      logger.error('Error removing authentication token:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
     }
   });
 
   // Read routes
+
+  router.get('/me', async (_req: Request, res: Response) => {
+    try {
+      const cookies = cookieParse(_req);
+      const authToken = cookies['stackoverflow-access-token']
+      const me = await stackOverflowService.getMe(authToken);
+      res.send(me);
+    } catch (error: any) {
+      // Fix type issue when including the error for some reason
+      logger.error('Error fetching questions', { error });
+      res.status(500).send({
+        error: `Failed to fetch questions from ${stackOverflowConfig.baseUrl}`,
+      });
+    }
+  });
 
   router.get('/questions', async (_req: Request, res: Response) => {
     try {
@@ -160,10 +196,10 @@ export async function createRouter({
         tags,
         authToken,
       );
-      res.status(201).json(question);
+      return res.status(201).json(question);
     } catch (error: any) {
       logger.error('Error posting question', { error });
-      res.status(500).json({
+      return res.status(500).json({
         error: `Failed to post question to ${stackOverflowConfig.baseUrl}`,
       });
     }
