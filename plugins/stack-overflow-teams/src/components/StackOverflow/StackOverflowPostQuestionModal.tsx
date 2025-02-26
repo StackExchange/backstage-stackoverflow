@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApi } from '@backstage/core-plugin-api';
 import { stackoverflowteamsApiRef } from '../../api';
+// eslint-disable-next-line no-restricted-imports
 import {
   Modal,
   Box,
@@ -58,7 +59,7 @@ export const StackOverflowPostQuestionModal = () => {
       setTags([]);
       setTagInput('');
       if (response.webUrl) {
-        window.open(response.webUrl, '_blank')
+        window.open(response.webUrl, '_blank');
       }
     } catch (err) {
       setError('Failed to post question. Please try again.');
@@ -79,6 +80,83 @@ export const StackOverflowPostQuestionModal = () => {
     navigate('/stack-overflow-teams');
   };
 
+  const renderContent = () => {
+    if (!isAuthenticated) {
+      return (
+        <Typography color="error">
+          Please{' '}
+          <Link component="button" onClick={handleLoginRedirect}>
+            log in
+          </Link>{' '}
+          to use this feature.
+        </Typography>
+      );
+    }
+
+    if (success) {
+      return (
+        <Typography color="success.main">
+          Your question has been posted successfully!
+        </Typography>
+      );
+    }
+
+    return (
+      <>
+        <TextField
+          label="Title"
+          fullWidth
+          variant="outlined"
+          margin="normal"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1 } }}
+        />
+        <TextField
+          label="Body"
+          fullWidth
+          variant="outlined"
+          margin="normal"
+          multiline
+          rows={4}
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
+          sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1 } }}
+        />
+        <TextField
+          label="Tags"
+          fullWidth
+          variant="outlined"
+          margin="normal"
+          value={tagInput}
+          onChange={(e) => setTagInput(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleTagAdd()}
+          sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1 } }}
+        />
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+          {tags.map((tag, index) => (
+            <Chip
+              key={index}
+              label={tag}
+              onDelete={() => setTags(tags.filter((t) => t !== tag))}
+            />
+          ))}
+        </Box>
+        {error && <Typography color="error">{error}</Typography>}
+        <Button
+          variant="contained"
+          className={classes.button} // Apply Stack Overflow button styles
+          fullWidth
+          onClick={handleSubmit}
+          disabled={loading}
+          sx={{ mt: 2 }}
+        >
+          {loading ? 'Posting...' : 'Post Question'}
+        </Button>
+      </>
+    );
+  };
+
   return (
     <Modal open={open} onClose={() => setOpen(false)}>
       <Box
@@ -97,73 +175,7 @@ export const StackOverflowPostQuestionModal = () => {
         <Typography variant="h6" mb={2} className={classes.title}>
           Ask a Stack Overflow Question
         </Typography>
-
-        {!isAuthenticated ? (
-          <Typography color="error">
-            Please{' '}
-            <Link component="button" onClick={handleLoginRedirect}>
-              log in
-            </Link>{' '}
-            to use this feature.
-          </Typography>
-        ) : success ? (
-          <Typography color="success.main">
-            Your question has been posted successfully!
-          </Typography>
-        ) : (
-          <>
-            <TextField
-              label="Title"
-              fullWidth
-              variant="outlined"
-              margin="normal"
-              value={title}
-              onChange={e => setTitle(e.target.value)}
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1 } }}
-            />
-            <TextField
-              label="Body"
-              fullWidth
-              variant="outlined"
-              margin="normal"
-              multiline
-              rows={4}
-              value={body}
-              onChange={e => setBody(e.target.value)}
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1 } }}
-            />
-            <TextField
-              label="Tags"
-              fullWidth
-              variant="outlined"
-              margin="normal"
-              value={tagInput}
-              onChange={e => setTagInput(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleTagAdd()}
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1 } }}
-            />
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
-              {tags.map((tag, index) => (
-                <Chip
-                  key={index}
-                  label={tag}
-                  onDelete={() => setTags(tags.filter(t => t !== tag))}
-                />
-              ))}
-            </Box>
-            {error && <Typography color="error">{error}</Typography>}
-            <Button
-              variant="contained"
-              className={classes.button} // Apply Stack Overflow button styles
-              fullWidth
-              onClick={handleSubmit}
-              disabled={loading}
-              sx={{ mt: 2 }}
-            >
-              {loading ? 'Posting...' : 'Post Question'}
-            </Button>
-          </>
-        )}
+        {renderContent()}
         <Button onClick={() => setOpen(false)} sx={{ mt: 2 }}>
           Close
         </Button>

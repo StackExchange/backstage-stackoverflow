@@ -24,7 +24,6 @@ export const StackOverflowCallback = () => {
       }
 
       if (!code || !state) {
-        console.error('OAuth code or state not found in URL');
         setStatus('error');
         return;
       }
@@ -34,7 +33,6 @@ export const StackOverflowCallback = () => {
         setStatus('success');
         window.history.replaceState({}, document.title, location.pathname);
       } catch (error) {
-        console.error('OAuth callback error:', error);
         setStatus('error');
       }
     };

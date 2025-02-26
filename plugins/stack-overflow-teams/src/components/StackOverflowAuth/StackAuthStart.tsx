@@ -1,23 +1,23 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useApi } from '@backstage/core-plugin-api';
 import { stackoverflowteamsApiRef } from '../../api';
+// eslint-disable-next-line no-restricted-imports
 import { Button, Typography, Box } from '@mui/material';
-import { StackAuthSuccess } from './StackAuthSuccess';
 import { useStackOverflowStyles } from '../StackOverflow/hooks'; // Import the styles hook
 import { StackOverflowIcon } from '../../icons';
 
-// isAuthenticated is checked on the StackOverflowTeamsPage component.
-
 export const StackOverflowAuthStart = () => {
   const stackOverflowTeamsApi = useApi(stackoverflowteamsApiRef);
-  const classes = useStackOverflowStyles(); // Use the styles hook
+  const classes = useStackOverflowStyles();
+  const [authError, setAuthError] = useState<string | null>(null);
 
   const handleAuth = async () => {
     try {
+      setAuthError(null); // Clear previous errors when retrying
       const authUrl = await stackOverflowTeamsApi.startAuth();
       window.location.href = authUrl;
     } catch (error) {
-      console.error('Error starting OAuth:', error);
+      setAuthError('Something went wrong during authentication. Please try again.');
     }
   };
 
@@ -36,6 +36,7 @@ export const StackOverflowAuthStart = () => {
         Click the button below to log in with your Stack Overflow for Teams
         account.
       </Typography>
+      
       <Button
         variant="contained"
         className={classes.button}
@@ -44,6 +45,17 @@ export const StackOverflowAuthStart = () => {
       >
         Login with Stack Overflow
       </Button>
+
+      {authError && (
+        <Typography 
+          variant="body2" 
+          color="error" 
+          mt={2}
+          sx={{ maxWidth: '300px', textAlign: 'center' }}
+        >
+          {authError}
+        </Typography>
+      )}
     </Box>
   );
 };

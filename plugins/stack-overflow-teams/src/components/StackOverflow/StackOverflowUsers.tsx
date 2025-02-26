@@ -140,7 +140,7 @@ const StackOverflowUserList = ({
   return (
     <Grid container spacing={3}>
       {users.map(user => (
-        <Grid item xs={12} sm={6} md={4} lg={3} key={user.name}>
+        <Grid item xs={12} sm={6} md={4} lg={3} key={user.id}>
           <UserCard user={user} />
         </Grid>
       ))}
