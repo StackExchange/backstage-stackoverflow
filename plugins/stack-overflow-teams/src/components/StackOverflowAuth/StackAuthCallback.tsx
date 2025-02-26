@@ -40,7 +40,7 @@ export const StackOverflowCallback = () => {
     };
 
     handleCallback();
-  }, [location.search, stackOverflowTeamsApi]);
+  }, [location.pathname,location.search, stackOverflowTeamsApi]);
 
   if (status === 'loading') {
     return <StackAuthLoading />;

@@ -1,5 +1,4 @@
 export { StackOverflowQuestions } from './StackOverflowQuestions'
-export { StackOverflowQuestionsTable } from './StackOverflowQuestionsTable'
 export { StackOverflowTags } from './StackOverflowTags'
 export { StackOverflowUsers } from './StackOverflowUsers'
 export { StackOverflowSearchResultListItem } from './StackOverflowSearchResultListItem'

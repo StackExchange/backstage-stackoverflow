@@ -10,22 +10,7 @@ import { StackOverflowIcon } from '../../icons';
 
 export const StackOverflowAuthStart = () => {
   const stackOverflowTeamsApi = useApi(stackoverflowteamsApiRef);
-  // const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const classes = useStackOverflowStyles(); // Use the styles hook
-
-  // useEffect(() => {
-  //   const checkAuth = async () => {
-  //     try {
-  //       const isLoggedIn = await stackOverflowTeamsApi.getAuthStatus();
-  //       setIsAuthenticated(isLoggedIn);
-  //     } catch (error) {
-  //       console.error('Error checking authentication status:', error);
-  //       setIsAuthenticated(false);
-  //     }
-  //   };
-
-  //   checkAuth();
-  // }, []);
 
   const handleAuth = async () => {
     try {
@@ -35,10 +20,6 @@ export const StackOverflowAuthStart = () => {
       console.error('Error starting OAuth:', error);
     }
   };
-
-  // if (isAuthenticated) {
-  //   return <StackAuthSuccess />;
-  // }
 
   return (
     <Box

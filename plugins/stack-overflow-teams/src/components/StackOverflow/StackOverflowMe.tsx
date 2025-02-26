@@ -23,10 +23,10 @@ export const StackOverflowMe = () => {
       if (success) {
         window.location.reload();
       } else {
-        console.error('Logout failed.');
+        throw new Error('Logout failed.');
       }
-    } catch (error) {
-      console.error('Error during logout:', error);
+    } catch (error:any) {
+      throw new Error('Error during logout:', error);
     }
   };
 
