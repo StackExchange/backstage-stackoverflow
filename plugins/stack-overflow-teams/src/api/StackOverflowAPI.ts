@@ -25,7 +25,7 @@ export interface StackOverflowAPI {
     title: string,
     body: string,
     tags: string[],
-  ): Promise<ApiResponse<Question>>;
+  ): Promise<Question>;
   startAuth(): Promise<string>;
   completeAuth(code: string, state: string): Promise<void>;
   getAuthStatus: () => Promise<boolean>;

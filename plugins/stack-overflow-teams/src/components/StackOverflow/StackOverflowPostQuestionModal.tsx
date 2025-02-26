@@ -51,12 +51,15 @@ export const StackOverflowPostQuestionModal = () => {
     setError(null);
 
     try {
-      await stackOverflowApi.postQuestion(title, body, tags);
+      const response = await stackOverflowApi.postQuestion(title, body, tags);
       setSuccess(true);
       setTitle('');
       setBody('');
       setTags([]);
       setTagInput('');
+      if (response.webUrl) {
+        window.open(response.webUrl, '_blank')
+      }
     } catch (err) {
       setError('Failed to post question. Please try again.');
     } finally {
