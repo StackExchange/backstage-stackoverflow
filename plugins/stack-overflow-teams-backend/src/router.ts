@@ -122,19 +122,33 @@ export async function createRouter({
     }
   });
 
+  // Info routes
+
+  router.get('/baseurl', async (_req: Request, res: Response) => {
+    const baseUrl = new URL(stackOverflowConfig.baseUrl).origin;
+    try {
+      res.json({ SOInstance: baseUrl });
+    } catch (error) {
+      console.error('Error fetching Stack Overflow base URL:', error);
+      res
+        .status(500)
+        .json({ error: 'Failed to fetch Stack Overflow base URL' });
+    }
+  });
+
   // Read routes
 
   router.get('/me', async (_req: Request, res: Response) => {
     try {
       const cookies = cookieParse(_req);
-      const authToken = cookies['stackoverflow-access-token']
+      const authToken = cookies['stackoverflow-access-token'];
       const me = await stackOverflowService.getMe(authToken);
       res.send(me);
     } catch (error: any) {
       // Fix type issue when including the error for some reason
       logger.error('Error fetching questions', { error });
       res.status(500).send({
-        error: `Failed to fetch questions from ${stackOverflowConfig.baseUrl}`,
+        error: `Failed to fetch questions from the Stack Overflow instance`,
       });
     }
   });
@@ -147,7 +161,7 @@ export async function createRouter({
       // Fix type issue when including the error for some reason
       logger.error('Error fetching questions', { error });
       res.status(500).send({
-        error: `Failed to fetch questions from ${stackOverflowConfig.baseUrl}`,
+        error: `Failed to fetch questions from the Stack Overflow instance`,
       });
     }
   });
@@ -160,7 +174,7 @@ export async function createRouter({
       // Fix type issue when including the error for some reason
       logger.error('Error fetching tags', { error });
       res.status(500).send({
-        error: `Failed to fetch tags from ${stackOverflowConfig.baseUrl}`,
+        error: `Failed to fetch tags from the Stack Overflow instance`,
       });
     }
   });
@@ -173,7 +187,31 @@ export async function createRouter({
       // Fix type issue when including the error for some reason
       logger.error('Error fetching users', { error });
       res.status(500).send({
-        error: `Failed to fetch users from ${stackOverflowConfig.baseUrl}`,
+        error: `Failed to fetch users from the Stack Overflow instance`,
+      });
+    }
+  });
+
+  router.get('/search', async (req: Request, res: Response) => {
+    try {
+      const cookies = cookieParse(req);
+      const authToken = cookies['stackoverflow-access-token'];
+      const { query } = req.body;
+
+      if (!authToken) {
+        return res
+          .status(401)
+          .json({ error: 'Missing Stack Overflow Teams Access Token' });
+      }
+      const searchResults = await stackOverflowService.getSearch(
+        query,
+        authToken,
+      );
+      return res.status(201).json(searchResults);
+    } catch (error: any) {
+      logger.error('Error searching items', { error });
+      return res.status(500).json({
+        error: `Failed to search items on the Stack Overflow instance`,
       });
     }
   });
@@ -200,7 +238,7 @@ export async function createRouter({
     } catch (error: any) {
       logger.error('Error posting question', { error });
       return res.status(500).json({
-        error: `Failed to post question to ${stackOverflowConfig.baseUrl}`,
+        error: `Failed to post question to the Stack Overflow instance`,
       });
     }
   });

@@ -10,7 +10,7 @@ stackoverflow:
   teams: false
   # teamName: ${STACK_OVERFLOW_TEAM_NAME}
   apiAccessToken: ${STACK_OVERFLOW_ENTERPRISE_ACCESS_TOKEN}
-  clientId: 15
+  clientId: ${STACK_OVERFLOW_CLIENT_ID}
   redirectUri: http://redirectmeto.com/http://localhost:3000/stack-overflow-teams/
   schedule:
     {

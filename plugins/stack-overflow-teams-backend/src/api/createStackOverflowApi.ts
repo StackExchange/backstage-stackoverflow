@@ -2,7 +2,10 @@
 
 import { LoggerService } from '@backstage/backend-plugin-api';
 
-export const createStackOverflowApi = (baseUrl: string, logger: LoggerService) => {
+export const createStackOverflowApi = (
+  baseUrl: string,
+  logger: LoggerService,
+) => {
   const request = async <T>(
     endpoint: string,
     method: 'GET' | 'POST',
@@ -10,16 +13,32 @@ export const createStackOverflowApi = (baseUrl: string, logger: LoggerService) =
     body?: any,
     authToken?: string,
     apiAccessToken?: string,
+    searchQuery?: string,
+    pageSize?: number,
   ): Promise<T> => {
-    const url = teamName
+    let url = teamName
       ? `${baseUrl}/teams/${teamName}${endpoint}`
       : `${baseUrl}${endpoint}`;
 
+    const queryParams = new URLSearchParams();
+
+    if (searchQuery) {
+      const queryParamsfromSearchQuery = new URLSearchParams(searchQuery);
+      queryParamsfromSearchQuery.forEach((value, key) => {
+        queryParams.append(key, value);
+      });
+    }
+
+    if (pageSize) {
+      queryParams.append('pageSize', pageSize.toString());
+    }
+
+    url += `?${queryParams.toString()}`;
+
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
+      Authorization: `Bearer ${method === 'POST' ? authToken : apiAccessToken}`,
     };
-
-    headers['Authorization'] = `Bearer ${method === 'POST' ? authToken : apiAccessToken}`;
 
     const response = await fetch(url, {
       method,
@@ -37,9 +56,37 @@ export const createStackOverflowApi = (baseUrl: string, logger: LoggerService) =
 
   return {
     GET: <T>(endpoint: string, teamName?: string, apiAccessToken?: string) =>
-      request<T>(endpoint, 'GET', teamName, undefined, undefined, apiAccessToken),
+      request<T>(
+        endpoint,
+        'GET',
+        teamName,
+        undefined,
+        undefined,
+        apiAccessToken,
+      ),
 
-    POST: <T>(endpoint: string, body: any, authToken: string, teamName?: string) =>
-      request<T>(endpoint, 'POST', teamName, body, authToken),
+    POST: <T>(
+      endpoint: string,
+      body: any,
+      authToken: string,
+      teamName?: string,
+    ) => request<T>(endpoint, 'POST', teamName, body, authToken),
+
+    SEARCH: <T>(
+      endpoint: string,
+      searchQuery: string,
+      authToken: string,
+      teamName?: string,
+    ) =>
+      request<T>(
+        endpoint,
+        'GET',
+        teamName,
+        undefined,
+        authToken,
+        undefined,
+        searchQuery,
+        30,
+      ),
   };
 };

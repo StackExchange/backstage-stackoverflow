@@ -62,13 +62,11 @@ export type StackOverflowQuestionsRequestParams = {
 export type StackOverflowQuestionsCollatorFactoryOptions = {
   baseUrl: string;
   teams?: boolean;
-  maxPage?: number;
   apiAccessToken?: string;
   teamName?: string;
   requestParams?: StackOverflowQuestionsRequestParams;
   logger: LoggerService;
 };
-const DEFAULT_MAX_PAGE = 100;
 
 /**
  * Search collator responsible for collecting stack overflow questions to index.
@@ -84,7 +82,6 @@ export class StackOverflowQuestionsCollatorFactory
   private readonly teams: boolean;
   private readonly apiAccessToken: string | undefined;
   private readonly teamName: string | undefined;
-  private readonly maxPage: number | undefined;
   private readonly logger: LoggerService;
   public readonly type: string = 'stack-overflow';
 
@@ -94,7 +91,6 @@ export class StackOverflowQuestionsCollatorFactory
     this.teams = options.teams || false;
     this.apiAccessToken = options.apiAccessToken;
     this.teamName = options.teamName;
-    this.maxPage = options.maxPage;
     this.logger = options.logger.child({ documentType: this.type });
 
     // Sets the same default request parameters as the official API documentation
@@ -131,7 +127,6 @@ export class StackOverflowQuestionsCollatorFactory
     const teamName = config.getOptionalString('stackoverflow.teamName');
     const baseUrl = config.getString('stackoverflow.baseUrl');
     const teams = config.getOptionalBoolean('stackoverflow.teams') || false;
-    const maxPage = options.maxPage || DEFAULT_MAX_PAGE;
     const requestParams = config
       .getOptionalConfig('stackoverflow.requestParams')
       ?.get<StackOverflowQuestionsRequestParams>();
@@ -139,7 +134,6 @@ export class StackOverflowQuestionsCollatorFactory
     return new StackOverflowQuestionsCollatorFactory({
       baseUrl,
       teams,
-      maxPage,
       apiAccessToken,
       teamName,
       requestParams,
@@ -191,22 +185,19 @@ export class StackOverflowQuestionsCollatorFactory
     }
 
     let page = 1;
-    const pageSize = this.requestParams.pageSize || 15
-    let totalPages = Infinity
+    let totalPages = 1
+    const pageSize = this.requestParams.pageSize || 50
+    this.logger.warn('Starting collating Stack Overflow questions, wait for the success message')
     while (page <= totalPages) {
-      if (page === this.maxPage) {
-        this.logger.warn(
-          `Over ${this.maxPage} requests to the Stack Overflow API have been made, which may not have been intended. Either specify requestParams that limit the questions returned, or configure a higher maxPage if necessary.`,
-        );
-        break;
-      }
       const res = await fetch(`${requestUrl}&page=${page}&pageSize=${pageSize}`, {
         headers: {
           Authorization: `Bearer ${this.apiAccessToken}`,
         },
-      });
+      }
+    );
 
       const data = await res.json();
+      totalPages = data.totalPages
 
       for (const question of data.items ?? []) {
         const tags =

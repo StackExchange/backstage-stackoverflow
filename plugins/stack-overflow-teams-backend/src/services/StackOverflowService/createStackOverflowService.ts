@@ -2,6 +2,7 @@ import { LoggerService } from '@backstage/backend-plugin-api';
 import {
   PaginatedResponse,
   Question,
+  SearchItem,
   StackOverflowAPI,
   StackOverflowConfig,
   Tag,
@@ -30,5 +31,7 @@ export async function createStackOverflowService({
     // POST
     postQuestions: (title: string, body: string, tags: string[], authToken: string) =>
       stackOverflowApi.POST<Question>('/questions', { title, body, tags }, authToken, teamName),
+    // SEARCH
+    getSearch: (query: string, authToken: string) => stackOverflowApi.SEARCH<PaginatedResponse<SearchItem>>('/search', query, authToken, teamName)
   };
 }
