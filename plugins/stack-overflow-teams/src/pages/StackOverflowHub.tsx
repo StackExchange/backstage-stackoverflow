@@ -8,7 +8,6 @@ import {
   HeaderLabel,
   SupportButton,
 } from '@backstage/core-components';
-import { SearchContextProvider } from '@backstage/plugin-search-react';
 import {
   StackOverflowQuestions,
   StackOverflowTags,
@@ -17,7 +16,7 @@ import {
 import { StackOverflowMe } from '../components/StackOverflow/StackOverflowMe';
 
 export const StackOverflowHub = () => (
-  <Page themeId="tool">
+  <Page themeId="plugin">
     <Header title="Welcome to Stack Overflow Teams!" subtitle="Your knowledge hub.">
       <HeaderLabel label="Owner" value="Team X" />
       <HeaderLabel label="Lifecycle" value="Alpha" />
@@ -38,9 +37,7 @@ export const StackOverflowHub = () => (
                 Stack Overflow Questions
               </Typography>
               <Box mt={1}>
-                <SearchContextProvider>
                   <StackOverflowQuestions />
-                </SearchContextProvider>
               </Box>
             </Box>
           </Paper>

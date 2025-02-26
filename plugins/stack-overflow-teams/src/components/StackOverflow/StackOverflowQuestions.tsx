@@ -1,27 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   makeStyles,
   Theme,
   Grid,
   Paper,
-  List,
+  Typography,
   Button,
   ButtonGroup,
-  Typography,
+  TextField,
+  InputAdornment,
+  Box,
 } from '@material-ui/core';
-import {
-  SearchBar,
-  SearchResult,
-  SearchPagination,
-} from '@backstage/plugin-search-react';
+import { Link, Progress, ResponseErrorPanel } from '@backstage/core-components';
+import { useStackOverflowData } from './hooks';
 import { StackOverflowSearchResultListItem } from './StackOverflowSearchResultListItem';
+import SearchIcon from '@material-ui/icons/Search';
 import { StackOverflowIcon } from '../../icons';
-import { Content } from '@backstage/core-components';
+import { useApi } from '@backstage/core-plugin-api';
+import { stackoverflowteamsApiRef } from '../../api';
 
 const useStyles = makeStyles((theme: Theme) => ({
-  bar: {
-    padding: theme.spacing(1, 0),
-  },
   filters: {
     padding: theme.spacing(2),
     marginTop: theme.spacing(2),
@@ -29,165 +27,224 @@ const useStyles = makeStyles((theme: Theme) => ({
   buttonGroup: {
     flexWrap: 'wrap',
   },
-  filterButton: {
-    textTransform: 'none',
-  },
   resultCount: {
     marginTop: theme.spacing(1),
     fontSize: '0.875rem',
     color: theme.palette.text.secondary,
   },
+  searchField: {
+    borderRadius: 40,
+    paddingLeft: 16,
+    paddingRight: 16,
+  },
+  pagination: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: theme.spacing(2),
+    marginBottom: theme.spacing(2),
+  },
 }));
 
-const filterAndSortResults = (results: any[], filters: any) => {
-  let filtered = results.filter(result => result.type === 'stack-overflow');
+const filterAndSortQuestions = (questions: any[], filters: any) => {
+  let filtered = [...questions];
 
   if (filters.showUnansweredOnly) {
-    filtered = filtered.filter(q => !q.document.isAnswered);
+    filtered = filtered.filter(q => !q.isAnswered);
   }
   if (filters.showBountiedOnly) {
-    filtered = filtered.filter(q => q.document.bounty !== null);
+    filtered = filtered.filter(q => q.bounty > 0);
   }
   if (filters.showNewestFirst) {
-    filtered = [...filtered].sort(
+    filtered.sort(
       (a, b) =>
-        new Date(b.document.creationDate).getTime() -
-        new Date(a.document.creationDate).getTime(),
+        new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime(),
     );
   }
   if (filters.showActiveOnly) {
-    const now = new Date();
-    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     filtered = filtered.filter(
-      q => new Date(q.document.lastActivityDate) >= thirtyDaysAgo,
+      q => new Date(q.lastActivityDate) >= thirtyDaysAgo,
     );
-    filtered = [...filtered].sort(
+    filtered.sort(
       (a, b) =>
-        new Date(b.document.lastActivityDate).getTime() -
-        new Date(a.document.lastActivityDate).getTime(),
+        new Date(b.lastActivityDate).getTime() -
+        new Date(a.lastActivityDate).getTime(),
     );
   }
   if (filters.sortByScore) {
-    filtered = [...filtered].sort(
-      (a, b) => b.document.score - a.document.score,
-    );
+    filtered.sort((a, b) => b.score - a.score);
   }
 
   return filtered;
 };
 
-export const SearchPage = () => {
+export const StackOverflowQuestions = () => {
   const classes = useStyles();
+  const stackOverflowTeamsApi = useApi(stackoverflowteamsApiRef);
+  const [baseUrl, setBaseUrl] = useState<string>('');
+  const { data, loading, error } = useStackOverflowData('questions');
+  const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({
-    showUnansweredOnly: true,
+    showUnansweredOnly: false,
     showBountiedOnly: false,
     showNewestFirst: false,
     showActiveOnly: false,
     sortByScore: false,
   });
-  const [filteredResults, setFilteredResults] = useState<any[]>([]);
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [currentPage, setCurrentPage] = useState(0);
 
-  const toggleFilter = (filterName: string) => {
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [searchTerm, filters]);
+
+  useEffect(() => {
+      stackOverflowTeamsApi.getBaseUrl().then(url => setBaseUrl(url));
+    }, [stackOverflowTeamsApi]);
+
+  const toggleFilter = (filterName: keyof typeof filters) => {
     setFilters(prev => {
-      const newFilters = Object.keys(prev).reduce((acc, key) => {
-        acc[key] = key === filterName;
-        return acc;
-      }, {} as Record<string, boolean>);
+      const newFilters = { ...prev };
+      if (newFilters[filterName]) {
+        newFilters[filterName] = false;
+      } else {
+        Object.keys(newFilters).forEach(key => {
+          newFilters[key as keyof typeof filters] = false;
+        });
+        newFilters[filterName] = true;
+      }
       return newFilters;
     });
   };
 
-  useEffect(() => {
-    setFilteredResults(filterAndSortResults(searchResults, filters));
-  }, [searchResults, filters]);
+  const filteredQuestions = filterAndSortQuestions(
+    (data?.questions || []).filter(question =>
+      `${question.title} ${question.tags?.join(' ')}`
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()),
+    ),
+    filters,
+  );
+
+  const totalPages = Math.ceil(filteredQuestions.length / 5);
+  const paginatedQuestions = filteredQuestions.slice(
+    currentPage * 5,
+    (currentPage + 1) * 5,
+  );
+
+  if (loading) return <Progress />;
+  if (error) return <ResponseErrorPanel error={error} />;
 
   return (
-    <Content>
-      <Grid container spacing={2}>
-        {/* Search Bar */}
-        <Grid item xs={12}>
-          <Paper className={classes.bar}>
-            <SearchBar />
-          </Paper>
-        </Grid>
+    <div>
+      <Box mb={3}>
+        <TextField
+          fullWidth
+          variant="outlined"
+          placeholder="Search questions..."
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+            className: classes.searchField,
+          }}
+        />
+      </Box>
 
-        {/* Filters Panel */}
-        <Grid item xs={12}>
-          <Paper className={classes.filters}>
-            <ButtonGroup className={classes.buttonGroup}>
-              <Button
-                variant={filters.showUnansweredOnly ? 'contained' : 'outlined'}
-                color="primary"
-                onClick={() => toggleFilter('showUnansweredOnly')}
-                className={classes.filterButton}
-              >
-                Unanswered
-              </Button>
-              <Button
-                variant={filters.showBountiedOnly ? 'contained' : 'outlined'}
-                color="primary"
-                onClick={() => toggleFilter('showBountiedOnly')}
-                className={classes.filterButton}
-              >
-                Bountied
-              </Button>
-              <Button
-                variant={filters.showNewestFirst ? 'contained' : 'outlined'}
-                color="primary"
-                onClick={() => toggleFilter('showNewestFirst')}
-                className={classes.filterButton}
-              >
-                Newest
-              </Button>
-              <Button
-                variant={filters.showActiveOnly ? 'contained' : 'outlined'}
-                color="primary"
-                onClick={() => toggleFilter('showActiveOnly')}
-                className={classes.filterButton}
-              >
-                Active
-              </Button>
-              <Button
-                variant={filters.sortByScore ? 'contained' : 'outlined'}
-                color="primary"
-                onClick={() => toggleFilter('sortByScore')}
-                className={classes.filterButton}
-              >
-                Score
-              </Button>
-            </ButtonGroup>
-          </Paper>
-        </Grid>
-
-        <Typography className={classes.resultCount}>
-          {`Showing ${filteredResults.length} results`}
+      <div className={classes.pagination}>
+        <Button
+          disabled={currentPage === 0}
+          onClick={() => setCurrentPage(prev => prev - 1)}
+        >
+          Previous
+        </Button>
+        <Typography variant="body1">
+          Page {currentPage + 1} of {totalPages || 1}
         </Typography>
+        <Button
+          disabled={currentPage >= totalPages - 1}
+          onClick={() => setCurrentPage(prev => prev + 1)}
+        >
+          Next
+        </Button>
+      </div>
 
-        <Grid item xs={12}>
-          <SearchPagination limitOptions={[20]} />
-          <SearchResult>
-            {({ results }) => {
-              setSearchResults(results); // ✅ Store raw search results in state
-              return (
-                <List>
-                  {filteredResults.map(({ type, document }) =>
-                    type === 'stack-overflow' ? (
-                      <StackOverflowSearchResultListItem
-                        key={document.location}
-                        result={document}
-                        icon={<StackOverflowIcon />}
-                      />
-                    ) : null,
-                  )}
-                </List>
-              );
-            }}
-          </SearchResult>
-        </Grid>
-      </Grid>
-    </Content>
+      <Paper className={classes.filters}>
+        <ButtonGroup className={classes.buttonGroup}>
+          {Object.entries(filters).map(([key, value]) => (
+            <Button
+              key={key}
+              variant={value ? 'contained' : 'outlined'}
+              color="primary"
+              onClick={() => toggleFilter(key as keyof typeof filters)}
+            >
+              {key
+                .replace('show', '')
+                .replace('Only', '')
+                .replace('First', '')
+                .replace('sortBy', '')}
+            </Button>
+          ))}
+        </ButtonGroup>
+      </Paper>
+
+      <Typography className={classes.resultCount}>
+        {`Showing ${filteredQuestions.length} results`}
+      </Typography>
+
+      {filteredQuestions.length === 0 && searchTerm !== '' ? (
+        <Box textAlign="center" py={4}>
+          <Typography variant="body1" gutterBottom>
+            No questions found matching "{searchTerm}"
+          </Typography>
+          <Link
+            to={`${baseUrl}/search?q=${encodeURIComponent(
+              searchTerm,
+            )}`}
+          >
+            However, you might find more questions on your Stack Overflow Team.
+          </Link>
+        </Box>
+      ) : (
+        <>
+          <Grid container spacing={2}>
+            {paginatedQuestions.map(question => (
+              <Grid item xs={12} key={question.id}>
+                <StackOverflowSearchResultListItem
+                  result={{
+                    location: question.webUrl,
+                    title: question.title,
+                    text: question.owner?.name,
+                    answers: question.answerCount,
+                    tags: question.tags,
+                    created: question.creationDate,
+                    author: question.owner?.name,
+                    score: question.score,
+                    isAnswered: question.isAnswered,
+                    creationDate: question.creationDate,
+                    userRole: question.owner?.role,
+                    userProfile: question.owner?.webUrl,
+                    avatar: question.owner?.avatarUrl,
+                    userReputation: question.owner?.reputation,
+                  }}
+                  icon={<StackOverflowIcon />}
+                />
+              </Grid>
+            ))}
+          </Grid>
+          <Box mt={2}>
+                  <Link to={`${baseUrl}/questions`}>
+                  <Typography variant='body1'>
+                    Explore more questions on your Stack Overflow Team
+                    </Typography>
+                  </Link>
+                </Box>
+        </>
+      )}
+    </div>
   );
 };
-
-export const StackOverflowQuestions = SearchPage;

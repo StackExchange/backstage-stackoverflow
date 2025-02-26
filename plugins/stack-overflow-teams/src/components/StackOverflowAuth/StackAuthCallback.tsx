@@ -10,8 +10,6 @@ export const StackOverflowCallback = () => {
   const stackOverflowTeamsApi = useApi(stackoverflowteamsApiRef);
   const location = useLocation();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
-  // isAuthenticated is checked on the StackOverflowTeamsPage component.
-
 
   useEffect(() => {
     const handleCallback = async () => {

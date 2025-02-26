@@ -51,9 +51,9 @@ const StackOverflowTagList = ({
       ))}
 
       <Grid item xs={12}>
-        <Link to={`${baseUrl}/tags?query=${encodeURIComponent(searchTerm)}`}>
+        <Link to={`${baseUrl}/tags`}>
         <Typography variant='body1'>
-          Explore more tags on Stack Overflow
+          Explore more tags on your Stack Overflow Team
           </Typography>
         </Link>
       </Grid>

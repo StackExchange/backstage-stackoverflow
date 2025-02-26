@@ -1,8 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, Progress, ResponseErrorPanel } from '@backstage/core-components';
 import { useStackOverflowData } from './hooks/';
 import {
-  Chip,
   Grid,
   TextField,
   Box,
@@ -11,9 +10,10 @@ import {
   Paper,
   Avatar,
 } from '@material-ui/core';
-import { User } from '../../api';
+import { stackoverflowteamsApiRef, User } from '../../api';
 import SearchIcon from '@material-ui/icons/Search';
 import { makeStyles } from '@material-ui/core/styles';
+import { useApi } from '@backstage/core-plugin-api';
 
 const useStyles = makeStyles(theme => ({
   userCard: {
@@ -64,10 +64,11 @@ const useStyles = makeStyles(theme => ({
 
 const UserCard = ({ user }: { user: User }) => {
   const classes = useStyles();
-  const isModerator = user.role === 'Moderator';
-  const isAdmin = user.role === 'Admin';
+  // const isModerator = user.role === 'Moderator';
+  // const isAdmin = user.role === 'Admin';
 
   return (
+    // Add tags that the users are SME off
     <Paper className={classes.userCard} elevation={0}>
       <div className={classes.cardHeader}>
         <Avatar
@@ -86,21 +87,20 @@ const UserCard = ({ user }: { user: User }) => {
             {user.name}
           </Typography>
           <Typography variant="body2" color="textSecondary">
-            {user.jobTitle || 'Developer'}
+            {user.jobTitle}
           </Typography>
           {user.department && (
-          <Typography variant="body2" color="textSecondary" noWrap>
-            {user.department}
-          </Typography>
-        )}
+            <Typography variant="body2" color="textSecondary" noWrap>
+              {user.department}
+            </Typography>
+          )}
         </Box>
         <Typography className={classes.reputation}>
           {user.reputation} rep
         </Typography>
       </div>
 
-
-      {(isModerator || isAdmin) && (
+      {/* {(isModerator || isAdmin) && (
         <Chip
           label={isModerator ? 'Moderator' : 'Admin'}
           size="small"
@@ -110,7 +110,7 @@ const UserCard = ({ user }: { user: User }) => {
             color: isModerator ? '#725b02' : '#842029',
           }}
         />
-      )}
+      )} */}
     </Paper>
   );
 };
@@ -118,9 +118,11 @@ const UserCard = ({ user }: { user: User }) => {
 const StackOverflowUserList = ({
   users,
   searchTerm,
+  baseUrl,
 }: {
   users: User[];
   searchTerm: string;
+  baseUrl: string;
 }) => {
   if (users.length === 0) {
     return (
@@ -128,12 +130,8 @@ const StackOverflowUserList = ({
         <Typography variant="body1" gutterBottom>
           No users found matching "{searchTerm}"
         </Typography>
-        <Link
-          to={`https://stackoverflow.com/users?query=${encodeURIComponent(
-            searchTerm,
-          )}`}
-        >
-          Search Stack Overflow users
+        <Link to={`${baseUrl}/users`}>
+          However, you might find this user on your Stack Overflow Team.
         </Link>
       </Box>
     );
@@ -146,13 +144,27 @@ const StackOverflowUserList = ({
           <UserCard user={user} />
         </Grid>
       ))}
+      <Grid item xs={12}>
+        <Link to={`${baseUrl}/users`}>
+          <Typography variant="body1">
+            Explore more users on your Stack Overflow Team
+          </Typography>
+        </Link>
+      </Grid>
     </Grid>
+    
   );
 };
 
 export const StackOverflowUsers = () => {
   const { data, loading, error } = useStackOverflowData('users');
-  const [searchTerm, setSearchTerm] = React.useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const stackOverflowTeamsApi = useApi(stackoverflowteamsApiRef);
+
+  const [baseUrl, setBaseUrl] = useState<string>('');
+  useEffect(() => {
+    stackOverflowTeamsApi.getBaseUrl().then(url => setBaseUrl(url));
+  }, [stackOverflowTeamsApi]);
 
   if (loading) {
     return <Progress />;
@@ -194,7 +206,12 @@ export const StackOverflowUsers = () => {
         />
       </Box>
 
-      <StackOverflowUserList users={filteredUsers} searchTerm={searchTerm} />
+      <StackOverflowUserList
+        users={filteredUsers}
+        searchTerm={searchTerm}
+        baseUrl={baseUrl}
+      />
+      
     </div>
   );
 };

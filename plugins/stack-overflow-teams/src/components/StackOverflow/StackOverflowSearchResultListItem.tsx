@@ -70,11 +70,11 @@ export const StackOverflowSearchResultListItem = (
       <ListItem alignItems="center">
         {props.icon && <ListItemIcon>{props.icon}</ListItemIcon>}
         <Box
-          display={'flex'}
-          flexDirection={'column'}
-          alignItems={'center'}
+          display='flex'
+          flexDirection='column'
+          alignItems='center'
           mr={2}
-          minWidth={'80px'}
+          minWidth='80px'
         >
           <Typography variant="subtitle2" color="textSecondary">
             {result.score} votes

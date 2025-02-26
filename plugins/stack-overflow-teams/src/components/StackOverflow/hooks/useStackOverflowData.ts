@@ -44,7 +44,7 @@ export const useStackOverflowData = (type: PostType) => {
     };
 
     fetchData();
-  }, [stackOverflowTeamsApi]);
+  }, [type, stackOverflowTeamsApi]);
 
   return { data, loading, error };
 };
