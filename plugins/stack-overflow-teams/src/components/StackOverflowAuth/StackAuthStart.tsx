@@ -32,19 +32,21 @@ export const StackOverflowAuthStart = () => {
     >
       <StackOverflowIcon />
       <Typography variant="h6">Stack Overflow for Teams Login</Typography>
-      <Typography variant="body1" color="textSecondary" mt={1}>
+      <Box mt={1}>
+      <Typography variant="body1" color="textSecondary" >
         Click the button below to log in with your Stack Overflow for Teams
         account.
       </Typography>
-      
+      </Box>
+      <Box mt={2}>
       <Button
         variant="contained"
         className={classes.button}
-        sx={{ mt: 2 }}
         onClick={handleAuth}
       >
         Login with Stack Overflow
       </Button>
+      </Box>
 
       {authError && (
         <Typography 

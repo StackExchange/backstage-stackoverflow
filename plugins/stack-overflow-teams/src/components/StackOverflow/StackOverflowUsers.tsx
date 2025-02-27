@@ -9,6 +9,7 @@ import {
   InputAdornment,
   Paper,
   Avatar,
+  Chip,
 } from '@material-ui/core';
 import { stackoverflowteamsApiRef, User } from '../../api';
 import SearchIcon from '@material-ui/icons/Search';
@@ -42,13 +43,13 @@ const useStyles = makeStyles(theme => ({
     marginLeft: 'auto',
     whiteSpace: 'nowrap',
   },
-  roleChip: {
-    position: 'absolute',
-    bottom: theme.spacing(1),
-    right: theme.spacing(1),
-    fontWeight: 'bold',
-    fontSize: '0.7rem',
-  },
+  // roleChip: {
+  //   position: 'absolute',
+  //   bottom: theme.spacing(1),
+  //   right: theme.spacing(1),
+  //   fontWeight: 'bold',
+  //   fontSize: '0.7rem',
+  // },
   avatar: {
     width: 48,
     height: 48,
@@ -64,8 +65,8 @@ const useStyles = makeStyles(theme => ({
 
 const UserCard = ({ user }: { user: User }) => {
   const classes = useStyles();
-  // const isModerator = user.role === 'Moderator';
-  // const isAdmin = user.role === 'Admin';
+  const isModerator = user.role === 'Moderator';
+  const isAdmin = user.role === 'Admin';
 
   return (
     // Add tags that the users are SME off
@@ -95,22 +96,23 @@ const UserCard = ({ user }: { user: User }) => {
             </Typography>
           )}
         </Box>
-        <Typography className={classes.reputation}>
-          {user.reputation} rep
-        </Typography>
-      </div>
-
-      {/* {(isModerator || isAdmin) && (
+        {(isModerator || isAdmin) && (
         <Chip
           label={isModerator ? 'Moderator' : 'Admin'}
           size="small"
-          className={classes.roleChip}
           style={{
-            backgroundColor: isModerator ? '#fff4d1' : '#f8d7da',
-            color: isModerator ? '#725b02' : '#842029',
+            backgroundColor: isModerator ? 'lightblue' : 'lightcoral',
+            color: isModerator? 'black': '#fff',
           }}
         />
-      )} */}
+      )}
+        <Typography className={classes.reputation}>
+          {user.reputation} rep
+        </Typography>
+        
+      </div>
+
+      
     </Paper>
   );
 };

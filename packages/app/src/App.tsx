@@ -36,7 +36,6 @@ import { AppRouter, FlatRoutes } from '@backstage/core-app-api';
 import { CatalogGraphPage } from '@backstage/plugin-catalog-graph';
 import { RequirePermission } from '@backstage/plugin-permission-react';
 import { catalogEntityCreatePermission } from '@backstage/plugin-catalog-common/alpha';
-import { HomePageStackOverflowQuestions } from '@backstage-community/plugin-stack-overflow';
 import { StackOverflowTeamsPage } from '@internal/backstage-plugin-stack-overflow-teams';
 
 const app = createApp({
@@ -66,7 +65,6 @@ const app = createApp({
 const routes = (
   <FlatRoutes>
     <Route path="/" element={<Navigate to="catalog" />} />
-    <Route path="/stack-overflow" element={<HomePageStackOverflowQuestions requestParams={{}} />} />
     <Route path="/catalog" element={<CatalogIndexPage />} />
     <Route
       path="/catalog/:namespace/:kind/:name"

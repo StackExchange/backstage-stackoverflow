@@ -1,10 +1,7 @@
 // Comentar sobre AuthToken v AccessToken
 
-import { LoggerService } from '@backstage/backend-plugin-api';
-
 export const createStackOverflowApi = (
   baseUrl: string,
-  logger: LoggerService,
 ) => {
   const request = async <T>(
     endpoint: string,
@@ -46,12 +43,15 @@ export const createStackOverflowApi = (
       body: body ? JSON.stringify(body) : undefined,
     });
 
-    if (!response.ok) {
-      const errorMessage = await response.text();
-      logger.error(`Failed to ${method} ${endpoint}: ${errorMessage}`);
-    }
+    const responseData = await response.json();
 
-    return response.json();
+    if (!response.ok) {
+      const error = new Error (`API Request failed: ${response.statusText}`);
+      (error as any).status = response.status;
+      (error as any).responseData = responseData;
+      throw error
+    }
+    return responseData
   };
 
   return {

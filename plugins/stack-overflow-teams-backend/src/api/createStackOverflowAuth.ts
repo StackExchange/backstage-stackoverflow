@@ -93,5 +93,6 @@ export function createStackOverflowAuth(
   return {
     getAuthUrl,
     exchangeCodeForToken,
+    config: validatedConfig
   };
 }

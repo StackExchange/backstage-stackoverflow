@@ -94,13 +94,14 @@ export const StackOverflowMe = () => {
         }}
       >
         {/* Logout Button */}
+        <Box sx={{ position: 'absolute', top: 8, right: 8 }}>
         <IconButton
-          sx={{ position: 'absolute', top: 8, right: 8, color: '#f48024' }}
+          
           onClick={logout}
         >
           <LogoutIcon />
         </IconButton>
-
+        </Box>
         <CardContent sx={{ textAlign: 'center' }}>
           {/* Avatar */}
           <Avatar src={userData.avatarUrl} sx={{ mx: 'auto', mb: 2 }} />

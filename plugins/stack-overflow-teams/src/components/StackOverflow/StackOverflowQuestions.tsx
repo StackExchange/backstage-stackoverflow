@@ -46,34 +46,51 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }));
 
-const filterAndSortQuestions = (questions: any[], filters: any) => {
+type FilterType = {
+  id: string;
+  label: string;
+};
+
+const FILTERS: FilterType[] = [
+  { id: 'unanswered', label: 'Unanswered' },
+  { id: 'bountied', label: 'Bountied' },
+  { id: 'newest', label: 'Newest' },
+  { id: 'active', label: 'Active' },
+  { id: 'score', label: 'Score' },
+];
+
+const filterAndSortQuestions = (questions: any[], activeFilter: string | null) => {
   let filtered = [...questions];
 
-  if (filters.showUnansweredOnly) {
-    filtered = filtered.filter(q => !q.isAnswered);
-  }
-  if (filters.showBountiedOnly) {
-    filtered = filtered.filter(q => q.bounty > 0);
-  }
-  if (filters.showNewestFirst) {
-    filtered.sort(
-      (a, b) =>
-        new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime(),
-    );
-  }
-  if (filters.showActiveOnly) {
-    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-    filtered = filtered.filter(
-      q => new Date(q.lastActivityDate) >= thirtyDaysAgo,
-    );
-    filtered.sort(
-      (a, b) =>
-        new Date(b.lastActivityDate).getTime() -
-        new Date(a.lastActivityDate).getTime(),
-    );
-  }
-  if (filters.sortByScore) {
-    filtered.sort((a, b) => b.score - a.score);
+  switch (activeFilter) {
+    case 'unanswered':
+      filtered = filtered.filter(q => !q.isAnswered);
+      break;
+    case 'bountied':
+      filtered = filtered.filter(q => q.bounty > 0);
+      break;
+    case 'newest':
+      filtered.sort(
+        (a, b) =>
+          new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime(),
+      );
+      break;
+    case 'active': {
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      filtered = filtered.filter(
+        q => new Date(q.lastActivityDate) >= thirtyDaysAgo,
+      );
+      filtered.sort(
+        (a, b) =>
+          new Date(b.lastActivityDate).getTime() -
+          new Date(a.lastActivityDate).getTime(),
+      );
+      break;
+    }
+    case 'score':
+      filtered.sort((a, b) => b.score - a.score);
+      break;
+    default:
   }
 
   return filtered;
@@ -85,36 +102,19 @@ export const StackOverflowQuestions = () => {
   const [baseUrl, setBaseUrl] = useState<string>('');
   const { data, loading, error } = useStackOverflowData('questions');
   const [searchTerm, setSearchTerm] = useState('');
-  const [filters, setFilters] = useState({
-    showUnansweredOnly: false,
-    showBountiedOnly: false,
-    showNewestFirst: false,
-    showActiveOnly: false,
-    sortByScore: false,
-  });
+  const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
 
   useEffect(() => {
     setCurrentPage(0);
-  }, [searchTerm, filters]);
+  }, [searchTerm, activeFilter]);
 
   useEffect(() => {
-      stackOverflowTeamsApi.getBaseUrl().then(url => setBaseUrl(url));
-    }, [stackOverflowTeamsApi]);
+    stackOverflowTeamsApi.getBaseUrl().then(url => setBaseUrl(url));
+  }, [stackOverflowTeamsApi]);
 
-  const toggleFilter = (filterName: keyof typeof filters) => {
-    setFilters(prev => {
-      const newFilters = { ...prev };
-      if (newFilters[filterName]) {
-        newFilters[filterName] = false;
-      } else {
-        Object.keys(newFilters).forEach(key => {
-          newFilters[key as keyof typeof filters] = false;
-        });
-        newFilters[filterName] = true;
-      }
-      return newFilters;
-    });
+  const toggleFilter = (filterId: string) => {
+    setActiveFilter(prev => prev === filterId ? null : filterId);
   };
 
   const filteredQuestions = filterAndSortQuestions(
@@ -123,7 +123,7 @@ export const StackOverflowQuestions = () => {
         .toLowerCase()
         .includes(searchTerm.toLowerCase()),
     ),
-    filters,
+    activeFilter,
   );
 
   const totalPages = Math.ceil(filteredQuestions.length / 5);
@@ -175,18 +175,14 @@ export const StackOverflowQuestions = () => {
 
       <Paper className={classes.filters}>
         <ButtonGroup className={classes.buttonGroup}>
-          {Object.entries(filters).map(([key, value]) => (
+          {FILTERS.map(({ id, label }) => (
             <Button
-              key={key}
-              variant={value ? 'contained' : 'outlined'}
+              key={id}
+              variant={activeFilter === id ? 'contained' : 'outlined'}
               color="primary"
-              onClick={() => toggleFilter(key as keyof typeof filters)}
+              onClick={() => toggleFilter(id)}
             >
-              {key
-                .replace('show', '')
-                .replace('Only', '')
-                .replace('First', '')
-                .replace('sortBy', '')}
+              {label}
             </Button>
           ))}
         </ButtonGroup>
@@ -202,9 +198,7 @@ export const StackOverflowQuestions = () => {
             No questions found matching "{searchTerm}"
           </Typography>
           <Link
-            to={`${baseUrl}/search?q=${encodeURIComponent(
-              searchTerm,
-            )}`}
+            to={`${baseUrl}/search?q=${encodeURIComponent(searchTerm)}`}
           >
             However, you might find more questions on your Stack Overflow Team.
           </Link>
@@ -237,12 +231,12 @@ export const StackOverflowQuestions = () => {
             ))}
           </Grid>
           <Box mt={2}>
-                  <Link to={`${baseUrl}/questions`}>
-                  <Typography variant='body1'>
-                    Explore more questions on your Stack Overflow Team
-                    </Typography>
-                  </Link>
-                </Box>
+            <Link to={`${baseUrl}/questions`}>
+              <Typography variant='body1'>
+                Explore more questions on your Stack Overflow Team
+              </Typography>
+            </Link>
+          </Box>
         </>
       )}
     </div>

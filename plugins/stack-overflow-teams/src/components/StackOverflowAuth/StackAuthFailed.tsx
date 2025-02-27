@@ -18,17 +18,21 @@ export const StackAuthFailed = () => {
       <Typography variant="h5" sx={{ color: '#FF6B6B' }}> 
         Authentication Failed
       </Typography>
-      <Typography variant="body1" mt={1} sx={{ color: 'textSecondary' }}>
+      <Box mt={1}>
+      <Typography variant="body1"  sx={{ color: 'textSecondary' }}>
         Something went wrong. Please try again.
       </Typography>
+      </Box>
+      <Box mt={1}>
       <Button
         variant="contained"
         className={classes.button} 
-        sx={{ mt: 2 }}
+       
         onClick={() => navigate('/stack-overflow-teams')} 
       >
         Return to Stack Overflow for Teams
       </Button>
+      </Box>
     </Box>
   );
 };

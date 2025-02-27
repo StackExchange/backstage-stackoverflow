@@ -93,12 +93,32 @@ export async function createRouter({
     try {
       const cookies = cookieParse(req);
       const authToken = cookies['stackoverflow-access-token'];
-      // Need to add validation logic to remove the cookie if the token is invalid, pending enhancement to the createStackOverflowAuth.ts
+
       if (!authToken) {
         return res
           .status(401)
           .json({ error: 'Missing Stack Overflow Teams Access Token' });
       }
+
+      const baseUrl = authService.config.baseUrl
+
+      const userResponse = await fetch(`${baseUrl}/api/v3/users/me`, {
+        headers: { Authorization: `Bearer ${authToken}`}
+      });
+
+      console.log(userResponse)
+
+      if (userResponse.status === 401 || userResponse.status === 403) {
+        res.clearCookie('stackoverflow-access-token')
+        return res.status(401).json({ error: 'Invalid or expired token'})
+      }
+
+      if (!userResponse.ok) {
+        res.clearCookie('stackoverflow-access-token')
+        logger.error(`Token validation failed: ${await userResponse.text()}`)
+        return res.status(500).json ({error: 'Failed to validate token'})
+      }
+
       return res
         .status(200)
         .json({ ok: 'Stack Overflow Teams Access Token detected' });
@@ -236,7 +256,13 @@ export async function createRouter({
       );
       return res.status(201).json(question);
     } catch (error: any) {
-      logger.error('Error posting question', { error });
+
+      if (error.status === 400) {
+        return res.status(400).json({
+          error: error.responseData?.detail || 'Validation failed',
+          validationDetails: error.responseData,
+        });
+      }
       return res.status(500).json({
         error: `Failed to post question to the Stack Overflow instance`,
       });

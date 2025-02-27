@@ -20,7 +20,7 @@ export async function createStackOverflowService({
   logger.info('Initializing Stack Overflow Service');
 
   const { baseUrl, apiAccessToken, teamName } = config;
-  const stackOverflowApi = createStackOverflowApi(baseUrl, logger);
+  const stackOverflowApi = createStackOverflowApi(baseUrl);
 
   return {
     // GET

@@ -11,8 +11,8 @@ import {
   Chip,
   Link,
 } from '@mui/material';
-import { useStackOverflowStyles } from './hooks'; // Import the styles hook
-import { useNavigate } from 'react-router-dom'; // For navigation
+import { useStackOverflowStyles } from './hooks';
+import { useNavigate } from 'react-router-dom';
 
 export const StackOverflowPostQuestionModal = () => {
   const stackOverflowApi = useApi(stackoverflowteamsApiRef);
@@ -25,13 +25,35 @@ export const StackOverflowPostQuestionModal = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [open, setOpen] = useState(false);
+  const [titleValidation, setTitleValidation] = useState('');
+  const [bodyValidation, setBodyValidation] = useState('');
   const classes = useStackOverflowStyles(); // Use the styles hook
   const navigate = useNavigate(); // Hook for navigation
+
+  const [titleStarted, setTitleStarted] = useState(false);
+  const [bodyStarted, setBodyStarted] = useState(false);
+
+  function validateTitle(value: string) {
+    if (titleStarted && value.trim().length < 5) {
+      setTitleValidation('Title must be at least 5 characters.');
+    } else {
+      setTitleValidation('');
+    }
+  }
+
+  function validateBody(value: string) {
+    if (bodyStarted && value.trim().length < 5) {
+      setBodyValidation('Body must be at least 5 characters.');
+    } else {
+      setBodyValidation('');
+    }
+  }
 
   useEffect(() => {
     const openModal = async () => {
       const authStatus = await stackOverflowApi.getAuthStatus();
       setIsAuthenticated(authStatus);
+      setSuccess(false);
 
       setOpen(true);
     };
@@ -43,6 +65,13 @@ export const StackOverflowPostQuestionModal = () => {
   }, [stackOverflowApi]);
 
   const handleSubmit = async () => {
+    validateTitle(title);
+    validateBody(body);
+
+    if (titleValidation || bodyValidation) {
+      return;
+    }
+
     if (!title || !body || tags.length === 0) {
       setError('All fields are required.');
       return;
@@ -62,7 +91,11 @@ export const StackOverflowPostQuestionModal = () => {
         window.open(response.webUrl, '_blank');
       }
     } catch (err) {
-      setError('Failed to post question. Please try again.');
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unexpected error occurred.');
+      }
     } finally {
       setLoading(false);
     }
@@ -83,6 +116,7 @@ export const StackOverflowPostQuestionModal = () => {
   const renderContent = () => {
     if (!isAuthenticated) {
       return (
+        <Box mt={1}>
         <Typography color="error">
           Please{' '}
           <Link component="button" onClick={handleLoginRedirect}>
@@ -90,6 +124,7 @@ export const StackOverflowPostQuestionModal = () => {
           </Link>{' '}
           to use this feature.
         </Typography>
+        </Box>
       );
     }
 
@@ -109,9 +144,15 @@ export const StackOverflowPostQuestionModal = () => {
           variant="outlined"
           margin="normal"
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1 } }}
+          onChange={e => {
+            if (!titleStarted) setTitleStarted(true);
+            setTitle(e.target.value);
+            validateTitle(e.target.value);
+          }}
+          error={titleStarted && !!titleValidation}
+          helperText={titleStarted ? titleValidation : ''}
         />
+
         <TextField
           label="Body"
           fullWidth
@@ -120,39 +161,45 @@ export const StackOverflowPostQuestionModal = () => {
           multiline
           rows={4}
           value={body}
-          onChange={(e) => setBody(e.target.value)}
-          sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1 } }}
+          onChange={e => {
+            if (!bodyStarted) setBodyStarted(true);
+            setBody(e.target.value);
+            validateBody(e.target.value);
+          }}
+          error={bodyStarted && !!bodyValidation}
+          helperText={bodyStarted ? bodyValidation : ''}
         />
+
         <TextField
           label="Tags"
           fullWidth
           variant="outlined"
           margin="normal"
           value={tagInput}
-          onChange={(e) => setTagInput(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleTagAdd()}
-          sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1 } }}
+          onChange={e => setTagInput(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && handleTagAdd()}
         />
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
           {tags.map((tag, index) => (
             <Chip
               key={index}
               label={tag}
-              onDelete={() => setTags(tags.filter((t) => t !== tag))}
+              onDelete={() => setTags(tags.filter(t => t !== tag))}
             />
           ))}
         </Box>
         {error && <Typography color="error">{error}</Typography>}
-        <Button
-          variant="contained"
-          className={classes.button} // Apply Stack Overflow button styles
-          fullWidth
-          onClick={handleSubmit}
-          disabled={loading}
-          sx={{ mt: 2 }}
-        >
-          {loading ? 'Posting...' : 'Post Question'}
-        </Button>
+        <Box mt={2}>
+          <Button
+            variant="contained"
+            className={classes.button} // Apply Stack Overflow button styles
+            fullWidth
+            onClick={handleSubmit}
+            disabled={loading}
+          >
+            {loading ? 'Posting...' : 'Post Question'}
+          </Button>
+        </Box>
       </>
     );
   };
@@ -176,9 +223,9 @@ export const StackOverflowPostQuestionModal = () => {
           Ask a Stack Overflow Question
         </Typography>
         {renderContent()}
-        <Button onClick={() => setOpen(false)} sx={{ mt: 2 }}>
-          Close
-        </Button>
+        <Box mt={2}>
+          <Button onClick={() => setOpen(false)}>Close</Button>
+        </Box>
       </Box>
     </Modal>
   );

@@ -17,20 +17,25 @@ export const StackAuthSuccess = () => {
       height="100vh"
     >
       <StackOverflowIcon />
-      <Typography variant="h5" mt={2}>
+      <Box mt={2}>
+      <Typography variant="h5" >
         You have successfully logged in with Stack Overflow!
       </Typography>
-      <Typography variant="body1" mt={1}>
+      </Box>
+      <Box mt={1}>
+      <Typography variant="body1" >
         You can now access all Stack Overflow features from Backstage
       </Typography>
+      </Box>
+      <Box mt={2}>
       <Button
         variant="contained"
         className={classes.button}
-        sx={{ mt: 2 }}
         onClick={() => navigate('/stack-overflow-teams')}
       >
         Return to Stack Overflow for Teams
       </Button>
+      </Box>
     </Box>
   );
 };
