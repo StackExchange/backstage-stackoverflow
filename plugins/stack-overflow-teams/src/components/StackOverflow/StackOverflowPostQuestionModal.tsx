@@ -219,9 +219,11 @@ export const StackOverflowPostQuestionModal = () => {
           borderRadius: 2,
         }}
       >
-        <Typography variant="h6" mb={2} className={classes.title}>
+        <Box mb={2}>
+        <Typography variant="h6"  className={classes.title}>
           Ask a Stack Overflow Question
         </Typography>
+        </Box>
         {renderContent()}
         <Box mt={2}>
           <Button onClick={() => setOpen(false)}>Close</Button>

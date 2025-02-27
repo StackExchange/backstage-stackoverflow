@@ -106,8 +106,6 @@ export async function createRouter({
         headers: { Authorization: `Bearer ${authToken}`}
       });
 
-      console.log(userResponse)
-
       if (userResponse.status === 401 || userResponse.status === 403) {
         res.clearCookie('stackoverflow-access-token')
         return res.status(401).json({ error: 'Invalid or expired token'})

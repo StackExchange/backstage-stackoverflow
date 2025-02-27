@@ -70,50 +70,49 @@ const UserCard = ({ user }: { user: User }) => {
 
   return (
     // Add tags that the users are SME off
-    <Paper className={classes.userCard} elevation={0}>
-      <div className={classes.cardHeader}>
-        <Avatar
-          src={user.avatarUrl}
-          alt={user.name}
-          className={classes.avatar}
-        />
-        <Box flex={1}>
-          <Typography
-            variant="subtitle1"
-            component="a"
-            href={user.webUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {user.name}
-          </Typography>
-          <Typography variant="body2" color="textSecondary">
-            {user.jobTitle}
-          </Typography>
-          {user.department && (
-            <Typography variant="body2" color="textSecondary" noWrap>
-              {user.department}
+    <Link to={user.webUrl} underline="none" color="inherit">
+      <Paper className={classes.userCard} elevation={0}>
+        <div className={classes.cardHeader}>
+          <Avatar
+            src={user.avatarUrl}
+            alt={user.name}
+            className={classes.avatar}
+          />
+          <Box flex={1}>
+            <Typography
+              variant="subtitle1"
+              component="a"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {user.name}
             </Typography>
-          )}
-        </Box>
-        {(isModerator || isAdmin) && (
-        <Chip
-          label={isModerator ? 'Moderator' : 'Admin'}
-          size="small"
-          style={{
-            backgroundColor: isModerator ? 'lightblue' : 'lightcoral',
-            color: isModerator? 'black': '#fff',
-          }}
-        />
-      )}
-        <Typography className={classes.reputation}>
-          {user.reputation} rep
-        </Typography>
-        
-      </div>
+            <Typography variant="body2" color="textSecondary">
+              {user.jobTitle}
+            </Typography>
+            {user.department && (
+              <Typography variant="body2" color="textSecondary" noWrap>
+                {user.department}
+              </Typography>
+            )}
+          </Box>
 
-      
-    </Paper>
+          {(isModerator || isAdmin) && (
+            <Chip
+              label={isModerator ? 'Moderator' : 'Admin'}
+              size="small"
+              style={{
+                backgroundColor: isModerator ? 'lightblue' : 'lightcoral',
+                color: isModerator ? 'black' : '#fff',
+              }}
+            />
+          )}
+          <Typography className={classes.reputation}>
+            {user.reputation} rep
+          </Typography>
+        </div>
+      </Paper>
+    </Link>
   );
 };
 
@@ -154,7 +153,6 @@ const StackOverflowUserList = ({
         </Link>
       </Grid>
     </Grid>
-    
   );
 };
 
@@ -213,7 +211,6 @@ export const StackOverflowUsers = () => {
         searchTerm={searchTerm}
         baseUrl={baseUrl}
       />
-      
     </div>
   );
 };
