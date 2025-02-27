@@ -12,14 +12,23 @@ These plugins also allow you to securely create **Stack Overflow for Teams** que
 ### Top Users and Tags
 Displays the top users and tags from your Stack Overflow instance, giving you insights into the most active contributors and trending topics.
 
+![alt text](https://i.imgur.com/vsCQUx2.png)
+![alt text](https://i.imgur.com/Wd2mzfa.png)
+
 ### Question Indexing
 Retrieves all the questions from your Stack Overflow instance and indexes them into Backstage search. This makes it easier to search and discover questions across your organization.
+
+![alt text](https://i.imgur.com/HLKNAZb.png)
 
 ### Stack Overflow Hub
 A centralized hub within Backstage that showcases the top questions. The hub also allows you to filter questions like you would on Stack Overflow.
 
+![alt text](https://i.imgur.com/WUJMl48.png)
+
 ### OAuth Authentication for Secure Question Creation
 One of the most exciting features of this plugin is the ability to securely create questions on your Stack Overflow instance directly from Backstage using OAuth. The authentication process is secure, ensuring that only authorized users can post questions, and it is designed to seamlessly integrate with Backstage.
+
+![alt text](https://i.imgur.com/8VxMDys.png)
 
 ## Installation
 
