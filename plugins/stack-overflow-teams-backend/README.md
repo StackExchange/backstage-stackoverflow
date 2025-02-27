@@ -18,6 +18,8 @@ The backend is the only component that directly utilizes **Stack Overflow access
 
 ### **Authorization Flow Details**
 
+![image](https://github.com/user-attachments/assets/1a7df089-c3c6-49a4-8761-38479e89214a)
+
 #### **`/auth/start`**  
 - Generates **PKCE Code Verifier**.  
 - Hashes Code Verifier to obtain **Code Challenge**.  
