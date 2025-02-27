@@ -3,40 +3,23 @@
 
 ## Overview
 
-This repository adds new features to the Stack Overflow plugins for [Backstage.io](https://backstage.io/), an open-source developer portal platform. The plugin integrates Stack Overflow for Teams (Enterprise and B&B tiers) with Backstage, enabling users to view and interact with content from their Stack Overflow instance directly within the Backstage environment.
+The **Stack Overflow for Teams** plugin for **Backstage** integrates your private knowledge solution with your Backstage instance. This plugin provides seamless access to **Stack Overflow Teams'** most relevant data, allowing you to display the top users, top tags, and top questions directly within Backstage. Additionally, it indexes all the questions from a Stack Overflow instance and integrates them into Backstage search, providing enhanced discoverability.
 
-### Key Features:
+This plugin also allows you to securely create **Stack Overflow for Teams** questions from Backstage itself.
 
--   **Enterprise & B&B API Support**: Fully integrated with Stack Overflow for Teams API v3, supporting both the Enterprise and B&B tiers.
--   **Home Page**: Displays key Stack Overflow data, including:
-    -   A leaderboard of active users or top contributors.
-    -   Trending tags.
-    -   Top unanswered questions.
--   **Backend API Integration**: Secure backend routers access the Stack Overflow Teams API via Keys or Tokens to retrieve relevant data.
--   **Ask Questions from Backstage**: Users can securely ask questions from Backstage leveraging OAuth PKCE Flow.
+## Key Features
 
-### Current Progress:
+### Top Users and Tags
+Displays the top users and tags from your Stack Overflow instance, giving you insights into the most active contributors and trending topics.
 
-#### Completed:
+### Question Indexing
+Retrieves all the questions from your Stack Overflow instance and indexes them into Backstage search. This makes it easier to search and discover questions across your organization.
 
--   **API Integration**: Full integration with Stack Overflow for Teams (Enterprise and B&B tiers) using API v3.
--   **Home Page**: Displays key Stack Overflow data, including:
-    -   A leaderboard of active users or top contributors.
-    -   Trending tags.
-    -   Top unanswered questions.
--   **Backend API Integration**: Secure backend routers access the Stack Overflow Teams API via Keys or Tokens to retrieve relevant data.
+### Stack Overflow Hub
+A centralized hub within Backstage that showcases the top questions. The hub also allows you to filter questions like you would on Stack Overflow.
 
-#### In Progress:
-
--   **Error Logging**: Improving logging for better debugging and issue tracking.
--   **Ask Questions from Backstage**
-
-#### Upcoming:
-
--   **Frontend Development**:
-    -   User interface for the home page (leaderboard, trending tags, unanswered questions).
--   **Additional Features**:
-    -   Enhancing the UI/UX for improved user interaction and engagement.
+### OAuth Authentication for Secure Question Creation
+One of the most exciting features of this plugin is the ability to securely create questions on your Stack Overflow instance directly from Backstage using OAuth. The authentication process is secure, ensuring that only authorized users can post questions, and it is designed to seamlessly integrate with Backstage.
 
 ## Installation
 
@@ -58,14 +41,7 @@ Follow these steps to install and run the plugin locally:
     
     ```
     
-4.  The installation will scaffold the Backstage application and include the necessary plugins. You can find the Stack Overflow plugins as dependencies inside the `package.json` files in the `/app` and `/backend` folders. The internal link between them is created using Yarn workspaces.
-    
-    For example, the frontend plugin under the `/app` folder will appear as:
-    
-    ```json
-    "@backstage-community/plugin-stack-overflow": "workspace:*"
-    
-    ```
+4.  The installation will scaffold the Backstage application and include the necessary plugins. 
     
 5.  The plugins this project aims to develop are located in the `/plugins` folder. Changes to the code will usually trigger a hot reload. If not, you can restart the Backstage application.
     
