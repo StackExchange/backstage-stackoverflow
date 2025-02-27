@@ -1,6 +1,35 @@
 # stack-overflow-teams
 
-This plugin backend was templated using the Backstage CLI. You should replace this text with a description of your plugin backend.
+Backend Plugin
+
+The **Backstage backend plugin** (the **Teams plugin**) is responsible for:  
+
+- **Indexing all questions** from the private Stack Overflow instance (an enhanced version of the existing community plugins in the Backstage repository).  
+- **Handling API requests** via ``createStackOverflowApi`` and ``createStackOverflowService`` to the Stack Overflow instance for retrieving:
+  - `/users`
+  - `/tags`
+  - `/questions`
+  - Posting new questions via `/questions`
+- **Managing OAuth authentication flow** to securely access Stack Overflow.  via ``createStackOverflowAuth``
+
+## OAuth Authentication Flow  
+
+The backend is the only component that directly utilizes **Stack Overflow access tokens** for requests.
+
+### **Authorization Flow Details**
+
+#### **`/auth/start`**  
+- Generates **PKCE Code Verifier**.  
+- Hashes Code Verifier to obtain **Code Challenge**.  
+- Generates a **state** (random string).  
+- Stores **Code Verifier** and **State** in a **secure, HTTP-only cookie** accessible only to the server.  
+
+#### **`/callback`**  
+- Retrieves the stored **Code Verifier** and **State**.  
+- Validates that the received **state** matches the one from Stack Overflow's query string parameter.  
+- The backend requests an **Access Token** using the stored **Code Verifier**.  
+- Stores the **Stack Overflow Access Token** in a **secure, HTTP-only cookie**.  
+
 
 ## Installation
 
@@ -17,6 +46,7 @@ Then add the plugin to your backend in `packages/backend/src/index.ts`:
 const backend = createBackend();
 // ...
 backend.add(import('@internal/backstage-plugin-stack-overflow-teams-backend'));
+backend.add(import('@internal/backstage-plugin-stack-overflow-teams-backend/services/search'));
 ```
 
 ## Development
