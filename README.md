@@ -3,9 +3,9 @@
 
 ## Overview
 
-The **Stack Overflow for Teams** plugin for **Backstage** integrates your private knowledge solution with your Backstage instance. This plugin provides seamless access to **Stack Overflow Teams'** most relevant data, allowing you to display the top users, top tags, and top questions directly within Backstage. Additionally, it indexes all the questions from a Stack Overflow instance and integrates them into Backstage search, providing enhanced discoverability.
+The **Stack Overflow for Teams** plugins for **Backstage** integrate your private knowledge solution with your Backstage instance. These plugins provide seamless access to **Stack Overflow Teams'** most relevant data, allowing you to display the top users, top tags, and top questions directly within Backstage. Additionally, it indexes all the questions from a Stack Overflow instance and integrates them into Backstage search, providing enhanced discoverability.
 
-This plugin also allows you to securely create **Stack Overflow for Teams** questions from Backstage itself.
+These plugins also allow you to securely create **Stack Overflow for Teams** questions from Backstage itself.
 
 ## Key Features
 
