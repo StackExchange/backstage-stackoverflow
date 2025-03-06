@@ -37,14 +37,14 @@ export const useStackOverflowData = (type: PostType) => {
             throw new Error(`Invalid data type: ${type}`);
         }
         setLoading(false);
-      } catch (error) {
+      } catch (e) {
         setError(error instanceof Error ? error : new Error(String(error)));
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [type, stackOverflowTeamsApi]);
+  }, [type, stackOverflowTeamsApi, error]);
 
   return { data, loading, error };
 };

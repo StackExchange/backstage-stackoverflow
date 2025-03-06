@@ -19,15 +19,15 @@ export async function createStackOverflowService({
 }): Promise<StackOverflowAPI> {
   logger.info('Initializing Stack Overflow Service');
 
-  const { baseUrl, apiAccessToken, teamName } = config;
+  const { baseUrl, teamName } = config;
   const stackOverflowApi = createStackOverflowApi(baseUrl);
 
   return {
     // GET
-    getQuestions: () => stackOverflowApi.GET<PaginatedResponse<Question>>('/questions', teamName, apiAccessToken),
-    getTags: () => stackOverflowApi.GET<PaginatedResponse<Tag>>('/tags', teamName, apiAccessToken),
-    getUsers: () => stackOverflowApi.GET<PaginatedResponse<User>>('/users', teamName, apiAccessToken),
-    getMe: (authToken) => stackOverflowApi.GET<User>('/users/me', teamName, authToken),
+    getQuestions: (authToken) => stackOverflowApi.GET<PaginatedResponse<Question>>('/questions', authToken, teamName),
+    getTags: (authToken) => stackOverflowApi.GET<PaginatedResponse<Tag>>('/tags', authToken, teamName),
+    getUsers: (authToken) => stackOverflowApi.GET<PaginatedResponse<User>>('/users', authToken, teamName),
+    getMe: (authToken) => stackOverflowApi.GET<User>('/users/me', authToken, teamName),
     // POST
     postQuestions: (title: string, body: string, tags: string[], authToken: string) =>
       stackOverflowApi.POST<Question>('/questions', { title, body, tags }, authToken, teamName),
