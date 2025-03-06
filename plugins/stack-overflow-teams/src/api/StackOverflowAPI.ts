@@ -77,7 +77,7 @@ export const createStackOverflowApi = (
       return data.authUrl;
     },
     completeAuth: async (code: string, state: string) => {
-      await requestAPI('callback', 'POST', undefined, [
+      await requestAPI('callback', 'GET', undefined, [
         `code=${encodeURIComponent(code)}`,
         `state=${encodeURIComponent(state)}`,
       ]);
