@@ -216,7 +216,7 @@ export async function createRouter({
     }
   });
 
-  router.get('/search', async (req: Request, res: Response) => {
+  router.post('/search', async (req: Request, res: Response) => {
     try {
       const cookies = cookieParse(req);
       const authToken = cookies['stackoverflow-access-token'];

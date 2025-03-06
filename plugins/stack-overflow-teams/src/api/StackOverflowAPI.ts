@@ -61,7 +61,7 @@ export const createStackOverflowApi = (
   };
 
   return {
-    search: (query: string) => requestAPI<any>('search', 'GET', { query }),
+    search: (query: string) => requestAPI<any>('search', 'POST', { query }),
     getQuestions: () => requestAPI<ApiResponse<Question>>('questions'),
     getTags: () => requestAPI<ApiResponse<Tag>>('tags'),
     getUsers: () => requestAPI<ApiResponse<User>>('users'),
