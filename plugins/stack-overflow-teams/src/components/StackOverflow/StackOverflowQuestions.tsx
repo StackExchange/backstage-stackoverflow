@@ -231,7 +231,7 @@ export const StackOverflowQuestions = () => {
             ))}
           </Grid>
           <Box mt={2}>
-            <Link to={`${baseUrl}/questions`}>
+            <Link to={searchTerm ? `${baseUrl}/search?q=${encodeURIComponent(searchTerm)}` : `${baseUrl}/questions`}>
               <Typography variant='body1'>
                 Explore more questions on your Stack Overflow Team
               </Typography>
