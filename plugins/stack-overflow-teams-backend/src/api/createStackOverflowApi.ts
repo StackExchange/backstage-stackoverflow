@@ -1,5 +1,3 @@
-// Comentar sobre AuthToken v AccessToken
-
 export const createStackOverflowApi = (
   baseUrl: string,
 ) => {

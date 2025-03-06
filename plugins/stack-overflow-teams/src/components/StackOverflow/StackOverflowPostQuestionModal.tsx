@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApi } from '@backstage/core-plugin-api';
+import Chip from '@material-ui/core/Chip'
 import { stackoverflowteamsApiRef } from '../../api';
 // eslint-disable-next-line no-restricted-imports
 import {
@@ -8,7 +9,6 @@ import {
   TextField,
   Button,
   Typography,
-  Chip,
   Link,
 } from '@mui/material';
 import { useStackOverflowStyles } from './hooks';
@@ -102,11 +102,17 @@ export const StackOverflowPostQuestionModal = () => {
   };
 
   const handleTagAdd = () => {
-    if (tagInput.trim() && !tags.includes(tagInput.trim())) {
-      setTags([...tags, tagInput.trim()]);
-      setTagInput('');
+    const newTags = tagInput
+      .split(/[\s,]+/) // Split on spaces or commas
+      .map(tag => tag.trim()) // Trim whitespace
+      .filter(tag => tag.length > 0 && !tags.includes(tag)); // Avoid empty and duplicate tags
+  
+    if (newTags.length > 0) {
+      setTags([...tags, ...newTags]); // Add valid tags
     }
+    setTagInput('');
   };
+  
 
   const handleLoginRedirect = () => {
     setOpen(false);
@@ -176,7 +182,12 @@ export const StackOverflowPostQuestionModal = () => {
           variant="outlined"
           margin="normal"
           value={tagInput}
-          onChange={e => setTagInput(e.target.value)}
+          onChange={e => {
+            setTagInput(e.target.value);
+            if (e.target.value.includes(',') || e.target.value.includes(' ')) {
+              handleTagAdd();
+            }
+          }}
           onKeyDown={e => e.key === 'Enter' && handleTagAdd()}
         />
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
