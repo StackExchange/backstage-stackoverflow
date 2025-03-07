@@ -156,9 +156,9 @@ export async function createRouter({
 
   // Read routes
 
-  router.get('/me', async (_req: Request, res: Response) => {
+  router.get('/me', async (req: Request, res: Response) => {
     try {
-      const cookies = cookieParse(_req);
+      const cookies = cookieParse(req);
       const authToken = cookies['stackoverflow-access-token'];
       const me = await stackOverflowService.getMe(authToken);
       res.send(me);
@@ -171,9 +171,11 @@ export async function createRouter({
     }
   });
 
-  router.get('/questions', async (_req: Request, res: Response) => {
+  router.get('/questions', async (req: Request, res: Response) => {
     try {
-      const questions = await stackOverflowService.getQuestions();
+      const cookies = cookieParse(req);
+      const authToken = cookies['stackoverflow-access-token'];
+      const questions = await stackOverflowService.getQuestions(authToken);
       res.send(questions);
     } catch (error: any) {
       // Fix type issue when including the error for some reason
@@ -184,9 +186,11 @@ export async function createRouter({
     }
   });
 
-  router.get('/tags', async (_req: Request, res: Response) => {
+  router.get('/tags', async (req: Request, res: Response) => {
     try {
-      const tags = await stackOverflowService.getTags();
+      const cookies = cookieParse(req);
+      const authToken = cookies['stackoverflow-access-token'];
+      const tags = await stackOverflowService.getTags(authToken);
       res.send(tags);
     } catch (error: any) {
       // Fix type issue when including the error for some reason
@@ -197,9 +201,11 @@ export async function createRouter({
     }
   });
 
-  router.get('/users', async (_req: Request, res: Response) => {
+  router.get('/users', async (req: Request, res: Response) => {
     try {
-      const users = await stackOverflowService.getUsers();
+      const cookies = cookieParse(req);
+      const authToken = cookies['stackoverflow-access-token'];
+      const users = await stackOverflowService.getUsers(authToken);
       res.send(users);
     } catch (error: any) {
       // Fix type issue when including the error for some reason
@@ -210,7 +216,7 @@ export async function createRouter({
     }
   });
 
-  router.get('/search', async (req: Request, res: Response) => {
+  router.post('/search', async (req: Request, res: Response) => {
     try {
       const cookies = cookieParse(req);
       const authToken = cookies['stackoverflow-access-token'];

@@ -103,7 +103,7 @@ export const StackOverflowSearchResultListItem = (
           <ListItemText
             primaryTypographyProps={{ variant: 'h6' }}
             primary={
-              <Link to={result.location} noTrack onClick={handleClick}>
+              <Link to={`${result.location}?r=Backstage_Plugin`} noTrack onClick={handleClick}>
                 {highlight?.fields?.title ? (
                   <HighlightedSearchResultText
                     text={decodeHtml(highlight.fields.title)}

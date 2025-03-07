@@ -30,7 +30,7 @@ const StackOverflowTagList = ({
           No matching tags were found for "{searchTerm}"
         </Typography>
         <Link
-          to={`${baseUrl}/tags?query=${encodeURIComponent(searchTerm)}`} // Use baseUrl here
+          to={`${baseUrl}/tags?query=${encodeURIComponent(searchTerm)}`}
         >
           However, you might find this tag on your Stack Overflow Team.
         </Link>
@@ -51,7 +51,7 @@ const StackOverflowTagList = ({
       ))}
 
       <Grid item xs={12}>
-        <Link to={`${baseUrl}/tags`}>
+        <Link to={ searchTerm ? `${baseUrl}/tags?query=${encodeURIComponent(searchTerm)}` :`${baseUrl}/tags`}>
         <Typography variant='body1'>
           Explore more tags on your Stack Overflow Team
           </Typography>

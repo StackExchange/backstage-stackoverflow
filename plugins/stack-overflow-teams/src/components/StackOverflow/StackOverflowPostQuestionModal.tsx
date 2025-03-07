@@ -27,8 +27,8 @@ export const StackOverflowPostQuestionModal = () => {
   const [open, setOpen] = useState(false);
   const [titleValidation, setTitleValidation] = useState('');
   const [bodyValidation, setBodyValidation] = useState('');
-  const classes = useStackOverflowStyles(); // Use the styles hook
-  const navigate = useNavigate(); // Hook for navigation
+  const classes = useStackOverflowStyles();
+  const navigate = useNavigate(); 
 
   const [titleStarted, setTitleStarted] = useState(false);
   const [bodyStarted, setBodyStarted] = useState(false);
@@ -88,7 +88,7 @@ export const StackOverflowPostQuestionModal = () => {
       setTags([]);
       setTagInput('');
       if (response.webUrl) {
-        window.open(response.webUrl, '_blank');
+        window.open(`${response.webUrl}?r=Backstage_Plugin`, '_blank');
       }
     } catch (err) {
       if (err instanceof Error) {
@@ -203,7 +203,7 @@ export const StackOverflowPostQuestionModal = () => {
         <Box mt={2}>
           <Button
             variant="contained"
-            className={classes.button} // Apply Stack Overflow button styles
+            className={classes.button} 
             fullWidth
             onClick={handleSubmit}
             disabled={loading}
