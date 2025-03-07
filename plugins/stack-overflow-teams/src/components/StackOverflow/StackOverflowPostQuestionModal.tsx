@@ -88,7 +88,7 @@ export const StackOverflowPostQuestionModal = () => {
       setTags([]);
       setTagInput('');
       if (response.webUrl) {
-        window.open(response.webUrl, '_blank');
+        window.open(`${response.webUrl}?r=Backstage_Plugin`, '_blank');
       }
     } catch (err) {
       if (err instanceof Error) {
