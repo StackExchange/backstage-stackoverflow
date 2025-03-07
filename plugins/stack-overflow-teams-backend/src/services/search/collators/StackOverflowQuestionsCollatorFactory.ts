@@ -78,7 +78,6 @@ export class StackOverflowQuestionsCollatorFactory
 {
   protected requestParams: StackOverflowQuestionsRequestParams;
   private readonly baseUrl: string;
-  private readonly apiVersion: string;
   private readonly teams: boolean;
   private readonly apiAccessToken: string | undefined;
   private readonly teamName: string | undefined;
@@ -86,9 +85,13 @@ export class StackOverflowQuestionsCollatorFactory
   private readonly referrer: string = 'Backstage_Plugin'
   public readonly type: string = 'stack-overflow';
 
+    // Helper function to force API Version 3.
+  private forceAPIv3(baseUrl: string) {
+      return `${new URL(baseUrl).origin}/api/v3`;
+    }
+
   private constructor(options: StackOverflowQuestionsCollatorFactoryOptions) {
-    this.baseUrl = options.baseUrl;
-    this.apiVersion = this.getApiVersionFromUrl(options.baseUrl);
+    this.baseUrl = this.forceAPIv3(options.baseUrl) 
     this.teams = options.teams || false;
     this.apiAccessToken = options.apiAccessToken;
     this.teamName = options.teamName;
@@ -103,20 +106,6 @@ export class StackOverflowQuestionsCollatorFactory
     };
   }
 
-  // Helper function to extract API version from baseUrl
-  private getApiVersionFromUrl(baseUrl: string) {
-    const url = baseUrl.trim();
-
-    if (url.endsWith('2.3')) {
-      return 'v2.3';
-    }
-
-    if (url.endsWith('v3')) {
-      return 'v3';
-    }
-
-    return 'unsupported';
-  }
 
   static fromConfig(
     config: Config,
@@ -149,7 +138,7 @@ export class StackOverflowQuestionsCollatorFactory
   // Error logging and debugging
 
   async *execute(): AsyncGenerator<StackOverflowDocument> {
-    this.logger.info(`Stack Overflow API Version: ${this.apiVersion}`);
+    this.logger.info(`Retrieving data using Stack Overflow API Version 3`);
 
     if (!this.baseUrl) {
       this.logger.error(
@@ -157,9 +146,6 @@ export class StackOverflowQuestionsCollatorFactory
       );
     }
 
-    if (this.apiVersion !== 'v3') {
-      this.logger.error(`This plugin requires API Version 3. Ensure the base URL ends with '/api/v3'.`);
-    }
 
     if (this.teams && !this.teamName) {
       this.logger.error(
