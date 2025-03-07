@@ -83,6 +83,7 @@ export class StackOverflowQuestionsCollatorFactory
   private readonly apiAccessToken: string | undefined;
   private readonly teamName: string | undefined;
   private readonly logger: LoggerService;
+  private readonly referrer: string = 'Backstage_Plugin'
   public readonly type: string = 'stack-overflow';
 
   private constructor(options: StackOverflowQuestionsCollatorFactoryOptions) {
@@ -210,7 +211,7 @@ export class StackOverflowQuestionsCollatorFactory
 
         yield {
           title: question.title,
-          location: question.webUrl,
+          location: `${question.webUrl}?r=${this.referrer}`,
           text: question.owner?.name || 'Deleted user',
           userReputation: question.owner?.reputation,
           avatar: question.owner?.avatarUrl,

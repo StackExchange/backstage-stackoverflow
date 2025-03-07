@@ -25,7 +25,7 @@ import Chip from '@material-ui/core/Chip';
 import { useAnalytics } from '@backstage/core-plugin-api';
 import type { ResultHighlight } from '@backstage/plugin-search-common';
 import { HighlightedSearchResultText } from '@backstage/plugin-search-react';
-import { decodeHtml, getTimeAgo } from '../../utils'
+import { decodeHtml, getTimeAgo } from '../../utils';
 import { Avatar, Typography } from '@material-ui/core';
 
 /**
@@ -70,11 +70,11 @@ export const StackOverflowSearchResultListItem = (
       <ListItem alignItems="center">
         {props.icon && <ListItemIcon>{props.icon}</ListItemIcon>}
         <Box
-          display='flex'
-          flexDirection='column'
-          alignItems='center'
+          display="flex"
+          flexDirection="column"
+          alignItems="center"
           mr={2}
-          minWidth='80px'
+          minWidth="80px"
         >
           <Typography variant="subtitle2" color="textSecondary">
             {result.score} votes
@@ -103,7 +103,16 @@ export const StackOverflowSearchResultListItem = (
           <ListItemText
             primaryTypographyProps={{ variant: 'h6' }}
             primary={
-              <Link to={`${result.location}?r=Backstage_Plugin`} noTrack onClick={handleClick}>
+              // Currently, the backend send the referrer to fill out the questions index, however, this component is shared for both the questions that come from the index and also the question that are actively with a live API request, my solution for now is to add the referrer when it doesn't exist already until this is changed in the future.
+              <Link
+                to={
+                  result.location.includes('?r=')
+                    ? result.location
+                    : `${result.location}?r=Backstage_Plugin`
+                }
+                noTrack
+                onClick={handleClick}
+              >
                 {highlight?.fields?.title ? (
                   <HighlightedSearchResultText
                     text={decodeHtml(highlight.fields.title)}
@@ -159,7 +168,7 @@ export const StackOverflowSearchResultListItem = (
                       marginTop: 6,
                       marginLeft: 8,
                       backgroundColor: isModerator ? 'lightblue' : 'lightcoral',
-                      color: isModerator? 'black': '#fff',
+                      color: isModerator ? 'black' : '#fff',
                       fontWeight: 'bold',
                     }}
                   />
