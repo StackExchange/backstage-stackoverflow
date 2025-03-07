@@ -11,7 +11,12 @@
     "types": "dist/index.d.ts"
   },
   "backstage": {
-    "role": "frontend-plugin"
+    "role": "frontend-plugin",
+    "pluginId": "stack-overflow-teams",
+    "pluginPackages": [
+      "@internal/backstage-plugin-stack-overflow-teams",
+      "@internal/backstage-plugin-stack-overflow-teams-backend"
+    ]
   },
   "sideEffects": false,
   "scripts": {
@@ -50,7 +55,8 @@
     "@testing-library/react": "^14.0.0",
     "@testing-library/user-event": "^14.0.0",
     "msw": "^1.0.0",
-    "react": "^16.13.1 || ^17.0.0 || ^18.0.0"
+    "react": "^16.13.1 || ^17.0.0 || ^18.0.0",
+    "typescript": "^5.8.2"
   },
   "files": [
     "dist"

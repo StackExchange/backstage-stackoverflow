@@ -17,7 +17,6 @@ export const StackOverflowTeamsPage = () => {
         const isLoggedIn = await stackOverflowTeamsApi.getAuthStatus();
         setAuthStatus(isLoggedIn ? 'authenticated' : 'unauthenticated');
       } catch (error) {
-        console.error('Error checking authentication status:', error);
         setAuthStatus('unauthenticated');
       }
     };
