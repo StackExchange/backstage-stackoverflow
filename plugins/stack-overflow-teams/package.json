@@ -65,6 +65,7 @@
     "typescript": "^5.8.2"
   },
   "files": [
-    "dist"
+    "dist",
+    "config.d.ts"
   ]
 }

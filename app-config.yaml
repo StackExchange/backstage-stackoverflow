@@ -7,7 +7,6 @@ organization:
 
 stackoverflow:
   baseUrl: ${STACK_OVERFLOW_INSTANCE_URL}
-  teams: false
   # teamName: ${STACK_OVERFLOW_TEAM_NAME}
   apiAccessToken: ${STACK_OVERFLOW_ENTERPRISE_ACCESS_TOKEN}
   clientId: ${STACK_OVERFLOW_CLIENT_ID}
