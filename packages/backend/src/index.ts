@@ -57,7 +57,7 @@ backend.add(import('@backstage/plugin-kubernetes-backend'));
 
 // StackOverflow
 
-backend.add(import('@internal/backstage-plugin-stack-overflow-teams-backend'));
+backend.add(import('backstage-plugin-stack-overflow-teams-backend'));
 
-backend.add(import('@internal/backstage-plugin-search-backend-module-stack-overflow-teams-collator'));
+backend.add(import('backstage-stack-overflow-teams-collator'));
 backend.start();

@@ -1,6 +1,6 @@
 {
   "name": "backstage-stack-overflow-teams-collator",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "A module for the search backend that exports stack overflow for teams modules",
   "backstage": {
     "role": "backend-plugin-module",
@@ -15,6 +15,9 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/estoesmoises/backstage-stackoverflow"
+  },
+  "bugs": {
+    "url": "https://github.com/EstoesMoises/backstage-stackoverflow/issues"
   },
   "license": "Apache-2.0",
   "main": "src/index.ts",
