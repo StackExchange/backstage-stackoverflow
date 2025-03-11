@@ -61,7 +61,6 @@ export type StackOverflowQuestionsRequestParams = {
  */
 export type StackOverflowQuestionsCollatorFactoryOptions = {
   baseUrl: string;
-  teams?: boolean;
   apiAccessToken?: string;
   teamName?: string;
   requestParams?: StackOverflowQuestionsRequestParams;
@@ -78,7 +77,6 @@ export class StackOverflowQuestionsCollatorFactory
 {
   protected requestParams: StackOverflowQuestionsRequestParams;
   private readonly baseUrl: string;
-  private readonly teams: boolean;
   private readonly apiAccessToken: string | undefined;
   private readonly teamName: string | undefined;
   private readonly logger: LoggerService;
@@ -92,7 +90,6 @@ export class StackOverflowQuestionsCollatorFactory
 
   private constructor(options: StackOverflowQuestionsCollatorFactoryOptions) {
     this.baseUrl = this.forceAPIv3(options.baseUrl) 
-    this.teams = options.teams || false;
     this.apiAccessToken = options.apiAccessToken;
     this.teamName = options.teamName;
     this.logger = options.logger.child({ documentType: this.type });
@@ -116,14 +113,12 @@ export class StackOverflowQuestionsCollatorFactory
     );
     const teamName = config.getOptionalString('stackoverflow.teamName');
     const baseUrl = config.getString('stackoverflow.baseUrl');
-    const teams = config.getOptionalBoolean('stackoverflow.teams') || false;
     const requestParams = config
       .getOptionalConfig('stackoverflow.requestParams')
       ?.get<StackOverflowQuestionsRequestParams>();
 
     return new StackOverflowQuestionsCollatorFactory({
       baseUrl,
-      teams,
       apiAccessToken,
       teamName,
       requestParams,
@@ -146,13 +141,6 @@ export class StackOverflowQuestionsCollatorFactory
       );
     }
 
-
-    if (this.teams && !this.teamName) {
-      this.logger.error(
-        'When stackoverflow.teams is enabled you must define stackoverflow.teamName',
-      );
-    }
-
     const params = qs.stringify(this.requestParams, {
       arrayFormat: 'comma',
       addQueryPrefix: true,
@@ -160,12 +148,7 @@ export class StackOverflowQuestionsCollatorFactory
 
     let requestUrl;
 
-    if (this.teams && !this.teamName) {
-      this.logger.error(
-        'stackoverflow.teamName is required when stackoverflow.teams is true.',
-      );
-    }
-    if (this.teams) {
+    if (this.teamName) {
       requestUrl = `${this.baseUrl}/teams/${this.teamName}/questions${params}`;
     } else {
       requestUrl = `${this.baseUrl}/questions${params}`;

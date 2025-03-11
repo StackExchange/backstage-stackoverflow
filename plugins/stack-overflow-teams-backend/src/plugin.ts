@@ -25,10 +25,9 @@ export const stackOverflowTeamsPlugin = createBackendPlugin({
         const forceAPIv3 = (baseUrl: string) : string => `${new URL(baseUrl).origin}/api/v3`
         const stackOverflowConfig: StackOverflowConfig = {
           baseUrl: forceAPIv3(config.getString('stackoverflow.baseUrl')),
-          apiAccessToken: config.getString('stackoverflow.apiAccessToken'),
           teamName: config.getOptionalString('stackoverflow.teamName'),
-          clientId: config.getOptionalNumber('stackoverflow.clientId'),
-          redirectUri: config.getOptionalString('stackoverflow.redirectUri'),
+          clientId: config.getNumber('stackoverflow.clientId'),
+          redirectUri: config.getString('stackoverflow.redirectUri'),
         };
         const stackOverflowService = await createStackOverflowService({
           config: stackOverflowConfig,

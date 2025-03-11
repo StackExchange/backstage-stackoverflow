@@ -2,40 +2,10 @@ import { LoggerService } from '@backstage/backend-plugin-api';
 import { StackOverflowConfig } from '../services/StackOverflowService/types';
 import crypto from 'crypto';
 
-type ValidatedStackOverflowConfig = {
-  clientId: number;
-  redirectUri: string;
-  baseUrl: string;
-};
-
 export function createStackOverflowAuth(
   config: StackOverflowConfig,
   logger: LoggerService,
 ) {
-  // Validation
-  if (!config.clientId || !config.redirectUri) {
-    logger.error(
-      'To create StackOverflow questions, you must specify a client_id and redirect_uri in the Stack Overflow config for OAuth purposes',
-    );
-    throw new Error(
-      'Missing client_id or redirect_uri in Stack Overflow config',
-    );
-  }
-
-  let normalizedBaseUrl: string;
-  try {
-    const baseUrlObj = new URL(config.baseUrl);
-    normalizedBaseUrl = baseUrlObj.origin;
-  } catch (error: any) {
-    logger.error(`Invalid baseUrl: ${error.message}`);
-    throw new Error('Invalid baseUrl in Stack Overflow config');
-  }
-
-  const validatedConfig: ValidatedStackOverflowConfig = {
-    clientId: config.clientId,
-    redirectUri: config.redirectUri,
-    baseUrl: normalizedBaseUrl,
-  };
 
   async function generatePKCECodeVerifier(): Promise<{
     codeVerifier: string;
@@ -52,10 +22,10 @@ export function createStackOverflowAuth(
   async function getAuthUrl(): Promise<{ url: string; codeVerifier: string ; state: string}> {
     const { codeVerifier, codeChallenge } = await generatePKCECodeVerifier();
     const state = crypto.randomBytes(16).toString('hex');
-    const authUrl = `${validatedConfig.baseUrl}/oauth?client_id=${
-      validatedConfig.clientId
+    const authUrl = `${config.baseUrl}/oauth?client_id=${
+      config.clientId
     }&redirect_uri=${encodeURIComponent(
-      validatedConfig.redirectUri,
+      config.redirectUri,
     )}&code_challenge=${codeChallenge}&code_challenge_method=S256&state=${state}&scope=write_access`;
 
     return { url: authUrl, codeVerifier, state };
@@ -65,11 +35,11 @@ export function createStackOverflowAuth(
     code: string,
     codeVerifier: string,
   ): Promise<{accessToken: string, expires: number}> {
-    const tokenUrl = `${validatedConfig.baseUrl}/oauth/access_token/json`;
+    const tokenUrl = `${config.baseUrl}/oauth/access_token/json`;
     const queryParams = new URLSearchParams({
-      client_id: String(validatedConfig.clientId),
+      client_id: String(config.clientId),
       code,
-      redirect_uri: validatedConfig.redirectUri,
+      redirect_uri: config.redirectUri,
       code_verifier: codeVerifier,
     });
     
@@ -93,6 +63,6 @@ export function createStackOverflowAuth(
   return {
     getAuthUrl,
     exchangeCodeForToken,
-    config: validatedConfig
+    config: config
   };
 }

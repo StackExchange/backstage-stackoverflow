@@ -7,8 +7,8 @@
  */
 
 import { createBackend } from '@backstage/backend-defaults';
-
 import dotenv from 'dotenv'; // Import the dotenv module`
+
 dotenv.config(); // Load environment variables from a .env file into process.env
 
 const backend = createBackend();
@@ -59,6 +59,5 @@ backend.add(import('@backstage/plugin-kubernetes-backend'));
 
 backend.add(import('@internal/backstage-plugin-stack-overflow-teams-backend'));
 
-backend.add(import('@internal/backstage-plugin-stack-overflow-teams-backend/src/services/search'));
-
+backend.add(import('@internal/backstage-plugin-search-backend-module-stack-overflow-teams-collator'));
 backend.start();
