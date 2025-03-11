@@ -21,10 +21,9 @@ export const stackOverflowTeamsPlugin = createBackendPlugin({
         config: coreServices.rootConfig,
       },
       async init({ logger, httpRouter, config }) {
-        // Stack Overflow for Teams has different API versions, this plugin is only intended to work with /api/v3
-        const forceAPIv3 = (baseUrl: string) : string => `${new URL(baseUrl).origin}/api/v3`
+        const forceOriginUrl = (baseUrl: string) : string => `${new URL(baseUrl).origin}`
         const stackOverflowConfig: StackOverflowConfig = {
-          baseUrl: forceAPIv3(config.getString('stackoverflow.baseUrl')),
+          baseUrl: forceOriginUrl(config.getString('stackoverflow.baseUrl')),
           teamName: config.getOptionalString('stackoverflow.teamName'),
           clientId: config.getNumber('stackoverflow.clientId'),
           redirectUri: config.getString('stackoverflow.redirectUri'),

@@ -143,7 +143,7 @@ export async function createRouter({
   // Info routes
 
   router.get('/baseurl', async (_req: Request, res: Response) => {
-    const baseUrl = new URL(stackOverflowConfig.baseUrl).origin;
+    const baseUrl = stackOverflowConfig.baseUrl
     try {
       res.json({ SOInstance: baseUrl });
     } catch (error) {

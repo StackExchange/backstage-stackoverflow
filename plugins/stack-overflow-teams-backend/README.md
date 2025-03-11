@@ -1,5 +1,7 @@
 # Stack Overflow Teams Backend Plugin
 
+Backend counterpart of the Stack Overflow for Teams Plugin.
+
 ## Areas of Responsibility
 
 The **Stack Overflow for Teams Backend plugin** is responsible for:

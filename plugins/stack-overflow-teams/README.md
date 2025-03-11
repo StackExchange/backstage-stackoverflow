@@ -1,9 +1,11 @@
 
 # Stack Overflow Teams Frontend Plugin
 
+This package is the **frontend component** of the `stack-overflow-teams` plugin for Backstage.
+
 ## Areas of Responsibility
 
-This package is the **frontend component** of the `stack-overflow-teams` plugin for Backstage. It provides the UI and interacts with the [backend service](https://github.com/EstoesMoises/backstage-stackoverflow/tree/main/plugins/stack-overflow-teams-backend) to fetch data from your Stack Overflow Enterprise instance.
+ It provides the UI and interacts with the [backend service](https://github.com/EstoesMoises/backstage-stackoverflow/tree/main/plugins/stack-overflow-teams-backend) to fetch data from your Stack Overflow Enterprise instance.
 
 ### Backend Dependency
 
