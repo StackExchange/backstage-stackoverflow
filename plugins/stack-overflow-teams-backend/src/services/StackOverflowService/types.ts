@@ -55,9 +55,8 @@ export type PaginatedResponse<T> = {
 export type StackOverflowConfig = {
   baseUrl: string;
   teamName?: string;
-  apiAccessToken: string;
-  clientId?: number;
-  redirectUri?: string;
+  clientId: number;
+  redirectUri: string;
   authUrl?: string;
 };
 

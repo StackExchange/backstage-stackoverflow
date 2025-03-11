@@ -35,11 +35,11 @@ The backend is the only component that directly utilizes **Stack Overflow access
 
 ## Installation
 
-This plugin is installed via the `@internal/backstage-plugin-stack-overflow-teams-backend` package. To install it to your backend package, run the following command:
+This plugin is installed via the `backstage-plugin-stack-overflow-teams-backend` package. To install it to your backend package, run the following command:
 
 ```bash
 # From your root directory
-yarn --cwd packages/backend add @internal/backstage-plugin-stack-overflow-teams-backend
+yarn --cwd packages/backend add backstage-plugin-stack-overflow-teams-backend
 ```
 
 Then add the plugin to your backend in `packages/backend/src/index.ts`:
@@ -47,8 +47,8 @@ Then add the plugin to your backend in `packages/backend/src/index.ts`:
 ```ts
 const backend = createBackend();
 // ...
-backend.add(import('@internal/backstage-plugin-stack-overflow-teams-backend'));
-backend.add(import('@internal/backstage-plugin-stack-overflow-teams-backend/services/search'));
+backend.add(import('backstage-plugin-stack-overflow-teams-backend'));
+backend.add(import('backstage-plugin-stack-overflow-teams-backend/services/search'));
 ```
 
 ## Development
