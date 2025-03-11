@@ -157,7 +157,7 @@ export class StackOverflowQuestionsCollatorFactory
     let page = 1;
     let totalPages = 1
     const pageSize = this.requestParams.pageSize || 50
-    this.logger.warn('Starting collating Stack Overflow questions, wait for the success message')
+    this.logger.warn('Starting collating Stack Overflow for Teams questions, wait for the success message')
     while (page <= totalPages) {
       const res = await fetch(`${requestUrl}&page=${page}&pageSize=${pageSize}`, {
         headers: {
