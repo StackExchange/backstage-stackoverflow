@@ -80,16 +80,16 @@ export class StackOverflowQuestionsCollatorFactory
   private readonly apiAccessToken: string | undefined;
   private readonly teamName: string | undefined;
   private readonly logger: LoggerService;
-  private readonly referrer: string = 'Backstage_Plugin'
+  private readonly referrer: string = 'Backstage_Plugin';
   public readonly type: string = 'stack-overflow';
+  public readonly stackOverflowTeamsAPI: string =
+    'https://api.stackoverflowteams.com';
 
-    // Helper function to force API Version 3.
-  private forceAPIv3(baseUrl: string) {
-      return `${new URL(baseUrl).origin}/api/v3`;
-    }
+  private forceOriginUrl = (baseUrl: string): string =>
+    `${new URL(baseUrl).origin}`;
 
   private constructor(options: StackOverflowQuestionsCollatorFactoryOptions) {
-    this.baseUrl = this.forceAPIv3(options.baseUrl) 
+    this.baseUrl = this.forceOriginUrl(options.baseUrl);
     this.apiAccessToken = options.apiAccessToken;
     this.teamName = options.teamName;
     this.logger = options.logger.child({ documentType: this.type });
@@ -103,14 +103,11 @@ export class StackOverflowQuestionsCollatorFactory
     };
   }
 
-
   static fromConfig(
     config: Config,
     options: StackOverflowQuestionsCollatorFactoryOptions,
   ) {
-    const apiAccessToken = config.getString(
-      'stackoverflow.apiAccessToken',
-    );
+    const apiAccessToken = config.getString('stackoverflow.apiAccessToken');
     const teamName = config.getOptionalString('stackoverflow.teamName');
     const baseUrl = config.getString('stackoverflow.baseUrl');
     const requestParams = config
@@ -122,7 +119,7 @@ export class StackOverflowQuestionsCollatorFactory
       apiAccessToken,
       teamName,
       requestParams,
-      ...options
+      ...options,
     });
   }
 
@@ -149,25 +146,31 @@ export class StackOverflowQuestionsCollatorFactory
     let requestUrl;
 
     if (this.teamName) {
-      requestUrl = `${this.baseUrl}/teams/${this.teamName}/questions${params}`;
+      const basePath =
+        this.baseUrl === this.stackOverflowTeamsAPI ? '/v3' : '/api/v3';
+      requestUrl = `${this.baseUrl}${basePath}/teams/${this.teamName}/questions${params}`;
     } else {
-      requestUrl = `${this.baseUrl}/questions${params}`;
+      requestUrl = `${this.baseUrl}/api/v3/questions${params}`;
     }
 
     let page = 1;
-    let totalPages = 1
-    const pageSize = this.requestParams.pageSize || 50
-    this.logger.warn('Starting collating Stack Overflow for Teams questions, wait for the success message')
-    while (page <= totalPages) {
-      const res = await fetch(`${requestUrl}&page=${page}&pageSize=${pageSize}`, {
-        headers: {
-          Authorization: `Bearer ${this.apiAccessToken}`,
-        },
-      }
+    let totalPages = 1;
+    const pageSize = this.requestParams.pageSize || 50;
+    this.logger.warn(
+      'Starting collating Stack Overflow for Teams questions, wait for the success message',
     );
+    while (page <= totalPages) {
+      const res = await fetch(
+        `${requestUrl}&page=${page}&pageSize=${pageSize}`,
+        {
+          headers: {
+            Authorization: `Bearer ${this.apiAccessToken}`,
+          },
+        },
+      );
 
       const data = await res.json();
-      totalPages = data.totalPages
+      totalPages = data.totalPages;
 
       for (const question of data.items ?? []) {
         const tags =
@@ -192,11 +195,11 @@ export class StackOverflowQuestionsCollatorFactory
           viewCount: question.viewCount,
           isAnswered: question.isAnswered,
           bounty: question.bounty,
-          creationDate: question.creationDate, 
-          lastActivityDate: question.lastActivityDate, 
+          creationDate: question.creationDate,
+          lastActivityDate: question.lastActivityDate,
         };
       }
-      page++
+      page++;
     }
   }
 }

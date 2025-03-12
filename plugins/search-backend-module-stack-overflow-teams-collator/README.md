@@ -13,7 +13,7 @@ To use any of the functionality this plugin provides, you need to start by confi
 
 ```yaml
 stackoverflow:
-  baseUrl: https://stackoverflowteams.com # alternative: your Stack Overflow Enterprise site
+  baseUrl: https://api.stackoverflowteams.com # alternative: your Stack Overflow Enterprise site
   teamName: $STACK_OVERFLOW_TEAM_NAME # optional if you are on Enterprise
   apiAccessToken: $STACK_OVERFLOW_API_ACCESS_TOKEN
 ```
