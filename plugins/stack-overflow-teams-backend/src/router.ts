@@ -6,15 +6,18 @@ import {
   StackOverflowConfig,
 } from './services/StackOverflowService/types';
 import { createStackOverflowAuth } from './api';
+import { decryptToken, encryptToken } from './utils';
 
 export async function createRouter({
   logger,
   stackOverflowConfig,
   stackOverflowService,
+  jwtSecret,
 }: {
   logger: LoggerService;
   stackOverflowConfig: StackOverflowConfig;
   stackOverflowService: StackOverflowAPI;
+  jwtSecret: string;
 }): Promise<express.Router> {
   const router = Router();
   const authService = createStackOverflowAuth(stackOverflowConfig, logger);
@@ -33,6 +36,25 @@ export async function createRouter({
     );
   }
 
+  // Never returning SO Tokens to the frontend.
+  function getValidAuthToken(req: Request, res: Response): string | null {
+    const cookies = cookieParse(req);
+    const cookiesToken = cookies['stackoverflow-access-token'];
+
+    try {
+      const authToken = decryptToken(cookiesToken, jwtSecret);
+      if (!authToken) {
+        res.clearCookie('stackoverflow-access-token');
+        return null;
+      }
+      return authToken;
+    } catch (error: any) {
+      logger.error('Invalid or malformed Stack Overflow token', error);
+      res.clearCookie('stackoverflow-access-token');
+      return null;
+    }
+  }
+
   // OAuth Authentication routes
 
   router.get('/auth/start', async (_req: Request, res: Response) => {
@@ -40,10 +62,12 @@ export async function createRouter({
 
     res.cookie('socodeverifier', codeVerifier, {
       httpOnly: true,
+      sameSite: 'strict',
       secure: process.env.NODE_ENV === 'production',
     });
     res.cookie('state', state, {
       httpOnly: true,
+      sameSite: 'strict',
       secure: process.env.NODE_ENV === 'production',
     });
     res.json({ authUrl: url });
@@ -69,13 +93,16 @@ export async function createRouter({
         code,
         codeVerifier,
       );
+
+      const encryptedToken = encryptToken(accessToken, jwtSecret);
       // The cookie's max age is linked to the Token's expiration, the default expiration is 24 hours.
       return res
         .clearCookie('socodeverifier')
         .clearCookie('state')
-        .cookie('stackoverflow-access-token', accessToken, {
+        .cookie('stackoverflow-access-token', encryptedToken, {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
+          sameSite: 'strict',
           maxAge: expires * 1000,
         })
         .json({ ok: true });
@@ -91,30 +118,30 @@ export async function createRouter({
 
   router.get('/authStatus', async (req: Request, res: Response) => {
     try {
-      const cookies = cookieParse(req);
-      const authToken = cookies['stackoverflow-access-token'];
+      const authToken = getValidAuthToken(req, res);
 
       if (!authToken) {
+        res.clearCookie('stackoverflow-access-token');
         return res
           .status(401)
           .json({ error: 'Missing Stack Overflow Teams Access Token' });
       }
 
-      const baseUrl = authService.config.baseUrl
+      const baseUrl = authService.config.baseUrl;
 
       const userResponse = await fetch(`${baseUrl}/api/v3/users/me`, {
-        headers: { Authorization: `Bearer ${authToken}`}
+        headers: { Authorization: `Bearer ${authToken}` },
       });
 
       if (userResponse.status === 401 || userResponse.status === 403) {
-        res.clearCookie('stackoverflow-access-token')
-        return res.status(401).json({ error: 'Invalid or expired token'})
+        res.clearCookie('stackoverflow-access-token');
+        return res.status(401).json({ error: 'Invalid or expired token' });
       }
 
       if (!userResponse.ok) {
-        res.clearCookie('stackoverflow-access-token')
-        logger.error(`Token validation failed: ${await userResponse.text()}`)
-        return res.status(500).json ({error: 'Failed to validate token'})
+        res.clearCookie('stackoverflow-access-token');
+        logger.error(`Token validation failed: ${await userResponse.text()}`);
+        return res.status(500).json({ error: 'Failed to validate token' });
       }
 
       return res
@@ -143,7 +170,7 @@ export async function createRouter({
   // Info routes
 
   router.get('/baseurl', async (_req: Request, res: Response) => {
-    const baseUrl = stackOverflowConfig.baseUrl
+    const baseUrl = stackOverflowConfig.baseUrl;
     try {
       res.json({ SOInstance: baseUrl });
     } catch (error) {
@@ -158,9 +185,8 @@ export async function createRouter({
 
   router.get('/me', async (req: Request, res: Response) => {
     try {
-      const cookies = cookieParse(req);
-      const authToken = cookies['stackoverflow-access-token'];
-      const me = await stackOverflowService.getMe(authToken);
+      const authToken = getValidAuthToken(req, res);
+      const me = await stackOverflowService.getMe(authToken!);
       res.send(me);
     } catch (error: any) {
       // Fix type issue when including the error for some reason
@@ -173,8 +199,12 @@ export async function createRouter({
 
   router.get('/questions', async (req: Request, res: Response) => {
     try {
-      const cookies = cookieParse(req);
-      const authToken = cookies['stackoverflow-access-token'];
+      const authToken = getValidAuthToken(req, res);
+      if (!authToken) {
+        return res
+          .status(401)
+          .json({ error: 'Missing Stack Overflow Teams Access Token' });
+      }
       const questions = await stackOverflowService.getQuestions(authToken);
       res.send(questions);
     } catch (error: any) {
@@ -188,8 +218,12 @@ export async function createRouter({
 
   router.get('/tags', async (req: Request, res: Response) => {
     try {
-      const cookies = cookieParse(req);
-      const authToken = cookies['stackoverflow-access-token'];
+      const authToken = getValidAuthToken(req, res);
+      if (!authToken) {
+        return res
+          .status(401)
+          .json({ error: 'Missing Stack Overflow Teams Access Token' });
+      }
       const tags = await stackOverflowService.getTags(authToken);
       res.send(tags);
     } catch (error: any) {
@@ -203,8 +237,12 @@ export async function createRouter({
 
   router.get('/users', async (req: Request, res: Response) => {
     try {
-      const cookies = cookieParse(req);
-      const authToken = cookies['stackoverflow-access-token'];
+      const authToken = getValidAuthToken(req, res);
+      if (!authToken) {
+        return res
+          .status(401)
+          .json({ error: 'Missing Stack Overflow Teams Access Token' });
+      }
       const users = await stackOverflowService.getUsers(authToken);
       res.send(users);
     } catch (error: any) {
@@ -218,8 +256,7 @@ export async function createRouter({
 
   router.post('/search', async (req: Request, res: Response) => {
     try {
-      const cookies = cookieParse(req);
-      const authToken = cookies['stackoverflow-access-token'];
+      const authToken = getValidAuthToken(req, res);
       const { query } = req.body;
 
       if (!authToken) {
@@ -244,9 +281,8 @@ export async function createRouter({
 
   router.post('/questions', async (req: Request, res: Response) => {
     try {
-      const cookies = cookieParse(req);
       const { title, body, tags } = req.body;
-      const authToken = cookies['stackoverflow-access-token'];
+      const authToken = getValidAuthToken(req, res);
       if (!authToken) {
         return res
           .status(401)
@@ -260,7 +296,6 @@ export async function createRouter({
       );
       return res.status(201).json(question);
     } catch (error: any) {
-
       if (error.status === 400) {
         return res.status(400).json({
           error: error.responseData?.detail || 'Validation failed',

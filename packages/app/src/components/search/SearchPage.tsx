@@ -16,7 +16,10 @@ import {
 } from '@backstage/plugin-search-react';
 import { CatalogIcon, Content, Header, Page } from '@backstage/core-components';
 import { useApi } from '@backstage/core-plugin-api';
-import { StackOverflowIcon, StackOverflowSearchResultListItem } from 'backstage-plugin-stack-overflow-teams';
+import {
+  StackOverflowIcon,
+  StackOverflowSearchResultListItem,
+} from 'backstage-plugin-stack-overflow-teams';
 
 const useStyles = makeStyles((theme: Theme) => ({
   bar: {

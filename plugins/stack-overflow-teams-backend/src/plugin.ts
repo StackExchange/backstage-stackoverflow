@@ -2,6 +2,7 @@ import {
   coreServices,
   createBackendPlugin,
 } from '@backstage/backend-plugin-api';
+import { randomBytes } from 'crypto'
 import { createRouter } from './router';
 import { createStackOverflowService } from './services/StackOverflowService';
 import { StackOverflowConfig } from './services/StackOverflowService';
@@ -11,6 +12,9 @@ import { StackOverflowConfig } from './services/StackOverflowService';
  *
  * @public
  */
+
+const JWT_SECRET = randomBytes(64).toString('hex')
+
 export const stackOverflowTeamsPlugin = createBackendPlugin({
   pluginId: 'stack-overflow-teams',
   register(env) {
@@ -38,6 +42,7 @@ export const stackOverflowTeamsPlugin = createBackendPlugin({
             stackOverflowConfig,
             logger,
             stackOverflowService,
+            jwtSecret: JWT_SECRET
           }),
         );
       },

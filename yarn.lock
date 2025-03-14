@@ -13835,6 +13835,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/jsonwebtoken@npm:^9":
+  version: 9.0.9
+  resolution: "@types/jsonwebtoken@npm:9.0.9"
+  dependencies:
+    "@types/ms": "npm:*"
+    "@types/node": "npm:*"
+  checksum: 10c0/d754a7b65fc021b298fc94e8d7a7d71f35dedf24296ac89286f80290abc5dbb0c7830a21440ee9ecbb340efc1b0a21f5609ea298a35b874cae5ad29a65440741
+  languageName: node
+  linkType: hard
+
 "@types/jsonwebtoken@npm:^9.0.0":
   version: 9.0.7
   resolution: "@types/jsonwebtoken@npm:9.0.7"
@@ -16113,10 +16123,12 @@ __metadata:
     "@backstage/plugin-search-backend-node": "npm:^1.3.8"
     "@backstage/plugin-search-common": "npm:^1.2.17"
     "@types/express": "npm:^4.17.6"
+    "@types/jsonwebtoken": "npm:^9"
     "@types/qs": "npm:^6"
     "@types/supertest": "npm:^2.0.12"
     express: "npm:^4.17.1"
     express-promise-router: "npm:^4.1.0"
+    jsonwebtoken: "npm:^9.0.2"
     msw: "npm:^2.7.3"
     qs: "npm:^6.14.0"
     supertest: "npm:^6.2.4"
