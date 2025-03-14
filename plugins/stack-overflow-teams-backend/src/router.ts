@@ -206,11 +206,11 @@ export async function createRouter({
           .json({ error: 'Missing Stack Overflow Teams Access Token' });
       }
       const questions = await stackOverflowService.getQuestions(authToken);
-      res.send(questions);
+      return res.send(questions);
     } catch (error: any) {
       // Fix type issue when including the error for some reason
       logger.error('Error fetching questions', { error });
-      res.status(500).send({
+      return res.status(500).send({
         error: `Failed to fetch questions from the Stack Overflow instance`,
       });
     }
@@ -225,11 +225,11 @@ export async function createRouter({
           .json({ error: 'Missing Stack Overflow Teams Access Token' });
       }
       const tags = await stackOverflowService.getTags(authToken);
-      res.send(tags);
+      return res.send(tags);
     } catch (error: any) {
       // Fix type issue when including the error for some reason
       logger.error('Error fetching tags', { error });
-      res.status(500).send({
+      return res.status(500).send({
         error: `Failed to fetch tags from the Stack Overflow instance`,
       });
     }
@@ -244,11 +244,11 @@ export async function createRouter({
           .json({ error: 'Missing Stack Overflow Teams Access Token' });
       }
       const users = await stackOverflowService.getUsers(authToken);
-      res.send(users);
+      return res.send(users);
     } catch (error: any) {
       // Fix type issue when including the error for some reason
       logger.error('Error fetching users', { error });
-      res.status(500).send({
+      return res.status(500).send({
         error: `Failed to fetch users from the Stack Overflow instance`,
       });
     }
