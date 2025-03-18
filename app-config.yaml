@@ -8,15 +8,9 @@ organization:
 stackoverflow:
   baseUrl: ${STACK_OVERFLOW_INSTANCE_URL}
   # teamName: ${STACK_OVERFLOW_TEAM_NAME}
-  apiAccessToken: ${STACK_OVERFLOW_ENTERPRISE_ACCESS_TOKEN}
+  apiAccessToken: ${STACK_OVERFLOW_API_ACCESS_TOKEN}
   clientId: ${STACK_OVERFLOW_CLIENT_ID}
-  redirectUri: http://redirectmeto.com/http://localhost:3000/stack-overflow-teams/
-  schedule:
-    {
-      frequency: { minutes: 20 },
-      timeout: { minutes: 5 },
-      initialDelay: { seconds: 3 },
-    }
+  redirectUri: ${STACK_OVERFLOW_REDIRECT_URI}
 
 backend:
   # Used for enabling authentication, secret is shared by all backend plugins
