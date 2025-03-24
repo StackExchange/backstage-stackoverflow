@@ -13,7 +13,7 @@ The **Stack Overflow for Teams Backend plugin** is responsible for:
   - `/questions`
   - Posting new questions via `/questions`
 - **Managing OAuth authentication flow** to securely access Stack Overflow private instances via ``createStackOverflowAuth``
-- **Encrypts** the Stack Overflow Token before sending it as an http-only cookie to the frontend.
+- **HTTP-only cookie** the Stack Overflow Token is set as a secure http-only cookie to the frontend with 24 hours expiration.
 
 ## OAuth Authentication Flow
 
@@ -33,8 +33,7 @@ The backend is the only component that directly utilizes the **encrypted Stack O
 - Retrieves the stored **Code Verifier** and **State**.
 - Validates that the received **state** matches the one from Stack Overflow's query string parameter.
 - The backend requests an **Access Token** using the stored **Code Verifier**.
-- Backend **encrypts the token**, using the JWT secret stored in memory.
-- Stores the **encrypted Stack Overflow Access Token** in a **secure, HTTP-only cookie**.
+- Stores the **Stack Overflow Access Token** in a **secure, HTTP-only cookie**.
 
 ## Installation
 
