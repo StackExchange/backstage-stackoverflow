@@ -1,6 +1,6 @@
 # Stack Overflow Teams Frontend Plugin
 
-This package is the **frontend component** of the `stack-overflow-teams` plugin for Backstage.
+This package is the frontend counterpart of the `stack-overflow-teams` plugin for Backstage.
 
 ## Areas of Responsibility
 
