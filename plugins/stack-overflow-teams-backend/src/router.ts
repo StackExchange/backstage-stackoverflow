@@ -6,18 +6,15 @@ import {
   StackOverflowConfig,
 } from './services/StackOverflowService/types';
 import { createStackOverflowAuth } from './api';
-import { decryptToken, encryptToken } from './utils';
 
 export async function createRouter({
   logger,
   stackOverflowConfig,
   stackOverflowService,
-  jwtSecret,
 }: {
   logger: LoggerService;
   stackOverflowConfig: StackOverflowConfig;
   stackOverflowService: StackOverflowAPI;
-  jwtSecret: string;
 }): Promise<express.Router> {
   const router = Router();
   const authService = createStackOverflowAuth(stackOverflowConfig, logger);
@@ -42,7 +39,7 @@ export async function createRouter({
     const cookiesToken = cookies['stackoverflow-access-token'];
 
     try {
-      const authToken = decryptToken(cookiesToken, jwtSecret);
+      const authToken = cookiesToken
       if (!authToken) {
         res.clearCookie('stackoverflow-access-token');
         return null;
@@ -94,12 +91,11 @@ export async function createRouter({
         codeVerifier,
       );
 
-      const encryptedToken = encryptToken(accessToken, jwtSecret);
       // The cookie's max age is linked to the Token's expiration, the default expiration is 24 hours.
       return res
         .clearCookie('socodeverifier')
         .clearCookie('state')
-        .cookie('stackoverflow-access-token', encryptedToken, {
+        .cookie('stackoverflow-access-token', accessToken, {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
           sameSite: 'strict',
@@ -227,7 +223,6 @@ export async function createRouter({
       const tags = await stackOverflowService.getTags(authToken);
       return res.send(tags);
     } catch (error: any) {
-      // Fix type issue when including the error for some reason
       logger.error('Error fetching tags', { error });
       return res.status(500).send({
         error: `Failed to fetch tags from the Stack Overflow instance`,
@@ -246,7 +241,6 @@ export async function createRouter({
       const users = await stackOverflowService.getUsers(authToken);
       return res.send(users);
     } catch (error: any) {
-      // Fix type issue when including the error for some reason
       logger.error('Error fetching users', { error });
       return res.status(500).send({
         error: `Failed to fetch users from the Stack Overflow instance`,
