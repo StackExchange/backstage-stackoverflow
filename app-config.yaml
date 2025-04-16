@@ -16,7 +16,7 @@ stackoverflow:
   # The clientid must be for an API Application with read-write access.
 
   redirectUri: ${STACK_OVERFLOW_REDIRECT_URI}
-  # This should redirect to your Stack Overfow for Teams route on Backstage. E.g. https://<backstage-domain>/stack-overflow-teams
+  # If no redirectUri is specified this will return to https://<backstage-domain>/stack-overflow-teams
 
 backend:
   # Used for enabling authentication, secret is shared by all backend plugins

@@ -46,8 +46,9 @@ export interface Config {
        * RedirectUri for the OAuth Application, required to use the Stack Overflow for Teams Hub and write actions.
        * 
        * This should be your Backstage application domain ending in the plugin's <StackOverflowTeamsPage /> route
+       * If not specified this will got to your <app.baseUrl>/stack-overflow-teams
        */
-      redirectUri: string;
+      redirectUri?: string;
   
       /**
        * Type representing the request parameters.
