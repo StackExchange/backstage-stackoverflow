@@ -60,7 +60,6 @@ export type StackOverflowQuestionsRequestParams = {
  * @public
  */
 export type StackOverflowQuestionsCollatorFactoryOptions = {
-  baseUrl: string;
   apiAccessToken?: string;
   teamName?: string;
   requestParams?: StackOverflowQuestionsRequestParams;
@@ -88,7 +87,7 @@ export class StackOverflowQuestionsCollatorFactory
   private forceOriginUrl = (baseUrl: string): string =>
     `${new URL(baseUrl).origin}`;
 
-  private constructor(options: StackOverflowQuestionsCollatorFactoryOptions) {
+  private constructor(options: StackOverflowQuestionsCollatorFactoryOptions & { baseUrl: string }) {
     this.baseUrl = this.forceOriginUrl(options.baseUrl);
     this.apiAccessToken = options.apiAccessToken;
     this.teamName = options.teamName;
