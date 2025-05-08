@@ -1,3 +1,11 @@
+# DO NOT USE THIS IN PRODUCTION
+# 
+# This Dockerfile builds a Docker image for a pre-configured Backstage instance
+# with the Stack Overflow plugins installed. It’s designed as a quick way to try 
+# out the integration without having to set it up yourself. 
+#
+# This is not intended for production use.
+
 # Stage 1 - Create yarn install skeleton layer
 FROM node:20-bookworm-slim AS packages
 
@@ -105,9 +113,9 @@ COPY --chown=node:node app-config*.yaml ./
 COPY --chown=node:node examples ./examples
 
 # This switches many Node.js dependencies to production mode.
-ENV NODE_ENV=production
+ENV NODE_ENV=development
 
 # This disables node snapshot for Node 20 to work with the Scaffolder
 ENV NODE_OPTIONS="--no-node-snapshot"
 
-CMD ["node", "packages/backend", "--config", "app-config.yaml", "--config", "app-config.production.yaml"]
+CMD ["node", "packages/backend", "--config", "app-config.docker-local.yaml"]
