@@ -30,6 +30,41 @@ One of the most exciting features of this plugin is the ability to securely crea
 
 ![alt text](https://i.imgur.com/8VxMDys.png)
 
+## Demo Docker Image
+
+If you’d like to quickly see how this integration works without setting up your own Backstage instance, you can use my Docker image:
+
+**`estoesmoises/stackoverflow-backstage-demo:latest`**
+
+This image runs a Backstage instance pre-configured with the Stack Overflow for Teams plugin. You just need to pass a few environment variables when starting the container to connect it to your Stack Overflow for Teams instance.
+
+---
+
+### Required Environment Variables
+
+| Variable                          | Description                                                                                                                                                                                                                     |
+|:----------------------------------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `STACK_OVERFLOW_INSTANCE_URL`     | The base URL of your Stack Overflow for Teams (Enterprise) instance.                                                                                                                     |
+| `STACK_OVERFLOW_API_ACCESS_TOKEN` | A **read-only, no-expiry** API access token generated for your Stack Overflow Enterprise instance. This token is used by the plugin's search collator to index questions into Backstage search. |
+| `STACK_OVERFLOW_CLIENT_ID`        | The OAuth Client ID from your Stack Overflow application. This is required to enable the secure question creation flow from within Backstage.                                             |
+| `STACK_OVERFLOW_REDIRECT_URI`     | The redirect URI where Stack Overflow should send users after completing the OAuth authentication flow. By default, this is `{app.baseUrl}/stack-overflow-teams`. For local development, you can use a redirect service like `http://redirectmeto.com/http://localhost:7007/stack-overflow-teams`. |
+
+
+---
+
+### Example Docker Command
+
+Once you have those values, run:
+
+```bash
+docker run -p 7007:7007 \
+  -e STACK_OVERFLOW_INSTANCE_URL=https://support-autotest.stackenterprise.co \
+  -e STACK_OVERFLOW_API_ACCESS_TOKEN='CasdasdasdaDQyrqdfQ))' \
+  -e STACK_OVERFLOW_CLIENT_ID=19 \
+  -e STACK_OVERFLOW_REDIRECT_URI=http://redirectmeto.com/http://localhost:7007/stack-overflow-teams \
+  estoesmoises/stackoverflow-backstage-demo:latest
+```
+
 ## Installation
 
 Follow these steps to install and run the plugin locally:
