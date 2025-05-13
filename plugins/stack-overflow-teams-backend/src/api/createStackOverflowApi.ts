@@ -9,7 +9,7 @@ export const createStackOverflowApi = (baseUrl: string) => {
     pageSize?: number
   ): Promise<T> => {
     let url = teamName
-      ? `${baseUrl}/api/v3/teams/${teamName}${endpoint}`
+      ? `${baseUrl}/v3/teams/${teamName}${endpoint}`
       : `${baseUrl}/api/v3${endpoint}`;
 
     const queryParams = new URLSearchParams();

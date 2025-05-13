@@ -24,9 +24,9 @@ export const stackOverflowTeamsPlugin = createBackendPlugin({
       async init({ logger, httpRouter, config }) {
         const forceOriginUrl = (baseUrl: string) : string => `${new URL(baseUrl).origin}`
         const stackOverflowConfig: StackOverflowConfig = {
-          baseUrl: forceOriginUrl(config.getString('stackoverflow.baseUrl')),
+          baseUrl: forceOriginUrl(config.getOptionalString('stackoverflow.baseUrl') || 'https://api.stackoverflowteams.com'),
           teamName: config.getOptionalString('stackoverflow.teamName'),
-          clientId: config.getNumber('stackoverflow.clientId'),
+          clientId: config.getOptionalNumber('stackoverflow.clientId'),
           redirectUri: config.getOptionalString('stackoverflow.redirectUri') || `${config.getString('app.baseUrl')}/stack-overflow-teams`
         };
         const stackOverflowService = await createStackOverflowService({

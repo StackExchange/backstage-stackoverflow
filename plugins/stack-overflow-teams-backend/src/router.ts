@@ -33,7 +33,6 @@ export async function createRouter({
     );
   }
 
-  // Never returning SO Tokens to the frontend.
   function getValidAuthToken(req: Request, res: Response): string | null {
     const cookies = cookieParse(req);
     const cookiesToken = cookies['stackoverflow-access-token'];
@@ -123,9 +122,15 @@ export async function createRouter({
           .json({ error: 'Missing Stack Overflow Teams Access Token' });
       }
 
-      const baseUrl = authService.config.baseUrl;
+      const baseUrl = stackOverflowConfig.baseUrl;
+      const teamName = stackOverflowConfig.teamName;
+      
+      // Use the team-specific API endpoint for basic and business teams
+      const userApiUrl = teamName 
+        ? `${baseUrl}/v3/teams/${teamName}/users/me` 
+        : `${baseUrl}/api/v3/users/me`;
 
-      const userResponse = await fetch(`${baseUrl}/api/v3/users/me`, {
+      const userResponse = await fetch(userApiUrl, {
         headers: { Authorization: `Bearer ${authToken}` },
       });
 
@@ -145,6 +150,52 @@ export async function createRouter({
         .json({ ok: 'Stack Overflow Teams Access Token detected' });
     } catch (error: any) {
       logger.error('Error getting authentication status:', error);
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
+  });
+
+  // PAT Input Route (basic and business support)
+
+  router.post('/auth/token', async (req: Request, res: Response) => {
+    try {
+      const { accessToken } = req.body;
+      
+      if (!accessToken || typeof accessToken !== 'string') {
+        return res.status(400).json({ error: 'Valid access token is required' });
+      }
+      
+      // Don't use authService here, use the config directly
+      const baseUrl = stackOverflowConfig.baseUrl;
+      const teamName = stackOverflowConfig.teamName;
+      
+      // Use the team-specific API endpoint for basic and business teams
+      const validationUrl = teamName 
+        ? `${baseUrl}/v3/teams/${teamName}/users/me` 
+        : `${baseUrl}/api/v3/users/me`;
+      
+      const validationResponse = await fetch(validationUrl, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      
+      if (validationResponse.status === 401 || validationResponse.status === 403) {
+        return res.status(401).json({ error: 'Invalid Stack Overflow token' });
+      }
+      
+      if (!validationResponse.ok) {
+        logger.error(`Token validation failed: ${await validationResponse.text()}`);
+        return res.status(500).json({ error: 'Failed to validate token' });
+      }
+      
+      return res
+        .cookie('stackoverflow-access-token', accessToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'strict',
+        })
+        .json({ ok: true, message: 'Stack Overflow token accepted' });
+        
+    } catch (error: any) {
+      logger.error('Error setting manual access token:', error);
       return res.status(500).json({ error: 'Internal Server Error' });
     }
   });

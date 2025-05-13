@@ -27,6 +27,7 @@ export interface StackOverflowAPI {
   completeAuth(code: string, state: string): Promise<void>;
   getAuthStatus: () => Promise<boolean>;
   logout: () => Promise<boolean>;
+  submitAccessToken: (token: string) => Promise<boolean>;
 }
 
 export const createStackOverflowApi = (
@@ -93,6 +94,14 @@ export const createStackOverflowApi = (
     logout: async (): Promise<boolean> => {
       try {
         await requestAPI('logout', 'POST');
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    submitAccessToken: async (token: string): Promise<boolean> => {
+      try {
+        await requestAPI('auth/token', 'POST', { accessToken: token });
         return true;
       } catch {
         return false;

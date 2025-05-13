@@ -53,10 +53,10 @@ export type PaginatedResponse<T> = {
 };
 
 export type StackOverflowConfig = {
-  baseUrl: string;
+  baseUrl?: string;
   teamName?: string;
-  clientId: number;
-  redirectUri: string;
+  clientId?: number;
+  redirectUri?: string;
   authUrl?: string;
 };
 
