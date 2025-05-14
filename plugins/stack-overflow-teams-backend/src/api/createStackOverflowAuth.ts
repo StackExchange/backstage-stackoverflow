@@ -6,7 +6,6 @@ export function createStackOverflowAuth(
   config: StackOverflowConfig,
   logger: LoggerService,
 ) {
-
   async function generatePKCECodeVerifier(): Promise<{
     codeVerifier: string;
     codeChallenge: string;
@@ -19,7 +18,16 @@ export function createStackOverflowAuth(
     return { codeVerifier, codeChallenge: hashed };
   }
 
-  async function getAuthUrl(): Promise<{ url: string; codeVerifier: string ; state: string}> {
+  async function getAuthUrl(): Promise<{
+    url: string;
+    codeVerifier: string;
+    state: string;
+  }> {
+    if (!config.clientId || !config.redirectUri) {
+      throw new Error(
+        'clientId and redirectUri are required for authentication',
+      );
+    }
     const { codeVerifier, codeChallenge } = await generatePKCECodeVerifier();
     const state = crypto.randomBytes(16).toString('hex');
     const authUrl = `${config.baseUrl}/oauth?client_id=${
@@ -34,7 +42,12 @@ export function createStackOverflowAuth(
   async function exchangeCodeForToken(
     code: string,
     codeVerifier: string,
-  ): Promise<{accessToken: string, expires: number}> {
+  ): Promise<{ accessToken: string; expires: number }> {
+    if (!config.clientId || !config.redirectUri) {
+      throw new Error(
+        'clientId and redirectUri are required for authentication',
+      );
+    }
     const tokenUrl = `${config.baseUrl}/oauth/access_token/json`;
     const queryParams = new URLSearchParams({
       client_id: String(config.clientId),
@@ -42,12 +55,11 @@ export function createStackOverflowAuth(
       redirect_uri: config.redirectUri,
       code_verifier: codeVerifier,
     });
-    
+
     const response = await fetch(`${tokenUrl}?${queryParams.toString()}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     });
-    
 
     if (!response.ok) {
       logger.error('Failed to exchange code for access token');
@@ -56,13 +68,13 @@ export function createStackOverflowAuth(
     const data = await response.json();
     return {
       accessToken: data.access_token,
-      expires: data.expires
-    }
+      expires: data.expires,
+    };
   }
 
   return {
     getAuthUrl,
     exchangeCodeForToken,
-    config: config
+    config: config,
   };
 }
