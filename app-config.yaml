@@ -5,8 +5,11 @@ app:
 organization:
   name: My Company
 
+# For Basic and Business tiers, only provide teamName and apiAccessToken
+# For Enterprise tier DO NOT provide teamName.
+
 stackoverflow:
-  # baseUrl: ${STACK_OVERFLOW_INSTANCE_URL}
+  baseUrl: ${STACK_OVERFLOW_INSTANCE_URL}
   # Required only for Enteprise Tier.
 
   teamName: ${STACK_OVERFLOW_TEAM_NAME}

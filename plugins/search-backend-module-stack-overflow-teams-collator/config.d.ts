@@ -20,9 +20,9 @@ export interface Config {
      */
     stackoverflow: {
       /**
-       * The base url of the Stack Overflow API used for the plugin
+       * The base url of the Stack Overflow API used for the plugin, if no BaseUrl is provided it will default to https://api.stackoverflowteams.com
        */
-      baseUrl: string;
+      baseUrl?: string;
   
       /**
        * The API Access Token to authenticate to Stack Overflow API Version 3
@@ -31,7 +31,7 @@ export interface Config {
       apiAccessToken: string;
   
       /**
-       * The name of the team for a Stack Overflow for Teams account
+       * The name of the team for a Stack Overflow for Teams account. When teamName is provided baseUrl will always be https://api.stackoverflowteams.com
        */
       teamName?: string;
   
