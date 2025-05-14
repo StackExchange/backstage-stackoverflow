@@ -212,6 +212,7 @@ export const StackOverflowAuthStart = () => {
                 fullWidth
                 onClick={handleTokenSubmit}
                 disabled={isSubmitting || !accessToken.trim()}
+                className={classes.button}
               >
                 {isSubmitting ? 'Validating...' : 'Submit Token'}
               </Button>
