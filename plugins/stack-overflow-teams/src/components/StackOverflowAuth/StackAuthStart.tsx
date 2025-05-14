@@ -24,15 +24,15 @@ export const StackOverflowAuthStart = () => {
   const [showToken, setShowToken] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [tokenSuccess, setTokenSuccess] = useState<boolean>(false);
-  const [baseUrl, setBaseUrl] = useState<string | null>(null);
+  const [teamName, setTeamName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const fetchBaseUrl = async () => {
+    const fetchTeamName = async () => {
       try {
         setIsLoading(true);
-        const baseUrlValue = await stackOverflowTeamsApi.getBaseUrl();
-        setBaseUrl(baseUrlValue);
+        const teamNameValue = await stackOverflowTeamsApi.getTeamName();
+        setTeamName(teamNameValue);
       } catch (error) {
         setAuthError('Failed to fetch Stack Overflow instance information.');
       } finally {
@@ -40,11 +40,11 @@ export const StackOverflowAuthStart = () => {
       }
     };
 
-    fetchBaseUrl();
+    fetchTeamName();
   }, [stackOverflowTeamsApi]);
 
-  // Determine if user is on basic or business plan based on the baseUrl
-  const isBasicOrBusinessPlan = baseUrl === 'https://api.stackoverflowteams.com';
+  // Determine if user is on basic or business plan based on the teamName
+  const isBasicOrBusinessPlan = Boolean(teamName)
 
   const handleAuth = async () => {
     try {

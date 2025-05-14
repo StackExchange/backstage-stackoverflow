@@ -13,6 +13,7 @@ type ApiResponse<T> = PaginatedResponse<T>;
 
 interface BaseUrlResponse {
   SOInstance: string;
+  teamName: string
 }
 
 export interface StackOverflowAPI {
@@ -22,6 +23,7 @@ export interface StackOverflowAPI {
   getUsers(): Promise<ApiResponse<User>>;
   getMe(): Promise<User>;
   getBaseUrl(): Promise<string>;
+  getTeamName(): Promise<string>;
   postQuestion(title: string, body: string, tags: string[]): Promise<Question>;
   startAuth(): Promise<string>;
   completeAuth(code: string, state: string): Promise<void>;
@@ -70,6 +72,10 @@ export const createStackOverflowApi = (
     getBaseUrl: async () => {
       const response = await requestAPI<BaseUrlResponse>('baseurl');
       return response.SOInstance;
+    },
+    getTeamName: async () => {
+      const response = await requestAPI<BaseUrlResponse>('baseurl')
+      return response.teamName
     },
     postQuestion: (title: string, body: string, tags: string[]) =>
       requestAPI<Question>('questions', 'POST', { title, body, tags }),
