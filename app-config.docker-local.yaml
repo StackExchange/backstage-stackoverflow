@@ -12,16 +12,19 @@ organization:
 
 stackoverflow:
   baseUrl: ${STACK_OVERFLOW_INSTANCE_URL}
-  # teamName: ${STACK_OVERFLOW_TEAM_NAME}
+  # Required only for Enteprise Tier.
+
+  teamName: ${STACK_OVERFLOW_TEAM_NAME}
+  # Required only for Basic and Business Tiers. 
 
   apiAccessToken: ${STACK_OVERFLOW_API_ACCESS_TOKEN}
   # The API Access Token is used for the Questions' collator, a no-expiry, read-only token is recommended.
 
   clientId: ${STACK_OVERFLOW_CLIENT_ID}
-  # The clientid must be for an API Application with read-write access.
+  # The clientid must be for an API Application with read-write access. Only provide if you are using the Enterprise tier.
 
   redirectUri: ${STACK_OVERFLOW_REDIRECT_URI}
-  # If no redirectUri is specified this will return to https://<backstage-domain>/stack-overflow-teams
+  # If no redirectUri is specified this will return to https://<backstage-domain>/stack-overflow-teams. Only provide if you are using the Enterprise tier.
 
 backend:
   # Used for enabling authentication, secret is shared by all backend plugins
