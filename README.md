@@ -60,6 +60,9 @@ This image runs a Backstage instance pre-configured with the Stack Overflow for 
 | `STACK_OVERFLOW_TEAM_NAME`        | The **team name** or **team slug** from your Stack Overflow for Teams account.                                           |
 | `STACK_OVERFLOW_API_ACCESS_TOKEN` | A **read-only, no-expiry** API access token generated for your Stack Overflow Teams instance. Used for indexing content. |
 
+> **Note:**  
+> Question creation is **not supported** on the **Basic** tier.
+
 📖 How to generate your API Access Token
 
 Basic and Business customers can follow the official Stack Overflow for Teams guide to create a Personal Access Token (PAT) for API authentication:
