@@ -40,15 +40,33 @@ This image runs a Backstage instance pre-configured with the Stack Overflow for 
 
 ---
 
-### Required Environment Variables
+## 📦 Required Environment Variables
 
-| Variable                          | Description                                                                                                                                                                                                                     |
-|:----------------------------------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `STACK_OVERFLOW_INSTANCE_URL`     | The base URL of your Stack Overflow for Teams (Enterprise) instance.                                                                                                                     |
-| `STACK_OVERFLOW_API_ACCESS_TOKEN` | A **read-only, no-expiry** API access token generated for your Stack Overflow Enterprise instance. This token is used by the plugin's search collator to index questions into Backstage search. |
-| `STACK_OVERFLOW_CLIENT_ID`        | The OAuth Client ID from your Stack Overflow application. This is required to enable the secure question creation flow from within Backstage.                                             |
+### For **Enterprise** Customers:
+
+| Variable                          | Description                                                                                                                                                                                                                                                                                        |
+| :-------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `STACK_OVERFLOW_INSTANCE_URL`     | The base URL of your Stack Overflow for Teams (Enterprise) instance.                                                                                                                                                                                                                               |
+| `STACK_OVERFLOW_API_ACCESS_TOKEN` | A **read-only, no-expiry** API access token generated for your Stack Overflow Enterprise instance. This token is used by the plugin’s search collator to index questions into Backstage search.                                                                                                    |
+| `STACK_OVERFLOW_CLIENT_ID`        | The OAuth Client ID from your Stack Overflow application. This is required to enable the secure question creation flow from within Backstage.                                                                                                                                                      |
 | `STACK_OVERFLOW_REDIRECT_URI`     | The redirect URI where Stack Overflow should send users after completing the OAuth authentication flow. By default, this is `{app.baseUrl}/stack-overflow-teams`. For local development, you can use a redirect service like `http://redirectmeto.com/http://localhost:7007/stack-overflow-teams`. |
 
+---
+
+### For **Basic** and **Business** Customers:
+
+| Variable                          | Description                                                                                                              |
+| :-------------------------------- | :----------------------------------------------------------------------------------------------------------------------- |
+| `STACK_OVERFLOW_TEAM_NAME`        | The **team name** or **team slug** from your Stack Overflow for Teams account.                                           |
+| `STACK_OVERFLOW_API_ACCESS_TOKEN` | A **read-only, no-expiry** API access token generated for your Stack Overflow Teams instance. Used for indexing content. |
+
+📖 How to generate your API Access Token
+
+Basic and Business customers can follow the official Stack Overflow for Teams guide to create a Personal Access Token (PAT) for API authentication:
+
+👉 [Personal Access Tokens (PATs) for API Authentication](https://stackoverflowteams.help/en/articles/10908790-personal-access-tokens-pats-for-api-authentication)
+
+This token should have read-only access and no expiration to be used for indexing questions into Backstage search.
 
 ---
 
