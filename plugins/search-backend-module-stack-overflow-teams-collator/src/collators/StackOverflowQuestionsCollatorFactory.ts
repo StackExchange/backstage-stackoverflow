@@ -89,8 +89,8 @@ export class StackOverflowQuestionsCollatorFactory
   private forceOriginUrl = (baseUrl: string): string =>
     `${new URL(baseUrl).origin}`;
 
-  private constructor(options: StackOverflowQuestionsCollatorFactoryOptions & { baseUrl: string }) {
-    this.baseUrl = this.forceOriginUrl(options.baseUrl);
+  private constructor(options: StackOverflowQuestionsCollatorFactoryOptions & { baseUrl?: string }) {
+    this.baseUrl = this.forceOriginUrl(options.baseUrl || this.stackOverflowTeamsAPI);
     this.apiAccessToken = options.apiAccessToken;
     this.teamName = options.teamName;
     this.logger = options.logger.child({ documentType: this.type });
@@ -110,7 +110,7 @@ export class StackOverflowQuestionsCollatorFactory
   ) {
     const apiAccessToken = config.getString('stackoverflow.apiAccessToken');
     const teamName = config.getOptionalString('stackoverflow.teamName');
-    const baseUrl = config.getString('stackoverflow.baseUrl');
+    const baseUrl = config.getOptionalString('stackoverflow.baseUrl');
     const requestParams = config
       .getOptionalConfig('stackoverflow.requestParams')
       ?.get<StackOverflowQuestionsRequestParams>();
@@ -133,10 +133,16 @@ export class StackOverflowQuestionsCollatorFactory
   async *execute(): AsyncGenerator<StackOverflowDocument> {
     this.logger.info(`Retrieving data using Stack Overflow API Version 3`);
 
-    if (!this.baseUrl) {
-      this.logger.error(
-        `No stackoverflow.baseUrl configured in your app-config.yaml`,
+    if (!this.baseUrl && this.teamName) {
+      this.logger.info(
+        `Connecting to the Teams API at https://api.stackoverflowteams.com`,
       );
+    }
+
+    if (!this.baseUrl && !this.teamName) {
+      this.logger.error(
+        `No stackoverflow.teamName has been provided while trying to connect to the Teams API.`
+      )
     }
 
     const params = qs.stringify(this.requestParams, {
@@ -147,12 +153,20 @@ export class StackOverflowQuestionsCollatorFactory
     let requestUrl;
 
     if (this.teamName) {
-      const basePath =
-        this.baseUrl === this.stackOverflowTeamsAPI ? '/v3' : '/api/v3';
-      requestUrl = `${this.baseUrl}${basePath}/teams/${this.teamName}/questions${params}`;
+      requestUrl = `${this.stackOverflowTeamsAPI}/v3/teams/${this.teamName}/questions${params}`;
     } else {
       requestUrl = `${this.baseUrl}/api/v3/questions${params}`;
     }
+
+    // The code below has been commented, it has potential compatiblity with Enterprise Private Teams but I haven't tested it and since Private Teams is not widely used I've decided to change the logic to prioritise the support for the Basic and Business Teams.
+
+    // if (this.teamName) {
+    //   const basePath =
+    //     this.baseUrl === this.stackOverflowTeamsAPI ? '/v3' : '/api/v3';
+    //   requestUrl = `${this.baseUrl}${basePath}/teams/${this.teamName}/questions${params}`;
+    // } else {
+    //   requestUrl = `${this.baseUrl}/api/v3/questions${params}`;
+    // }
 
     let page = 1;
     let totalPages = 1;

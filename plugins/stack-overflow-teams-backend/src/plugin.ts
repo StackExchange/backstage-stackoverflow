@@ -22,13 +22,28 @@ export const stackOverflowTeamsPlugin = createBackendPlugin({
         config: coreServices.rootConfig,
       },
       async init({ logger, httpRouter, config }) {
-        const forceOriginUrl = (baseUrl: string) : string => `${new URL(baseUrl).origin}`
+        const forceOriginUrl = (baseUrl: string): string =>
+          `${new URL(baseUrl).origin}`;
+
+        const teamName = config.getOptionalString('stackoverflow.teamName');
+
+        // If teamName is provided, always use api.stackoverflowteams.com
+        const baseUrl = teamName
+          ? 'https://api.stackoverflowteams.com'
+          : forceOriginUrl(
+              config.getOptionalString('stackoverflow.baseUrl') ||
+                'https://api.stackoverflowteams.com',
+            );
+
         const stackOverflowConfig: StackOverflowConfig = {
-          baseUrl: forceOriginUrl(config.getString('stackoverflow.baseUrl')),
-          teamName: config.getOptionalString('stackoverflow.teamName'),
-          clientId: config.getNumber('stackoverflow.clientId'),
-          redirectUri: config.getOptionalString('stackoverflow.redirectUri') || `${config.getString('app.baseUrl')}/stack-overflow-teams`
+          baseUrl,
+          teamName,
+          clientId: config.getOptionalNumber('stackoverflow.clientId'),
+          redirectUri:
+            config.getOptionalString('stackoverflow.redirectUri') ||
+            `${config.getString('app.baseUrl')}/stack-overflow-teams`,
         };
+
         const stackOverflowService = await createStackOverflowService({
           config: stackOverflowConfig,
           logger,
@@ -38,7 +53,7 @@ export const stackOverflowTeamsPlugin = createBackendPlugin({
           await createRouter({
             stackOverflowConfig,
             logger,
-            stackOverflowService
+            stackOverflowService,
           }),
         );
       },

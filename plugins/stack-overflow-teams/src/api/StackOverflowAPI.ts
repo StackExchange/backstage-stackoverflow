@@ -13,6 +13,7 @@ type ApiResponse<T> = PaginatedResponse<T>;
 
 interface BaseUrlResponse {
   SOInstance: string;
+  teamName: string
 }
 
 export interface StackOverflowAPI {
@@ -22,11 +23,13 @@ export interface StackOverflowAPI {
   getUsers(): Promise<ApiResponse<User>>;
   getMe(): Promise<User>;
   getBaseUrl(): Promise<string>;
+  getTeamName(): Promise<string>;
   postQuestion(title: string, body: string, tags: string[]): Promise<Question>;
   startAuth(): Promise<string>;
   completeAuth(code: string, state: string): Promise<void>;
   getAuthStatus: () => Promise<boolean>;
   logout: () => Promise<boolean>;
+  submitAccessToken: (token: string) => Promise<boolean>;
 }
 
 export const createStackOverflowApi = (
@@ -70,6 +73,10 @@ export const createStackOverflowApi = (
       const response = await requestAPI<BaseUrlResponse>('baseurl');
       return response.SOInstance;
     },
+    getTeamName: async () => {
+      const response = await requestAPI<BaseUrlResponse>('baseurl')
+      return response.teamName
+    },
     postQuestion: (title: string, body: string, tags: string[]) =>
       requestAPI<Question>('questions', 'POST', { title, body, tags }),
     startAuth: async () => {
@@ -93,6 +100,14 @@ export const createStackOverflowApi = (
     logout: async (): Promise<boolean> => {
       try {
         await requestAPI('logout', 'POST');
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    submitAccessToken: async (token: string): Promise<boolean> => {
+      try {
+        await requestAPI('auth/token', 'POST', { accessToken: token });
         return true;
       } catch {
         return false;
