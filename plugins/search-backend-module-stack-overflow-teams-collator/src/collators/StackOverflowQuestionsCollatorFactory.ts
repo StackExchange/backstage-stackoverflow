@@ -99,7 +99,7 @@ export class StackOverflowQuestionsCollatorFactory
     // See https://api.stackexchange.com/docs/questions
     this.requestParams = {
       order: 'desc',
-      sort: 'activity',
+      sort: 'creation',
       ...(options.requestParams ?? {}),
     };
   }

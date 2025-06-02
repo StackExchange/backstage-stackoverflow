@@ -35,9 +35,9 @@ export async function createStackOverflowService({
   return {
     // GET
     getQuestions: authToken =>
-      api.GET<PaginatedResponse<Question>>('/questions', authToken, teamName),
+      api.GET<PaginatedResponse<Question>>('/questions', authToken, teamName, { sort: 'creation', order: 'desc' }),
     getTags: authToken =>
-      api.GET<PaginatedResponse<Tag>>('/tags', authToken, teamName),
+      api.GET<PaginatedResponse<Tag>>('/tags', authToken, teamName, { sort: 'creationDate', order: 'desc'}),
     getUsers: authToken =>
       api.GET<PaginatedResponse<User>>('/users', authToken, teamName),
     getMe: authToken => api.GET<User>('/users/me', authToken, teamName),

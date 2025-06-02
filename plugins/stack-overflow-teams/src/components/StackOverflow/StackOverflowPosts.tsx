@@ -102,7 +102,7 @@ export const StackOverflowQuestions = () => {
   const [baseUrl, setBaseUrl] = useState<string>('');
   const { data, loading, error } = useStackOverflowData('questions');
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const [activeFilter, setActiveFilter] = useState<string | null>('active');
   const [currentPage, setCurrentPage] = useState(0);
 
   useEffect(() => {
