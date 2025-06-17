@@ -20,7 +20,7 @@ export interface Config {
      * 
      * This configuration is shared with the backstage-plugin-stack-overflow-teams-backend and backstage-stack-overflow-teams-collator
      */
-    stackoverflow: {
+    stackoverflow?: {
       /**
        * The base url of the Stack Overflow API used for the plugin
        */

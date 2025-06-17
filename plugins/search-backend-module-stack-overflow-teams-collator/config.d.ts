@@ -18,7 +18,7 @@ export interface Config {
     /**
      * Configuration options for the stack overflow plugin
      */
-    stackoverflow: {
+    stackoverflow?: {
       /**
        * The base url of the Stack Overflow API used for the plugin, if no BaseUrl is provided it will default to https://api.stackoverflowteams.com
        */
