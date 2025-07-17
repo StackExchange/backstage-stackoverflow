@@ -46,7 +46,12 @@
     "@material-ui/lab": "^4.0.0-alpha.61",
     "@mui/icons-material": "^7.1.0",
     "@mui/material": "5.16.14",
-    "react-use": "^17.2.4"
+    "react-use": "^17.2.4",
+    "slate": "^0.117.2",
+    "slate-dom": "^0.117.4",
+    "slate-history": "^0.113.1",
+    "slate-hyperscript": "^0.100.0",
+    "slate-react": "^0.117.4"
   },
   "peerDependencies": {
     "react": "^17.0.0 || ^18.0.0",

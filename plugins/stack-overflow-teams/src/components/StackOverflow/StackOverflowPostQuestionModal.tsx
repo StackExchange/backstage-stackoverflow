@@ -8,15 +8,38 @@ import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import Link from '@mui/material/Link';
+import Paper from '@mui/material/Paper';
+import Alert from '@mui/material/Alert';
+import AlertTitle from '@mui/material/AlertTitle';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import Grid from '@mui/material/Grid';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import InfoIcon from '@mui/icons-material/Info';
+import LightbulbIcon from '@mui/icons-material/Lightbulb';
+import CodeIcon from '@mui/icons-material/Code';
+import TitleIcon from '@mui/icons-material/Title';
+import DescriptionIcon from '@mui/icons-material/Description';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
+import GroupIcon from '@mui/icons-material/Group';
+import PersonIcon from '@mui/icons-material/Person';
 import { useStackOverflowStyles } from './hooks';
-import { useNavigate } from 'react-router-dom';
+import RichTextEditor from './TextEditor'; // Import the SlateEditor component
+// import { useNavigate } from 'react-router-dom';
 
 export const StackOverflowPostQuestionModal = () => {
   const stackOverflowApi = useApi(stackoverflowteamsApiRef);
   const [title, setTitle] = useState('');
-  const [body, setBody] = useState('');
+  const [body, setBody] = useState(''); // This will now contain HTML from SlateEditor
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
+  const [mentionedUsers, setMentionedUsers] = useState<string[]>([]);
+  const [userInput, setUserInput] = useState('');
+  const [focusedField, setFocusedField] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -24,25 +47,37 @@ export const StackOverflowPostQuestionModal = () => {
   const [open, setOpen] = useState(false);
   const [titleValidation, setTitleValidation] = useState('');
   const [bodyValidation, setBodyValidation] = useState('');
+  const [tagsValidation, setTagsValidation] = useState('');
   const classes = useStackOverflowStyles();
-  const navigate = useNavigate(); 
+  // const navigate = useNavigate(); 
 
   const [titleStarted, setTitleStarted] = useState(false);
   const [bodyStarted, setBodyStarted] = useState(false);
+  const [tagsStarted, setTagsStarted] = useState(false);
 
   function validateTitle(value: string) {
-    if (titleStarted && value.trim().length < 5) {
-      setTitleValidation('Title must be at least 5 characters.');
+    if (titleStarted && value.trim().length < 15) {
+      setTitleValidation('Title should be at least 15 characters for clarity.');
     } else {
       setTitleValidation('');
     }
   }
 
   function validateBody(value: string) {
-    if (bodyStarted && value.trim().length < 5) {
-      setBodyValidation('Body must be at least 5 characters.');
+    // Strip HTML tags for character count validation
+    const textContent = value.replace(/<[^>]*>/g, '');
+    if (bodyStarted && textContent.trim().length < 30) {
+      setBodyValidation('Please provide more detail (minimum 30 characters).');
     } else {
       setBodyValidation('');
+    }
+  }
+
+  function validateTags() {
+    if (tagsStarted && tags.length === 0) {
+      setTagsValidation('At least one tag is required.');
+    } else {
+      setTagsValidation('');
     }
   }
 
@@ -51,7 +86,6 @@ export const StackOverflowPostQuestionModal = () => {
       const authStatus = await stackOverflowApi.getAuthStatus();
       setIsAuthenticated(authStatus);
       setSuccess(false);
-
       setOpen(true);
     };
     window.addEventListener('openAskQuestionModal', openModal);
@@ -61,16 +95,27 @@ export const StackOverflowPostQuestionModal = () => {
     };
   }, [stackOverflowApi]);
 
+  useEffect(() => {
+    validateTags();
+  }, [tags, tagsStarted]);
+
+  useEffect(() => {
+    validateBody(body);
+  }, [body, bodyStarted]);
+
   const handleSubmit = async () => {
     validateTitle(title);
     validateBody(body);
+    validateTags();
 
-    if (titleValidation || bodyValidation) {
+    if (titleValidation || bodyValidation || tagsValidation) {
       return;
     }
 
-    if (!title || !body || tags.length === 0) {
-      setError('All fields are required.');
+    // Check if body has actual content (not just HTML tags)
+    const textContent = body.replace(/<[^>]*>/g, '');
+    if (!title || !textContent.trim() || tags.length === 0) {
+      setError('Title, body, and at least one tag are required.');
       return;
     }
 
@@ -78,12 +123,14 @@ export const StackOverflowPostQuestionModal = () => {
     setError(null);
 
     try {
-      const response = await stackOverflowApi.postQuestion(title, body, tags);
+      const response = await stackOverflowApi.postQuestion(title, body, tags, mentionedUsers);
       setSuccess(true);
       setTitle('');
       setBody('');
       setTags([]);
       setTagInput('');
+      setMentionedUsers([]);
+      setUserInput('');
       if (response.webUrl) {
         window.open(`${response.webUrl}?r=Backstage_Plugin`, '_blank');
       }
@@ -100,84 +147,381 @@ export const StackOverflowPostQuestionModal = () => {
 
   const handleTagAdd = () => {
     const newTags = tagInput
-      .split(/[\s,]+/) // Split on spaces or commas
-      .map(tag => tag.trim()) // Trim whitespace
-      .filter(tag => tag.length > 0 && !tags.includes(tag)); // Avoid empty and duplicate tags
+      .split(/[\s,]+/)
+      .map(tag => tag.trim())
+      .filter(tag => tag.length > 0 && !tags.includes(tag));
   
-    if (newTags.length > 0) {
-      setTags([...tags, ...newTags]); // Add valid tags
+    if (newTags.length > 0 && tags.length + newTags.length <= 5) {
+      setTags([...tags, ...newTags]);
+      if (!tagsStarted) setTagsStarted(true);
     }
     setTagInput('');
   };
+
+  const handleUserAdd = () => {
+    const newUsers = userInput
+      .split(/[\s,]+/)
+      .map(user => user.trim().replace('@', ''))
+      .filter(user => user.length > 0 && !mentionedUsers.includes(user));
   
+    if (newUsers.length > 0) {
+      setMentionedUsers([...mentionedUsers, ...newUsers]);
+    }
+    setUserInput('');
+  };
 
   const handleLoginRedirect = () => {
     setOpen(false);
-    navigate('/stack-overflow-teams');
+    // navigate('/stack-overflow-teams');
+    window.location.href = '/stack-overflow-teams';
   };
 
-  const renderContent = () => {
-    if (!isAuthenticated) {
-      return (
-        <Box mt={1}>
-        <Typography color="error">
-          Please{' '}
-          <Link component="button" onClick={handleLoginRedirect}>
-            log in
-          </Link>{' '}
-          to use this feature.
-        </Typography>
-        </Box>
-      );
-    }
+  // Handler for SlateEditor changes
+  const handleBodyChange = (value: string) => {
+    if (!bodyStarted) setBodyStarted(true);
+    setBody(value);
+  };
 
-    if (success) {
-      return (
-        <Typography color="success.main">
-          Your question has been posted successfully!
-        </Typography>
-      );
-    }
+  const handleBodyFocus = () => {
+    setFocusedField('body');
+  };
 
-    return (
-      <>
+  const renderTitleTips = () => (
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <TitleIcon color="primary" />
+        Writing a Good Title
+      </Typography>
+      
+      <Card elevation={2} sx={{ mb: 2 }}>
+        <CardContent>
+          <Typography variant="subtitle2" fontWeight="bold" sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+            <CheckCircleIcon color="success" fontSize="small" />
+            Good Title Examples
+          </Typography>
+          <Paper elevation={1} sx={{ p: 1.5, bgcolor: 'success.50', mb: 1 }}>
+            <Typography variant="body2" color="success.main">
+              ✓ "How to handle async errors in React useEffect hook?"
+            </Typography>
+          </Paper>
+          <Paper elevation={1} sx={{ p: 1.5, bgcolor: 'success.50', mb: 1 }}>
+            <Typography variant="body2" color="success.main">
+              ✓ "Why does my Docker container fail to connect to PostgreSQL?"
+            </Typography>
+          </Paper>
+          <Paper elevation={1} sx={{ p: 1.5, bgcolor: 'error.50' }}>
+            <Typography variant="body2" color="error.main">
+              ✗ "Help! My code doesn't work!"
+            </Typography>
+          </Paper>
+        </CardContent>
+      </Card>
+
+      <Card elevation={2}>
+        <CardContent>
+          <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1 }}>
+            Title Tips
+          </Typography>
+          <List dense>
+            <ListItem>
+              <ListItemIcon><InfoIcon color="info" fontSize="small" /></ListItemIcon>
+              <ListItemText primary="Be specific about your problem" />
+            </ListItem>
+            <ListItem>
+              <ListItemIcon><InfoIcon color="info" fontSize="small" /></ListItemIcon>
+              <ListItemText primary="Include relevant technologies" />
+            </ListItem>
+            <ListItem>
+              <ListItemIcon><InfoIcon color="info" fontSize="small" /></ListItemIcon>
+              <ListItemText primary="Avoid vague terms like 'doesn't work'" />
+            </ListItem>
+          </List>
+        </CardContent>
+      </Card>
+    </Box>
+  );
+
+  const renderBodyTips = () => (
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <DescriptionIcon color="primary" />
+        Writing a Good Description
+      </Typography>
+      
+      <Card elevation={2} sx={{ mb: 2 }}>
+        <CardContent>
+          <Typography variant="subtitle2" fontWeight="bold" sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+            <CodeIcon color="info" fontSize="small" />
+            Rich Text Formatting
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+            Use the toolbar to format your text with bold, italic, code blocks, lists, and more. Keyboard shortcuts: Ctrl+B (bold), Ctrl+I (italic), Ctrl+U (underline), Ctrl+` (code).
+          </Typography>
+          <List dense>
+            <ListItem>
+              <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
+              <ListItemText primary="Use headings (H1, H2, H3) to organize content" />
+            </ListItem>
+            <ListItem>
+              <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
+              <ListItemText primary="Use code formatting for code snippets" />
+            </ListItem>
+            <ListItem>
+              <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
+              <ListItemText primary="Use numbered/bulleted lists for steps" />
+            </ListItem>
+            <ListItem>
+              <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
+              <ListItemText primary="Use quotes for important information" />
+            </ListItem>
+            <ListItem>
+              <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
+              <ListItemText primary="Use text alignment for better layout" />
+            </ListItem>
+          </List>
+        </CardContent>
+      </Card>
+
+      <Card elevation={2}>
+        <CardContent>
+          <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1 }}>
+            Structure Your Question
+          </Typography>
+          <List dense>
+            <ListItem>
+              <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
+              <ListItemText primary="What you're trying to achieve" />
+            </ListItem>
+            <ListItem>
+              <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
+              <ListItemText primary="What you've tried so far" />
+            </ListItem>
+            <ListItem>
+              <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
+              <ListItemText primary="Expected vs actual results" />
+            </ListItem>
+            <ListItem>
+              <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
+              <ListItemText primary="Error messages (if any)" />
+            </ListItem>
+          </List>
+        </CardContent>
+      </Card>
+    </Box>
+  );
+
+  const renderTagsTips = () => (
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <LocalOfferIcon color="primary" />
+        Choosing Tags
+      </Typography>
+      
+      <Card elevation={2} sx={{ mb: 2 }}>
+        <CardContent>
+          <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1 }}>
+            Recommended Tags
+          </Typography>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+            {['react', 'javascript', 'typescript', 'node.js', 'python', 'docker', 'kubernetes', 'aws', 'backend', 'frontend'].map(tag => (
+              <Chip
+                key={tag}
+                label={tag}
+                size="small"
+                variant="outlined"
+                onClick={() => !tags.includes(tag) && tags.length < 5 && setTags([...tags, tag])}
+                sx={{ cursor: 'pointer' }}
+              />
+            ))}
+          </Box>
+          <Typography variant="body2" color="text.secondary">
+            Click on suggested tags above to add them quickly.
+          </Typography>
+        </CardContent>
+      </Card>
+
+      <Card elevation={2}>
+        <CardContent>
+          <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1 }}>
+            Tag Guidelines
+          </Typography>
+          <List dense>
+            <ListItem>
+              <ListItemIcon><InfoIcon color="info" fontSize="small" /></ListItemIcon>
+              <ListItemText primary="Use 1-5 tags that describe your question" />
+            </ListItem>
+            <ListItem>
+              <ListItemIcon><InfoIcon color="info" fontSize="small" /></ListItemIcon>
+              <ListItemText primary="Include programming languages and frameworks" />
+            </ListItem>
+            <ListItem>
+              <ListItemIcon><InfoIcon color="info" fontSize="small" /></ListItemIcon>
+              <ListItemText primary="Add relevant tools and platforms" />
+            </ListItem>
+          </List>
+        </CardContent>
+      </Card>
+    </Box>
+  );
+
+  const renderMentionTips = () => (
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <GroupIcon color="primary" />
+        Asking Team Members
+      </Typography>
+      
+      <Card elevation={2} sx={{ mb: 2 }}>
+        <CardContent>
+          <Typography variant="subtitle2" fontWeight="bold" sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+            <PersonIcon color="info" fontSize="small" />
+            When to Mention Someone
+          </Typography>
+          <List dense>
+            <ListItem>
+              <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
+              <ListItemText primary="They're an expert in the relevant area" />
+            </ListItem>
+            <ListItem>
+              <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
+              <ListItemText primary="They've worked on similar problems" />
+            </ListItem>
+            <ListItem>
+              <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
+              <ListItemText primary="They're the owner of the code in question" />
+            </ListItem>
+          </List>
+        </CardContent>
+      </Card>
+
+      <Card elevation={2}>
+        <CardContent>
+          <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1 }}>
+            Mention Guidelines
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+            Type usernames or group names. You can mention:
+          </Typography>
+          <List dense>
+            <ListItem>
+              <ListItemIcon><InfoIcon color="info" fontSize="small" /></ListItemIcon>
+              <ListItemText primary="Individual team members (@john.doe)" />
+            </ListItem>
+            <ListItem>
+              <ListItemIcon><InfoIcon color="info" fontSize="small" /></ListItemIcon>
+              <ListItemText primary="Team groups (@frontend-team)" />
+            </ListItem>
+          </List>
+        </CardContent>
+      </Card>
+    </Box>
+  );
+
+  const renderDefaultTips = () => (
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <LightbulbIcon color="primary" />
+        Writing a Good Question
+      </Typography>
+      
+      <Card elevation={2} sx={{ mb: 2 }}>
+        <CardContent>
+          <Typography variant="subtitle2" fontWeight="bold" sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+            <InfoIcon color="info" fontSize="small" />
+            Quick Tips
+          </Typography>
+          <List dense>
+            <ListItem>
+              <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
+              <ListItemText primary="Be specific and clear in your title" />
+            </ListItem>
+            <ListItem>
+              <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
+              <ListItemText primary="Include relevant code and error messages" />
+            </ListItem>
+            <ListItem>
+              <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
+              <ListItemText primary="Tag your question appropriately" />
+            </ListItem>
+            <ListItem>
+              <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
+              <ListItemText primary="Mention relevant team members if needed" />
+            </ListItem>
+          </List>
+        </CardContent>
+      </Card>
+    </Box>
+  );
+
+  const renderRightPanel = () => {
+    switch (focusedField) {
+      case 'title':
+        return renderTitleTips();
+      case 'body':
+        return renderBodyTips();
+      case 'tags':
+        return renderTagsTips();
+      case 'mentions':
+        return renderMentionTips();
+      default:
+        return renderDefaultTips(); // Empty space by default
+    }
+  };
+
+  const renderQuestionForm = () => (
+    <Box sx={{ height: '100%' }}>
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+          Title
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+          Be specific and imagine you're asking a question to another person.
+        </Typography>
         <TextField
-          label="Title"
           fullWidth
           variant="outlined"
-          margin="normal"
           value={title}
           onChange={e => {
             if (!titleStarted) setTitleStarted(true);
             setTitle(e.target.value);
             validateTitle(e.target.value);
           }}
+          onFocus={() => setFocusedField('title')}
           error={titleStarted && !!titleValidation}
           helperText={titleStarted ? titleValidation : ''}
+          placeholder="e.g., How to handle authentication in React components?"
         />
+      </Box>
 
-        <TextField
-          label="Body"
-          fullWidth
-          variant="outlined"
-          margin="normal"
-          multiline
-          rows={4}
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+          What are the details of your problem?
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+          Introduce the problem and expand on what you put in the title. Use the formatting toolbar to style your text.
+        </Typography>
+        <RichTextEditor
           value={body}
-          onChange={e => {
-            if (!bodyStarted) setBodyStarted(true);
-            setBody(e.target.value);
-            validateBody(e.target.value);
-          }}
+          onChange={handleBodyChange}
+          onFocus={handleBodyFocus}
+          placeholder="Describe your problem in detail. Include code snippets, error messages, and what you've tried so far..."
           error={bodyStarted && !!bodyValidation}
           helperText={bodyStarted ? bodyValidation : ''}
+          minHeight={300}
+          maxHeight={500}
         />
+      </Box>
 
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+          Tags
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+          Add up to 5 tags to describe what your question is about.
+        </Typography>
         <TextField
-          label="Tags"
           fullWidth
           variant="outlined"
-          margin="normal"
           value={tagInput}
           onChange={e => {
             setTagInput(e.target.value);
@@ -185,30 +529,130 @@ export const StackOverflowPostQuestionModal = () => {
               handleTagAdd();
             }
           }}
+          onFocus={() => setFocusedField('tags')}
           onKeyDown={e => e.key === 'Enter' && handleTagAdd()}
+          placeholder="e.g., react, javascript, authentication"
+          disabled={tags.length >= 5}
+          error={!!tagsValidation}
+          helperText={tagsValidation || `${tags.length}/5 tags used`}
         />
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
-          {tags.map((tag, index) => (
-            <Chip
-              key={index}
-              label={tag}
-              onDelete={() => setTags(tags.filter(t => t !== tag))}
-            />
-          ))}
+        
+        {tags.length > 0 && (
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+            {tags.map((tag, index) => (
+              <Chip
+                key={index}
+                label={tag}
+                onDelete={() => setTags(tags.filter(t => t !== tag))}
+                size="small"
+                variant="outlined"
+                color="primary"
+              />
+            ))}
+          </Box>
+        )}
+      </Box>
+
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+          Ask Team Members (Optional)
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+          Mention specific team members or groups who might help with your question.
+        </Typography>
+        <TextField
+          fullWidth
+          variant="outlined"
+          value={userInput}
+          onChange={e => {
+            setUserInput(e.target.value);
+            if (e.target.value.includes(',') || e.target.value.includes(' ')) {
+              handleUserAdd();
+            }
+          }}
+          onFocus={() => setFocusedField('mentions')}
+          onKeyDown={e => e.key === 'Enter' && handleUserAdd()}
+          placeholder="e.g., @john.doe, @frontend-team"
+        />
+        
+        {mentionedUsers.length > 0 && (
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+            {mentionedUsers.map((user, index) => (
+              <Chip
+                key={index}
+                label={`@${user}`}
+                onDelete={() => setMentionedUsers(mentionedUsers.filter(u => u !== user))}
+                size="small"
+                variant="outlined"
+                color="secondary"
+              />
+            ))}
+          </Box>
+        )}
+      </Box>
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
+      
+      <Box mt={3} sx={{ borderTop: 1, borderColor: 'divider', pt: 2, display: 'flex', gap: 2 }}>
+        <Button
+          variant="contained"
+          className={classes.button}
+          size="large"
+          onClick={handleSubmit}
+          disabled={loading || !isAuthenticated}
+          sx={{ flex: 2 }}
+        >
+          {loading ? 'Posting Question...' : 'Post Your Question'}
+        </Button>
+        <Button onClick={() => setOpen(false)} variant="outlined" size="large" sx={{ flex: 1 }}>
+          Cancel
+        </Button>
+      </Box>
+    </Box>
+  );
+
+  const renderContent = () => {
+    if (!isAuthenticated) {
+      return (
+        <Box sx={{ textAlign: 'center', py: 4 }}>
+          <Typography color="error" variant="h6">
+            Authentication Required
+          </Typography>
+          <Typography sx={{ mt: 1, mb: 2 }}>
+            Please{' '}
+            <Link component="button" onClick={handleLoginRedirect}>
+              log in
+            </Link>{' '}
+            to use this feature.
+          </Typography>
         </Box>
-        {error && <Typography color="error">{error}</Typography>}
-        <Box mt={2}>
-          <Button
-            variant="contained"
-            className={classes.button} 
-            fullWidth
-            onClick={handleSubmit}
-            disabled={loading}
-          >
-            {loading ? 'Posting...' : 'Post Question'}
-          </Button>
+      );
+    }
+
+    if (success) {
+      return (
+        <Box sx={{ textAlign: 'center', py: 4 }}>
+          <Alert severity="success">
+            <AlertTitle>Question Posted Successfully!</AlertTitle>
+            Your question has been posted and will open in a new tab.
+          </Alert>
         </Box>
-      </>
+      );
+    }
+
+    return (
+      <Grid container spacing={3} sx={{ height: '100%' }}>
+        <Grid item xs={12} md={8}>
+          {renderQuestionForm()}
+        </Grid>
+        <Grid item xs={12} md={4}>
+          {renderRightPanel()}
+        </Grid>
+      </Grid>
     );
   };
 
@@ -220,21 +664,25 @@ export const StackOverflowPostQuestionModal = () => {
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          width: 400,
+          width: { xs: '95vw', sm: '90vw', md: '80vw', lg: '70vw' },
+          maxHeight: '90vh',
           bgcolor: 'background.paper',
           boxShadow: 24,
-          p: 4,
           borderRadius: 2,
+          overflow: 'hidden',
         }}
       >
-        <Box mb={2}>
-        <Typography variant="h6"  className={classes.title}>
-          Ask a Stack Overflow Question
-        </Typography>
-        </Box>
-        {renderContent()}
-        <Box mt={2}>
-          <Button onClick={() => setOpen(false)}>Close</Button>
+        <Box sx={{ p: 3, maxHeight: '90vh', overflow: 'auto' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+            <Typography variant="h5" className={classes.title} fontWeight="bold">
+              Ask a Stack Overflow Question
+            </Typography>
+            <Button onClick={() => setOpen(false)} color="inherit" sx={{ minWidth: 'auto', p: 1 }}>
+              ✕
+            </Button>
+          </Box>
+          
+          {renderContent()}
         </Box>
       </Box>
     </Modal>
