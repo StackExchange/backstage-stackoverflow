@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useApi } from '@backstage/core-plugin-api';
-import Chip from '@material-ui/core/Chip'
+import Chip from '@mui/material/Chip'
 import { stackoverflowteamsApiRef } from '../../api';
 import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
@@ -28,13 +28,12 @@ import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import GroupIcon from '@mui/icons-material/Group';
 import PersonIcon from '@mui/icons-material/Person';
 import { useStackOverflowStyles } from './hooks';
-import RichTextEditor from './TextEditor'; // Import the SlateEditor component
-// import { useNavigate } from 'react-router-dom';
+import { TiptapEditor } from './TiptapEditor';
 
 export const StackOverflowPostQuestionModal = () => {
   const stackOverflowApi = useApi(stackoverflowteamsApiRef);
   const [title, setTitle] = useState('');
-  const [body, setBody] = useState(''); // This will now contain HTML from SlateEditor
+  const [body, setBody] = useState(''); // This will now contain HTML from TiptapEditor
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
   const [mentionedUsers, setMentionedUsers] = useState<string[]>([]);
@@ -49,7 +48,6 @@ export const StackOverflowPostQuestionModal = () => {
   const [bodyValidation, setBodyValidation] = useState('');
   const [tagsValidation, setTagsValidation] = useState('');
   const classes = useStackOverflowStyles();
-  // const navigate = useNavigate(); 
 
   const [titleStarted, setTitleStarted] = useState(false);
   const [bodyStarted, setBodyStarted] = useState(false);
@@ -63,7 +61,7 @@ export const StackOverflowPostQuestionModal = () => {
     }
   }
 
-  function validateBody(value: string) {
+  const validateBody = useCallback(function validateBody(value: string) {
     // Strip HTML tags for character count validation
     const textContent = value.replace(/<[^>]*>/g, '');
     if (bodyStarted && textContent.trim().length < 30) {
@@ -71,15 +69,15 @@ export const StackOverflowPostQuestionModal = () => {
     } else {
       setBodyValidation('');
     }
-  }
+  }, [bodyStarted])
 
-  function validateTags() {
+  const validateTags = useCallback (function validateTags() {
     if (tagsStarted && tags.length === 0) {
       setTagsValidation('At least one tag is required.');
     } else {
       setTagsValidation('');
     }
-  }
+  }, [tagsStarted, tags])
 
   useEffect(() => {
     const openModal = async () => {
@@ -97,11 +95,11 @@ export const StackOverflowPostQuestionModal = () => {
 
   useEffect(() => {
     validateTags();
-  }, [tags, tagsStarted]);
+  }, [tags, tagsStarted, validateTags]);
 
   useEffect(() => {
     validateBody(body);
-  }, [body, bodyStarted]);
+  }, [body, bodyStarted, validateBody]);
 
   const handleSubmit = async () => {
     validateTitle(title);
@@ -113,8 +111,8 @@ export const StackOverflowPostQuestionModal = () => {
     }
 
     // Check if body has actual content (not just HTML tags)
-    const textContent = body.replace(/<[^>]*>/g, '');
-    if (!title || !textContent.trim() || tags.length === 0) {
+    const textContent = body.replace(/<[^>]*>/g, '').trim();
+    if (!title || !textContent || tags.length === 0) {
       setError('Title, body, and at least one tag are required.');
       return;
     }
@@ -125,6 +123,7 @@ export const StackOverflowPostQuestionModal = () => {
     try {
       const response = await stackOverflowApi.postQuestion(title, body, tags, mentionedUsers);
       setSuccess(true);
+      // We reset everything
       setTitle('');
       setBody('');
       setTags([]);
@@ -172,11 +171,10 @@ export const StackOverflowPostQuestionModal = () => {
 
   const handleLoginRedirect = () => {
     setOpen(false);
-    // navigate('/stack-overflow-teams');
     window.location.href = '/stack-overflow-teams';
   };
 
-  // Handler for SlateEditor changes
+  // Handler for TiptapEditor changes
   const handleBodyChange = (value: string) => {
     if (!bodyStarted) setBodyStarted(true);
     setBody(value);
@@ -257,28 +255,6 @@ export const StackOverflowPostQuestionModal = () => {
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
             Use the toolbar to format your text with bold, italic, code blocks, lists, and more. Keyboard shortcuts: Ctrl+B (bold), Ctrl+I (italic), Ctrl+U (underline), Ctrl+` (code).
           </Typography>
-          <List dense>
-            <ListItem>
-              <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
-              <ListItemText primary="Use headings (H1, H2, H3) to organize content" />
-            </ListItem>
-            <ListItem>
-              <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
-              <ListItemText primary="Use code formatting for code snippets" />
-            </ListItem>
-            <ListItem>
-              <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
-              <ListItemText primary="Use numbered/bulleted lists for steps" />
-            </ListItem>
-            <ListItem>
-              <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
-              <ListItemText primary="Use quotes for important information" />
-            </ListItem>
-            <ListItem>
-              <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
-              <ListItemText primary="Use text alignment for better layout" />
-            </ListItem>
-          </List>
         </CardContent>
       </Card>
 
@@ -464,7 +440,7 @@ export const StackOverflowPostQuestionModal = () => {
       case 'mentions':
         return renderMentionTips();
       default:
-        return renderDefaultTips(); // Empty space by default
+        return renderDefaultTips();
     }
   };
 
@@ -500,16 +476,18 @@ export const StackOverflowPostQuestionModal = () => {
         <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
           Introduce the problem and expand on what you put in the title. Use the formatting toolbar to style your text.
         </Typography>
-        <RichTextEditor
-          value={body}
-          onChange={handleBodyChange}
+        <TiptapEditor
+          content={body}
+          onUpdate={handleBodyChange}
           onFocus={handleBodyFocus}
-          placeholder="Describe your problem in detail. Include code snippets, error messages, and what you've tried so far..."
+          placeholder="Describe your problem in detail. Include any error messages, code snippets, and what you've tried so far..."
           error={bodyStarted && !!bodyValidation}
-          helperText={bodyStarted ? bodyValidation : ''}
-          minHeight={300}
-          maxHeight={500}
         />
+        {bodyStarted && bodyValidation && (
+          <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
+            {bodyValidation}
+          </Typography>
+        )}
       </Box>
 
       <Box sx={{ mb: 3 }}>
@@ -517,7 +495,7 @@ export const StackOverflowPostQuestionModal = () => {
           Tags
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-          Add up to 5 tags to describe what your question is about.
+          Add a minimum of one tag
         </Typography>
         <TextField
           fullWidth
@@ -532,9 +510,7 @@ export const StackOverflowPostQuestionModal = () => {
           onFocus={() => setFocusedField('tags')}
           onKeyDown={e => e.key === 'Enter' && handleTagAdd()}
           placeholder="e.g., react, javascript, authentication"
-          disabled={tags.length >= 5}
           error={!!tagsValidation}
-          helperText={tagsValidation || `${tags.length}/5 tags used`}
         />
         
         {tags.length > 0 && (
