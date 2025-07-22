@@ -29,6 +29,8 @@ import GroupIcon from '@mui/icons-material/Group';
 import PersonIcon from '@mui/icons-material/Person';
 import { useStackOverflowStyles } from './hooks';
 import { TiptapEditor } from './TiptapEditor';
+import type { Tag } from '../../types'
+import { CircularProgress } from '@mui/material';
 
 // Utility function to detect Mac
 const isMac = () => {
@@ -52,7 +54,7 @@ export const StackOverflowPostQuestionModal = () => {
   const [tagInput, setTagInput] = useState('');
   // Mentioning users is not supported on the API (yet)
   // const [mentionedUsers, setMentionedUsers] = useState<string[]>([]); 
-  const [userInput, setUserInput] = useState('');
+  // const [userInput, setUserInput] = useState('');
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -66,6 +68,29 @@ export const StackOverflowPostQuestionModal = () => {
   const [titleStarted, setTitleStarted] = useState(false);
   const [bodyStarted, setBodyStarted] = useState(false);
   const [tagsStarted, setTagsStarted] = useState(false);
+
+  // Get popular tags
+  const [popularTags, setPopularTags] = useState<Tag[]>([])
+  const [loadingTags, setLoadingTags] = useState(false)
+  const [tagError, setTagError] = useState<string | null>(null)
+
+  const fetchPopularTags = useCallback(async function () {
+    if (!isAuthenticated) return;
+
+    setLoadingTags(true);
+    setTagError(null);
+
+    try {
+      const response = await stackOverflowApi.getTags();
+      const topTags = response.items?.slice(0, 10) || [];
+      setPopularTags(topTags);
+    } catch (err) {
+      setTagError('Failed to load tags.')
+      setPopularTags([])
+    } finally {
+      setLoadingTags(false);
+    }
+  }, [stackOverflowApi, isAuthenticated])
   
   // Get modifier key info
   const modifierKey = getModifierKey();
@@ -110,6 +135,12 @@ export const StackOverflowPostQuestionModal = () => {
   }, [stackOverflowApi]);
   
   useEffect(() => {
+    if (open && isAuthenticated && popularTags.length === 0) {
+      fetchPopularTags();
+    }
+  }, [open, isAuthenticated, fetchPopularTags, popularTags.length]);
+
+  useEffect(() => {
     validateTags();
   }, [tags, tagsStarted, validateTags]);
   
@@ -141,7 +172,7 @@ export const StackOverflowPostQuestionModal = () => {
       setTags([]);
       setTagInput('');
       // setMentionedUsers([]);
-      setUserInput('');
+      // setUserInput('');
       if (response.webUrl) {
         window.open(`${response.webUrl}?r=Backstage_Plugin`, '_blank');
       }
@@ -306,24 +337,46 @@ export const StackOverflowPostQuestionModal = () => {
       </Typography>
       
       <Card elevation={2} sx={{ mb: 2 }}>
-        <CardContent>
-          <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1 }}>
-            Recommended Tags
+                <CardContent>
+          <Typography variant="subtitle2" fontWeight="bold" sx={{ pb: 1 }}>
+            Popular Tags
           </Typography>
+          
+          {loadingTags && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 2 }}>
+              <CircularProgress size={24} />
+              <Typography variant="body2" sx={{ ml: 1 }}>
+                Loading popular tags...
+              </Typography>
+            </Box>
+          )}
+          {!loadingTags && tagError && (
+            <Typography variant="body2" color="error" sx={{ mb: 2 }}>
+              {tagError}
+            </Typography>
+          )}
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-            {['react', 'javascript', 'typescript', 'node.js', 'python', 'docker', 'kubernetes', 'aws', 'backend', 'frontend'].map(tag => (
+            {popularTags.map(tag => (
               <Chip
-                key={tag}
-                label={tag}
+                key={tag.name}
+                label={`${tag.name}`}
                 size="medium"
                 variant="outlined"
-                onClick={() => !tags.includes(tag) && tags.length < 5 && setTags([...tags, tag])}
+                onClick={() => !tags.includes(tag.name) && tags.length < 5 && setTags([...tags, tag.name])}
+                disabled={tags.includes(tag.name) || tags.length >= 5}
               />
             ))}
           </Box>
-          <Typography variant="body2" color="text.secondary">
-            Click on suggested tags above to add them quickly.
-          </Typography>
+          {!loadingTags && !tagError && popularTags.length > 0 && (
+            <Typography variant="body2" color="text.secondary">
+              Click on any popular tag above to add them quickly.
+            </Typography>
+          )}
+          {!loadingTags && !tagError && popularTags.length === 0 && (
+            <Typography variant="body2" color="text.secondary">
+              No popular tags available.
+            </Typography>
+          )}
         </CardContent>
       </Card>
       <Card elevation={2}>
@@ -537,7 +590,7 @@ export const StackOverflowPostQuestionModal = () => {
         )}
       </Box>
       {/* This is the UI for mentioning users (not yet supported on v3) */}
-      {/* <Box sx={{ mb: 3 }}>
+       {/* <Box sx={{ mb: 3 }}>
         <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
           Ask Team Members (Optional)
         </Typography>
@@ -573,12 +626,12 @@ export const StackOverflowPostQuestionModal = () => {
             ))}
           </Box>
         )}
-      </Box> */}
+      </Box> 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
         </Alert>
-      )}
+      )} */}
       
       <Box mt={3} sx={{ borderTop: 1, borderColor: 'divider', pt: 2, display: 'flex', gap: 2 }}>
         <Button

@@ -106,7 +106,7 @@ export const TiptapEditor: React.FC<TiptapEditorProps> = ({
         overflow: 'hidden',
         '&:focus-within': {
           borderColor: theme.palette.primary.main,
-          borderWidth: '2px',
+          borderWidth: '1px',
         },
         transition: 'border-color 0.2s ease-in-out',
       }}
