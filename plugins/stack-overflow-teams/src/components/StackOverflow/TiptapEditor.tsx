@@ -87,6 +87,9 @@ export const TiptapEditor: React.FC<TiptapEditorProps> = ({
     title: string;
   }) => (
     <Button
+      onMouseDown={(e) => {
+        e.preventDefault()
+      }}
       onClick={onClick}
       disabled={disabled}
       variant={isActive ? 'contained' : 'text'}
