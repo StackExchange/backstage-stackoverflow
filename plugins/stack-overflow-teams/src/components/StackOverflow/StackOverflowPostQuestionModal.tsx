@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useApi } from '@backstage/core-plugin-api';
 import Chip from '@material-ui/core/Chip'
 import { stackoverflowteamsApiRef } from '../../api';
@@ -30,7 +30,8 @@ import PersonIcon from '@mui/icons-material/Person';
 import { useStackOverflowStyles } from './hooks';
 import { TiptapEditor } from './TiptapEditor';
 import type { Tag } from '../../types'
-import { CircularProgress } from '@mui/material';
+import CircularProgress from '@mui/material/CircularProgress';
+import { debounce } from '@material-ui/core';
 
 // Utility function to detect Mac
 const isMac = () => {
@@ -74,7 +75,12 @@ export const StackOverflowPostQuestionModal = () => {
   const [loadingTags, setLoadingTags] = useState(false)
   const [tagError, setTagError] = useState<string | null>(null)
 
-  const fetchPopularTags = useCallback(async function () {
+  // Autopopulate tags
+  const [tagSearchResults, setTagSearchResults] = useState<Tag[]>([]);
+  const [searchingTags, setSearchingTags] = useState(false);
+  const [showCreateTagOption, setShowCreateTagOption] = useState(false);
+
+  const fetchPopularTags = useCallback(async function fetchPopularTags() {
     if (!isAuthenticated) return;
 
     setLoadingTags(true);
@@ -91,6 +97,29 @@ export const StackOverflowPostQuestionModal = () => {
       setLoadingTags(false);
     }
   }, [stackOverflowApi, isAuthenticated])
+
+    const searchTags = useMemo(
+      () => debounce(async (searchTerm: string) => {
+        if (!searchTerm.trim() || !isAuthenticated) {
+          setTagSearchResults([]);
+          setShowCreateTagOption(false);
+          return;
+        }
+        setSearchingTags(true);
+        try {
+          const response = await stackOverflowApi.getTags(searchTerm.trim());
+          const results = response.items || [];
+          setTagSearchResults(results);
+          setShowCreateTagOption(results.length === 0); // Show create option only when no results found!
+        } catch (err) {
+          setTagSearchResults([]);
+          setShowCreateTagOption(true); // Show create option if search fails, will keep this for now, since is highly unlikely that this fails without all other things being broken
+        } finally {
+          setSearchingTags(false);
+        }
+      }, 500),
+      [stackOverflowApi, isAuthenticated]
+    );
   
   // Get modifier key info
   const modifierKey = getModifierKey();
@@ -198,6 +227,7 @@ export const StackOverflowPostQuestionModal = () => {
       if (!tagsStarted) setTagsStarted(true);
     }
     setTagInput('');
+    setTagSearchResults([]);
   };
   
   // This can be uncommented in future once mentioning users over API v3 is supported
@@ -551,43 +581,126 @@ export const StackOverflowPostQuestionModal = () => {
           </Typography>
         )}
       </Box>
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
-          Tags
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-          Add a minimum of one tag
-        </Typography>
-        <TextField
-          fullWidth
-          variant="outlined"
-          value={tagInput}
-          onChange={e => {
-            setTagInput(e.target.value);
-            if (e.target.value.includes(',') || e.target.value.includes(' ')) {
-              handleTagAdd();
-            }
-          }}
-          onFocus={() => setFocusedField('tags')}
-          onKeyDown={e => e.key === 'Enter' && handleTagAdd()}
-          placeholder="e.g., react, javascript, authentication"
-          error={!!tagsValidation}
-        />
-        
-        {tags.length > 0 && (
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
-            {tags.map((tag, index) => (
-              <Chip
-                key={index}
-                label={tag}
-                onDelete={() => setTags(tags.filter(t => t !== tag))}
-                size="medium"
-                variant="outlined"
-                color="primary"
+      <Box sx={{ mb: 3, position: 'relative' }}>
+      <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+        Tags
+      </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+        Add a minimum of one tag
+      </Typography>
+      <TextField
+        fullWidth
+        variant="outlined"
+        value={tagInput}
+        onChange={e => {
+          const value = e.target.value;
+          setTagInput(value);
+          setShowCreateTagOption(false);
+          
+          // Search for tags as user types
+          const lastTag = value.split(/[\s,]/).pop()?.trim() || '';
+          if (lastTag.length >= 2) {
+            searchTags(lastTag);
+          } else {
+            setTagSearchResults([]);
+          }
+          
+          if (value.includes(',') || value.includes(' ')) {
+            handleTagAdd();
+          }
+        }}
+        onFocus={() => setFocusedField('tags')}
+        onKeyDown={e => e.key === 'Enter' && handleTagAdd()}
+        placeholder="e.g., react, javascript, authentication"
+        error={!!tagsValidation}
+      />
+      {(tagSearchResults.length > 0 || searchingTags || (tagInput.trim() && tagSearchResults.length === 0 && !searchingTags)) && (
+      <Paper 
+        elevation={3} 
+        sx={{ 
+          position: 'absolute', 
+          zIndex: 1000, 
+          width: '100%', 
+          maxHeight: 200, 
+          overflow: 'auto',
+          mt: 1
+        }}
+      >
+          {searchingTags && (
+            <Box sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <CircularProgress size={16} />
+              <Typography variant="body2">Searching tags...</Typography>
+            </Box>
+          )}
+          {tagSearchResults.map(tag => (
+            <ListItem 
+              key={tag.name}
+              onClick={() => {
+                if (!tags.includes(tag.name) && tags.length < 5) {
+                  setTags([...tags, tag.name]);
+                  if (!tagsStarted) setTagsStarted(true);
+                }
+                setTagInput('');
+                setTagSearchResults([]);
+              }}
+              sx={{ 
+                cursor: 'pointer',
+                '&:hover': { backgroundColor: 'action.hover' }
+              }}
+            >
+              <ListItemText 
+                primary={tag.name}
+                // secondary={`${tag.count} questions`}
               />
-            ))}
-          </Box>
-        )}
+            </ListItem>
+          ))}
+          {tagInput.trim() && showCreateTagOption && (
+            <ListItem
+              onClick={() => {
+                const trimmedTag = tagInput.trim();
+                if (trimmedTag && !tags.includes(trimmedTag) && tags.length < 5) {
+                  setTags([...tags, trimmedTag]);
+                  if (!tagsStarted) setTagsStarted(true);
+                  setShowCreateTagOption(false);
+                }
+                setTagInput('');
+                setTagSearchResults([]);
+              }}
+              sx={{ 
+                cursor: 'pointer',
+                '&:hover': { backgroundColor: 'action.hover' },
+                borderTop: tagSearchResults.length > 0 ? '1px solid' : 'none',
+                borderColor: 'divider'
+              }}
+            >
+              <ListItemText 
+                primary={
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography>Create "{tagInput.trim()}"</Typography>
+                    <Chip size="small" label="New" color="primary" variant="outlined" />
+                  </Box>
+                }
+                secondary="This will create a new tag"
+              />
+            </ListItem>
+          )}
+        </Paper>
+      )}
+      
+      {tags.length > 0 && (
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+          {tags.map((tag, index) => (
+            <Chip
+              key={index}
+              label={tag}
+              onDelete={() => setTags(tags.filter(t => t !== tag))}
+              size="medium"
+              variant="outlined"
+              color="primary"
+            />
+          ))}
+        </Box>
+      )}
       </Box>
       {/* This is the UI for mentioning users (not yet supported on v3) */}
        {/* <Box sx={{ mb: 3 }}>
@@ -679,7 +792,7 @@ export const StackOverflowPostQuestionModal = () => {
       );
     }
     return (
-      <Grid container spacing={4} sx={{ height: '100%' }}>
+      <Grid container spacing={4} sx={{ height: '80vh' }}>
         <Grid item xs={12} md={8}>
           {renderQuestionForm()}
         </Grid>
@@ -698,7 +811,7 @@ export const StackOverflowPostQuestionModal = () => {
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          width: { xs: '95vw', sm: '90vw', md: '80vw', lg: '65vw' },
+          width: { xs: '95vw', sm: '90vw', md: '80vw', lg: '70vw' },
           maxHeight: '90vh',
           bgcolor: 'background.paper',
           boxShadow: 24,

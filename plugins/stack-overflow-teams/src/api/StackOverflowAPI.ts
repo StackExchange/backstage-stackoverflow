@@ -19,7 +19,7 @@ interface BaseUrlResponse {
 export interface StackOverflowAPI {
   search(query: string): Promise<any>;
   getQuestions(): Promise<ApiResponse<Question>>;
-  getTags(): Promise<ApiResponse<Tag>>;
+  getTags(search?: string): Promise<ApiResponse<Tag>>;
   getUsers(): Promise<ApiResponse<User>>;
   getMe(): Promise<User>;
   getBaseUrl(): Promise<string>;
@@ -66,7 +66,10 @@ export const createStackOverflowApi = (
   return {
     search: (query: string) => requestAPI<any>('search', 'POST', { query }),
     getQuestions: () => requestAPI<ApiResponse<Question>>('questions'),
-    getTags: () => requestAPI<ApiResponse<Tag>>('tags'),
+    getTags: (search?: string) => {
+      const params = search ? [`search=${encodeURIComponent(search)}`] : undefined;
+      return requestAPI<ApiResponse<Tag>>('tags', 'GET', undefined, params);
+    },
     getUsers: () => requestAPI<ApiResponse<User>>('users'),
     getMe: () => requestAPI<User>('me'),
     getBaseUrl: async () => {
