@@ -646,7 +646,7 @@ export const StackOverflowPostQuestionModal = () => {
             >
               <ListItemText 
                 primary={tag.name}
-                // secondary={`${tag.count} questions`}
+                secondary={`${tag.postCount} posts`}
               />
             </ListItem>
           ))}
