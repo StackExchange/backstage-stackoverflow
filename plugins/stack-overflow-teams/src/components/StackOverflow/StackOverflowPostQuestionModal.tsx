@@ -317,7 +317,7 @@ export const StackOverflowPostQuestionModal = () => {
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         <DescriptionIcon color="primary" />
-        Writing a Good Description
+        Explaining the issue in more detail
       </Typography>
       
       <Card elevation={2} sx={{ mb: 2 }}>
@@ -511,10 +511,6 @@ export const StackOverflowPostQuestionModal = () => {
               <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
               <ListItemText primary="Tag your question appropriately" />
             </ListItem>
-            <ListItem>
-              <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
-              <ListItemText primary="Mention relevant team members if needed" />
-            </ListItem>
           </List>
         </CardContent>
       </Card>
@@ -586,7 +582,7 @@ export const StackOverflowPostQuestionModal = () => {
         Tags
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-        Add a minimum of one tag
+        At least one tag is required.
       </Typography>
       <TextField
         fullWidth
