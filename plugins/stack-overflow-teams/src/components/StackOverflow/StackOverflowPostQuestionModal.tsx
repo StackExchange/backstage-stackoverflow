@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useApi } from '@backstage/core-plugin-api';
-import Chip from '@mui/material/Chip'
+import Chip from '@material-ui/core/Chip'
 import { stackoverflowteamsApiRef } from '../../api';
 import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
@@ -50,7 +50,8 @@ export const StackOverflowPostQuestionModal = () => {
   const [body, setBody] = useState(''); // This will now contain HTML from TiptapEditor
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
-  const [mentionedUsers, setMentionedUsers] = useState<string[]>([]);
+  // Mentioning users is not supported on the API (yet)
+  // const [mentionedUsers, setMentionedUsers] = useState<string[]>([]); 
   const [userInput, setUserInput] = useState('');
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -132,14 +133,14 @@ export const StackOverflowPostQuestionModal = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await stackOverflowApi.postQuestion(title, body, tags, mentionedUsers);
+      const response = await stackOverflowApi.postQuestion(title, body, tags);
       setSuccess(true);
       // We reset everything
       setTitle('');
       setBody('');
       setTags([]);
       setTagInput('');
-      setMentionedUsers([]);
+      // setMentionedUsers([]);
       setUserInput('');
       if (response.webUrl) {
         window.open(`${response.webUrl}?r=Backstage_Plugin`, '_blank');
@@ -168,17 +169,19 @@ export const StackOverflowPostQuestionModal = () => {
     setTagInput('');
   };
   
-  const handleUserAdd = () => {
-    const newUsers = userInput
-      .split(/[\s,]+/)
-      .map(user => user.trim().replace('@', ''))
-      .filter(user => user.length > 0 && !mentionedUsers.includes(user));
+  // This can be uncommented in future once mentioning users over API v3 is supported
+
+  // const handleUserAdd = () => {
+  //   const newUsers = userInput
+  //     .split(/[\s,]+/)
+  //     .map(user => user.trim().replace('@', ''))
+  //     .filter(user => user.length > 0 && !mentionedUsers.includes(user));
   
-    if (newUsers.length > 0) {
-      setMentionedUsers([...mentionedUsers, ...newUsers]);
-    }
-    setUserInput('');
-  };
+  //   if (newUsers.length > 0) {
+  //     setMentionedUsers([...mentionedUsers, ...newUsers]);
+  //   }
+  //   setUserInput('');
+  // };
   
   const handleLoginRedirect = () => {
     setOpen(false);
@@ -230,7 +233,7 @@ export const StackOverflowPostQuestionModal = () => {
           <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1 }}>
             Title Tips
           </Typography>
-          <List dense>
+          <List>
             <ListItem>
               <ListItemIcon><InfoIcon color="info" fontSize="small" /></ListItemIcon>
               <ListItemText primary="Be specific about your problem" />
@@ -263,7 +266,7 @@ export const StackOverflowPostQuestionModal = () => {
             Rich Text Formatting
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-            Use the toolbar to format your text with bold, italic, code blocks, lists, and more. Keyboard shortcuts: {modifierKey.text}+B (bold), {modifierKey.text}+I (italic), {modifierKey.text}+U (underline), {modifierKey.text}+` (code).
+            Use the toolbar to format your text with bold, italic, code blocks, lists, and more. Keyboard shortcuts: {modifierKey.text}+B (bold), {modifierKey.text}+I (italic), {modifierKey.text}+U (underline), {modifierKey.text}+E (code).
           </Typography>
         </CardContent>
       </Card>
@@ -272,7 +275,7 @@ export const StackOverflowPostQuestionModal = () => {
           <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1 }}>
             Structure Your Question
           </Typography>
-          <List dense>
+          <List>
             <ListItem>
               <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
               <ListItemText primary="What you're trying to achieve" />
@@ -312,10 +315,9 @@ export const StackOverflowPostQuestionModal = () => {
               <Chip
                 key={tag}
                 label={tag}
-                size="small"
+                size="medium"
                 variant="outlined"
                 onClick={() => !tags.includes(tag) && tags.length < 5 && setTags([...tags, tag])}
-                sx={{ cursor: 'pointer' }}
               />
             ))}
           </Box>
@@ -329,14 +331,14 @@ export const StackOverflowPostQuestionModal = () => {
           <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1 }}>
             Tag Guidelines
           </Typography>
-          <List dense>
+          <List>
             <ListItem>
               <ListItemIcon><InfoIcon color="info" fontSize="small" /></ListItemIcon>
               <ListItemText primary="Use 1-5 tags that describe your question" />
             </ListItem>
             <ListItem>
               <ListItemIcon><InfoIcon color="info" fontSize="small" /></ListItemIcon>
-              <ListItemText primary="Include programming languages and frameworks" />
+              <ListItemText primary="Try to use existing tags" />
             </ListItem>
             <ListItem>
               <ListItemIcon><InfoIcon color="info" fontSize="small" /></ListItemIcon>
@@ -361,7 +363,7 @@ export const StackOverflowPostQuestionModal = () => {
             <PersonIcon color="info" fontSize="small" />
             When to Mention Someone
           </Typography>
-          <List dense>
+          <List>
             <ListItem>
               <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
               <ListItemText primary="They're an expert in the relevant area" />
@@ -385,7 +387,7 @@ export const StackOverflowPostQuestionModal = () => {
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
             Type usernames or group names. You can mention:
           </Typography>
-          <List dense>
+          <List>
             <ListItem>
               <ListItemIcon><InfoIcon color="info" fontSize="small" /></ListItemIcon>
               <ListItemText primary="Individual team members (@john.doe)" />
@@ -413,7 +415,7 @@ export const StackOverflowPostQuestionModal = () => {
             <InfoIcon color="info" fontSize="small" />
             Quick Tips
           </Typography>
-          <List dense>
+          <List>
             <ListItem>
               <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
               <ListItemText primary="Be specific and clear in your title" />
@@ -526,7 +528,7 @@ export const StackOverflowPostQuestionModal = () => {
                 key={index}
                 label={tag}
                 onDelete={() => setTags(tags.filter(t => t !== tag))}
-                size="small"
+                size="medium"
                 variant="outlined"
                 color="primary"
               />
@@ -534,7 +536,8 @@ export const StackOverflowPostQuestionModal = () => {
           </Box>
         )}
       </Box>
-      <Box sx={{ mb: 3 }}>
+      {/* This is the UI for mentioning users (not yet supported on v3) */}
+      {/* <Box sx={{ mb: 3 }}>
         <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
           Ask Team Members (Optional)
         </Typography>
@@ -563,14 +566,14 @@ export const StackOverflowPostQuestionModal = () => {
                 key={index}
                 label={`@${user}`}
                 onDelete={() => setMentionedUsers(mentionedUsers.filter(u => u !== user))}
-                size="small"
+                size="medium"
                 variant="outlined"
                 color="secondary"
               />
             ))}
           </Box>
         )}
-      </Box>
+      </Box> */}
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
@@ -623,7 +626,7 @@ export const StackOverflowPostQuestionModal = () => {
       );
     }
     return (
-      <Grid container spacing={3} sx={{ height: '100%' }}>
+      <Grid container spacing={4} sx={{ height: '100%' }}>
         <Grid item xs={12} md={8}>
           {renderQuestionForm()}
         </Grid>
@@ -642,7 +645,7 @@ export const StackOverflowPostQuestionModal = () => {
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          width: { xs: '95vw', sm: '90vw', md: '80vw', lg: '70vw' },
+          width: { xs: '95vw', sm: '90vw', md: '80vw', lg: '65vw' },
           maxHeight: '90vh',
           bgcolor: 'background.paper',
           boxShadow: 24,
@@ -653,7 +656,7 @@ export const StackOverflowPostQuestionModal = () => {
         <Box sx={{ p: 3, maxHeight: '90vh', overflow: 'auto' }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
             <Typography variant="h5" className={classes.title} fontWeight="bold">
-              Ask a Stack Overflow Question
+              Ask a question on Stack Overflow for Teams
             </Typography>
             <Button onClick={() => setOpen(false)} color="inherit" sx={{ minWidth: 'auto', p: 1 }}>
               ✕
