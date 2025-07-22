@@ -698,8 +698,8 @@ export const StackOverflowPostQuestionModal = () => {
         </Box>
       )}
       </Box>
-      {/* This is the UI for mentioning users (not yet supported on v3) */}
-       {/* <Box sx={{ mb: 3 }}>
+      {/* This is the UI for mentioning users (not yet supported on v3)
+       <Box sx={{ mb: 3 }}>
         <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
           Ask Team Members (Optional)
         </Typography>
@@ -735,12 +735,13 @@ export const StackOverflowPostQuestionModal = () => {
             ))}
           </Box>
         )}
-      </Box> 
+      </Box>
+      */}
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
         </Alert>
-      )} */}
+      )} 
       
       <Box mt={3} sx={{ borderTop: 1, borderColor: 'divider', pt: 2, display: 'flex', gap: 2 }}>
         <Button
