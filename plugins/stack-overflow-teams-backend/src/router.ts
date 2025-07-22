@@ -283,7 +283,8 @@ export async function createRouter({
           .status(401)
           .json({ error: 'Missing Stack Overflow Teams Access Token' });
       }
-      const tags = await stackOverflowService.getTags(authToken);
+      const search = req.query.search as string | undefined;
+      const tags = await stackOverflowService.getTags(authToken, search);
       return res.send(tags);
     } catch (error: any) {
       logger.error('Error fetching tags', { error });

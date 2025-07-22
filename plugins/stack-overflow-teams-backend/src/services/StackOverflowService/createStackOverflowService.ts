@@ -36,8 +36,13 @@ export async function createStackOverflowService({
     // GET
     getQuestions: authToken =>
       api.GET<PaginatedResponse<Question>>('/questions', authToken, teamName, { sort: 'creation', order: 'desc' }),
-    getTags: authToken =>
-      api.GET<PaginatedResponse<Tag>>('/tags', authToken, teamName, { sort: 'creationDate', order: 'desc'}),
+    getTags: (authToken, search?: string) => {
+      const params: Record<string, string> = { sort: 'postCount', order: 'desc' };
+      if (search) {
+        params.partialName = search;
+      }
+      return api.GET<PaginatedResponse<Tag>>('/tags', authToken, teamName, params);
+    },
     getUsers: authToken =>
       api.GET<PaginatedResponse<User>>('/users', authToken, teamName),
     getMe: authToken => api.GET<User>('/users/me', authToken, teamName),

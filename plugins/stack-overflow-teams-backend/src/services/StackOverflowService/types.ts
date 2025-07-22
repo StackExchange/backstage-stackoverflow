@@ -62,7 +62,7 @@ export type StackOverflowConfig = {
 
 export interface StackOverflowAPI {
   getQuestions(authToken: string): Promise<PaginatedResponse<Question>>;
-  getTags(authToken: string): Promise<PaginatedResponse<Tag>>;
+  getTags(authToken: string, search?: string): Promise<PaginatedResponse<Tag>>;
   getUsers(authToken: string): Promise<PaginatedResponse<User>>;
   getMe(authToken: string): Promise<User>;
   postQuestions(
