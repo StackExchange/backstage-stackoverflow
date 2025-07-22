@@ -30,6 +30,20 @@ import PersonIcon from '@mui/icons-material/Person';
 import { useStackOverflowStyles } from './hooks';
 import { TiptapEditor } from './TiptapEditor';
 
+// Utility function to detect Mac
+const isMac = () => {
+  return typeof navigator !== 'undefined' && navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+};
+
+// Apple keyboards are... different :)
+const getModifierKey = () => {
+  const isApple = isMac();
+  return {
+    symbol: isApple ? '⌘' : 'Ctrl',
+    text: isApple ? 'Cmd' : 'Ctrl'
+  };
+};
+
 export const StackOverflowPostQuestionModal = () => {
   const stackOverflowApi = useApi(stackoverflowteamsApiRef);
   const [title, setTitle] = useState('');
@@ -48,11 +62,13 @@ export const StackOverflowPostQuestionModal = () => {
   const [bodyValidation, setBodyValidation] = useState('');
   const [tagsValidation, setTagsValidation] = useState('');
   const classes = useStackOverflowStyles();
-
   const [titleStarted, setTitleStarted] = useState(false);
   const [bodyStarted, setBodyStarted] = useState(false);
   const [tagsStarted, setTagsStarted] = useState(false);
-
+  
+  // Get modifier key info
+  const modifierKey = getModifierKey();
+  
   function validateTitle(value: string) {
     if (titleStarted && value.trim().length < 15) {
       setTitleValidation('Title should be at least 15 characters for clarity.');
@@ -60,7 +76,7 @@ export const StackOverflowPostQuestionModal = () => {
       setTitleValidation('');
     }
   }
-
+  
   const validateBody = useCallback(function validateBody(value: string) {
     // Strip HTML tags for character count validation
     const textContent = value.replace(/<[^>]*>/g, '');
@@ -70,7 +86,7 @@ export const StackOverflowPostQuestionModal = () => {
       setBodyValidation('');
     }
   }, [bodyStarted])
-
+  
   const validateTags = useCallback (function validateTags() {
     if (tagsStarted && tags.length === 0) {
       setTagsValidation('At least one tag is required.');
@@ -78,7 +94,7 @@ export const StackOverflowPostQuestionModal = () => {
       setTagsValidation('');
     }
   }, [tagsStarted, tags])
-
+  
   useEffect(() => {
     const openModal = async () => {
       const authStatus = await stackOverflowApi.getAuthStatus();
@@ -87,39 +103,34 @@ export const StackOverflowPostQuestionModal = () => {
       setOpen(true);
     };
     window.addEventListener('openAskQuestionModal', openModal);
-
     return () => {
       window.removeEventListener('openAskQuestionModal', openModal);
     };
   }, [stackOverflowApi]);
-
+  
   useEffect(() => {
     validateTags();
   }, [tags, tagsStarted, validateTags]);
-
+  
   useEffect(() => {
     validateBody(body);
   }, [body, bodyStarted, validateBody]);
-
+  
   const handleSubmit = async () => {
     validateTitle(title);
     validateBody(body);
     validateTags();
-
     if (titleValidation || bodyValidation || tagsValidation) {
       return;
     }
-
     // Check if body has actual content (not just HTML tags)
     const textContent = body.replace(/<[^>]*>/g, '').trim();
     if (!title || !textContent || tags.length === 0) {
       setError('Title, body, and at least one tag are required.');
       return;
     }
-
     setLoading(true);
     setError(null);
-
     try {
       const response = await stackOverflowApi.postQuestion(title, body, tags, mentionedUsers);
       setSuccess(true);
@@ -143,7 +154,7 @@ export const StackOverflowPostQuestionModal = () => {
       setLoading(false);
     }
   };
-
+  
   const handleTagAdd = () => {
     const newTags = tagInput
       .split(/[\s,]+/)
@@ -156,7 +167,7 @@ export const StackOverflowPostQuestionModal = () => {
     }
     setTagInput('');
   };
-
+  
   const handleUserAdd = () => {
     const newUsers = userInput
       .split(/[\s,]+/)
@@ -168,22 +179,22 @@ export const StackOverflowPostQuestionModal = () => {
     }
     setUserInput('');
   };
-
+  
   const handleLoginRedirect = () => {
     setOpen(false);
     window.location.href = '/stack-overflow-teams';
   };
-
+  
   // Handler for TiptapEditor changes
   const handleBodyChange = (value: string) => {
     if (!bodyStarted) setBodyStarted(true);
     setBody(value);
   };
-
+  
   const handleBodyFocus = () => {
     setFocusedField('body');
   };
-
+  
   const renderTitleTips = () => (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -214,7 +225,6 @@ export const StackOverflowPostQuestionModal = () => {
           </Paper>
         </CardContent>
       </Card>
-
       <Card elevation={2}>
         <CardContent>
           <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1 }}>
@@ -238,7 +248,7 @@ export const StackOverflowPostQuestionModal = () => {
       </Card>
     </Box>
   );
-
+  
   const renderBodyTips = () => (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -253,11 +263,10 @@ export const StackOverflowPostQuestionModal = () => {
             Rich Text Formatting
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-            Use the toolbar to format your text with bold, italic, code blocks, lists, and more. Keyboard shortcuts: Ctrl+B (bold), Ctrl+I (italic), Ctrl+U (underline), Ctrl+` (code).
+            Use the toolbar to format your text with bold, italic, code blocks, lists, and more. Keyboard shortcuts: {modifierKey.text}+B (bold), {modifierKey.text}+I (italic), {modifierKey.text}+U (underline), {modifierKey.text}+` (code).
           </Typography>
         </CardContent>
       </Card>
-
       <Card elevation={2}>
         <CardContent>
           <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1 }}>
@@ -285,7 +294,7 @@ export const StackOverflowPostQuestionModal = () => {
       </Card>
     </Box>
   );
-
+  
   const renderTagsTips = () => (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -315,7 +324,6 @@ export const StackOverflowPostQuestionModal = () => {
           </Typography>
         </CardContent>
       </Card>
-
       <Card elevation={2}>
         <CardContent>
           <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1 }}>
@@ -339,7 +347,7 @@ export const StackOverflowPostQuestionModal = () => {
       </Card>
     </Box>
   );
-
+  
   const renderMentionTips = () => (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -369,7 +377,6 @@ export const StackOverflowPostQuestionModal = () => {
           </List>
         </CardContent>
       </Card>
-
       <Card elevation={2}>
         <CardContent>
           <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1 }}>
@@ -392,7 +399,7 @@ export const StackOverflowPostQuestionModal = () => {
       </Card>
     </Box>
   );
-
+  
   const renderDefaultTips = () => (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -428,7 +435,7 @@ export const StackOverflowPostQuestionModal = () => {
       </Card>
     </Box>
   );
-
+  
   const renderRightPanel = () => {
     switch (focusedField) {
       case 'title':
@@ -443,7 +450,7 @@ export const StackOverflowPostQuestionModal = () => {
         return renderDefaultTips();
     }
   };
-
+  
   const renderQuestionForm = () => (
     <Box sx={{ height: '100%' }}>
       <Box sx={{ mb: 3 }}>
@@ -468,7 +475,6 @@ export const StackOverflowPostQuestionModal = () => {
           placeholder="e.g., How to handle authentication in React components?"
         />
       </Box>
-
       <Box sx={{ mb: 3 }}>
         <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
           What are the details of your problem?
@@ -482,6 +488,7 @@ export const StackOverflowPostQuestionModal = () => {
           onFocus={handleBodyFocus}
           placeholder="Describe your problem in detail. Include any error messages, code snippets, and what you've tried so far..."
           error={bodyStarted && !!bodyValidation}
+          modifierKey={modifierKey}
         />
         {bodyStarted && bodyValidation && (
           <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
@@ -489,7 +496,6 @@ export const StackOverflowPostQuestionModal = () => {
           </Typography>
         )}
       </Box>
-
       <Box sx={{ mb: 3 }}>
         <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
           Tags
@@ -528,7 +534,6 @@ export const StackOverflowPostQuestionModal = () => {
           </Box>
         )}
       </Box>
-
       <Box sx={{ mb: 3 }}>
         <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
           Ask Team Members (Optional)
@@ -566,7 +571,6 @@ export const StackOverflowPostQuestionModal = () => {
           </Box>
         )}
       </Box>
-
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
@@ -590,7 +594,7 @@ export const StackOverflowPostQuestionModal = () => {
       </Box>
     </Box>
   );
-
+  
   const renderContent = () => {
     if (!isAuthenticated) {
       return (
@@ -608,7 +612,6 @@ export const StackOverflowPostQuestionModal = () => {
         </Box>
       );
     }
-
     if (success) {
       return (
         <Box sx={{ textAlign: 'center', py: 4 }}>
@@ -619,7 +622,6 @@ export const StackOverflowPostQuestionModal = () => {
         </Box>
       );
     }
-
     return (
       <Grid container spacing={3} sx={{ height: '100%' }}>
         <Grid item xs={12} md={8}>
@@ -631,7 +633,7 @@ export const StackOverflowPostQuestionModal = () => {
       </Grid>
     );
   };
-
+  
   return (
     <Modal open={open} onClose={() => setOpen(false)}>
       <Box

@@ -5,7 +5,6 @@ import { Placeholder } from '@tiptap/extensions';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Toolbar from '@mui/material/Toolbar';
-import IconButton from '@mui/material/IconButton';
 import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
 import { useTheme } from '@mui/material/styles';
@@ -18,9 +17,10 @@ import {
   FormatQuote,
   Code,
   FormatClear,
-  Undo,
-  Redo
+  // Undo,
+  // Redo
 } from '@mui/icons-material';
+import Button  from '@mui/material/Button';
 
 interface TiptapEditorProps {
   content?: string;
@@ -29,6 +29,10 @@ interface TiptapEditorProps {
   editable?: boolean;
   error?: boolean;
   onFocus?: () => void;
+  modifierKey?: {
+    symbol: string,
+    text: string
+  }
 }
 
 export const TiptapEditor: React.FC<TiptapEditorProps> = ({
@@ -38,6 +42,7 @@ export const TiptapEditor: React.FC<TiptapEditorProps> = ({
   editable = true,
   error = false,
   onFocus,
+  modifierKey = { symbol: 'Ctrl', text: 'Ctrl' }
 }) => {
   const theme = useTheme();
   
@@ -49,6 +54,7 @@ export const TiptapEditor: React.FC<TiptapEditorProps> = ({
         emptyEditorClass: 'is-editor-empty',
       }),
     ],
+    shouldRerenderOnTransaction: true,
     content,
     editable,
     onUpdate: ({ editor: tiptapEditor }) => {
@@ -80,32 +86,15 @@ export const TiptapEditor: React.FC<TiptapEditorProps> = ({
     children: React.ReactNode;
     title: string;
   }) => (
-    <IconButton
+    <Button
       onClick={onClick}
       disabled={disabled}
+      variant={isActive ? 'contained' : 'text'}
       title={title}
-      size="medium"
-      sx={{
-        color: isActive ? theme.palette.primary.main : theme.palette.text.secondary,
-        backgroundColor: isActive ? 'rgba(25, 118, 210, 0.15)' : 'transparent', // Changed from 12 to 20
-        borderRadius: 1,
-        minWidth: 36,
-        minHeight: 36,
-        '&:hover': {
-          backgroundColor: isActive 
-            ? `${theme.palette.primary.main}30`  // Darker on hover when active
-            : theme.palette.action.hover,
-        },
-        '&:disabled': {
-          opacity: 0.5,
-          color: theme.palette.text.disabled,
-        },
-        transition: 'all 0.2s ease-in-out',
-        mx: 0.25,
-      }}
+      size="small"
     >
       {children}
-    </IconButton>
+    </Button>
   );
 
   return (
@@ -123,12 +112,10 @@ export const TiptapEditor: React.FC<TiptapEditorProps> = ({
       }}
     >
       <Toolbar 
-        variant="dense" 
         sx={{ 
           backgroundColor: theme.palette.background.default,
           borderBottom: `1px solid ${theme.palette.divider}`,
           minHeight: 48,
-          gap: 0.5,
           flexWrap: 'wrap',
           py: 0.5,
           px: 1,
@@ -139,7 +126,7 @@ export const TiptapEditor: React.FC<TiptapEditorProps> = ({
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBold().run()}
           isActive={editor.isActive('bold')}
-          title="Bold (Ctrl+B)"
+          title={`Bold (${modifierKey.text}+B)`}
         >
           <FormatBold fontSize="medium" />
         </ToolbarButton>
@@ -147,7 +134,7 @@ export const TiptapEditor: React.FC<TiptapEditorProps> = ({
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleItalic().run()}
           isActive={editor.isActive('italic')}
-          title="Italic (Ctrl+I)"
+          title={`Italic (${modifierKey.text}+I)`}
         >
           <FormatItalic fontSize="medium" />
         </ToolbarButton>
@@ -155,7 +142,7 @@ export const TiptapEditor: React.FC<TiptapEditorProps> = ({
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleUnderline().run()}
           isActive={editor.isActive('underline')}
-          title="Underline (Ctrl+U)"
+          title={`Underline (${modifierKey.text}+U)`}
         >
           <FormatUnderlined fontSize="medium" />
         </ToolbarButton>
@@ -163,7 +150,7 @@ export const TiptapEditor: React.FC<TiptapEditorProps> = ({
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleCode().run()}
           isActive={editor.isActive('code')}
-          title="Inline Code (Ctrl+`)"
+          title={`Inline Code (${modifierKey.text}+E)`}
         >
           <Code fontSize="medium" />
         </ToolbarButton>
@@ -174,9 +161,9 @@ export const TiptapEditor: React.FC<TiptapEditorProps> = ({
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
           isActive={editor.isActive('heading', { level: 1 })}
-          title="Heading 1"
+          title={`Heading 1 (${modifierKey.text}+Alt+1)`}
         >
-          <Typography variant="caption" component="span" fontWeight="bold" fontSize="11px">
+          <Typography component="span" fontWeight="bold" fontSize="11px">
             H1
           </Typography>
         </ToolbarButton>
@@ -184,9 +171,9 @@ export const TiptapEditor: React.FC<TiptapEditorProps> = ({
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
           isActive={editor.isActive('heading', { level: 2 })}
-          title="Heading 2"
+          title={`Heading 2 (${modifierKey.text}+Alt+2)`}
         >
-          <Typography variant="caption" component="span" fontWeight="bold" fontSize="11px">
+          <Typography component="span" fontWeight="bold" fontSize="11px">
             H2
           </Typography>
         </ToolbarButton>
@@ -194,9 +181,9 @@ export const TiptapEditor: React.FC<TiptapEditorProps> = ({
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
           isActive={editor.isActive('heading', { level: 3 })}
-          title="Heading 3"
+          title={`Heading 3 (${modifierKey.text}+Alt+3)`}
         >
-          <Typography variant="caption" component="span" fontWeight="bold" fontSize="11px">
+          <Typography component="span" fontWeight="bold" fontSize="11px">
             H3
           </Typography>
         </ToolbarButton>
@@ -241,20 +228,20 @@ export const TiptapEditor: React.FC<TiptapEditorProps> = ({
         <Divider orientation="vertical" flexItem sx={{ mx: 0.5, height: 24, alignSelf: 'center' }} />
 
         {/* Utility Group */}
-        <ToolbarButton
-          onClick={() => editor.chain().focus().clearNodes().unsetAllMarks().run()}
-          title="Clear Format"
-        >
-          <FormatClear fontSize="medium" />
-        </ToolbarButton>
+          <ToolbarButton
+            onClick={() => editor.chain().focus().clearNodes().unsetAllMarks().run()}
+            title="Clear Format"
+          >
+            <FormatClear fontSize="medium" />
+          </ToolbarButton>
 
-        <Box sx={{ flexGrow: 1 }} />
+          <Box sx={{ flexGrow: 1 }} />
 
         {/* History Group */}
-        <ToolbarButton
+        {/* <ToolbarButton
           onClick={() => editor.chain().focus().undo().run()}
           disabled={!editor.can().undo()}
-          title="Undo (Ctrl+Z)"
+          title={`Undo (${modifierKey.text}+Z)`}
         >
           <Undo fontSize="medium" />
         </ToolbarButton>
@@ -262,10 +249,10 @@ export const TiptapEditor: React.FC<TiptapEditorProps> = ({
         <ToolbarButton
           onClick={() => editor.chain().focus().redo().run()}
           disabled={!editor.can().redo()}
-          title="Redo (Ctrl+Y)"
+          title={`Redo (${modifierKey.text}+Y)`}
         >
           <Redo fontSize="medium" />
-        </ToolbarButton>
+        </ToolbarButton> */}
       </Toolbar>
       
       <Box 
