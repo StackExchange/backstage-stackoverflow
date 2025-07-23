@@ -7,6 +7,7 @@ export const createStackOverflowApi = (baseUrl: string) => {
     body?: any,
     searchQuery?: string,
     pageSize?: number,
+    page?: number,
     additionalParams?: Record<string, string>
   ): Promise<T> => {
     let url = teamName
@@ -21,6 +22,10 @@ export const createStackOverflowApi = (baseUrl: string) => {
 
     if (pageSize) {
       queryParams.append('pageSize', pageSize.toString());
+    }
+
+    if (page) {
+      queryParams.append('page', page.toString());
     }
 
     if (additionalParams) {
@@ -57,12 +62,12 @@ export const createStackOverflowApi = (baseUrl: string) => {
 
   return {
     GET: <T>(endpoint: string, authToken: string, teamName?: string, additionalParams?: Record<string, string>) =>
-      request<T>(endpoint, 'GET', authToken, teamName, undefined, undefined, undefined, additionalParams),
+      request<T>(endpoint, 'GET', authToken, teamName, undefined, undefined, undefined, undefined, additionalParams),
 
     POST: <T>(endpoint: string, body: any, authToken: string, teamName?: string) =>
       request<T>(endpoint, 'POST', authToken, teamName, body),
 
-    SEARCH: <T>(endpoint: string, searchQuery: string, authToken: string, teamName?: string) =>
-      request<T>(endpoint, 'GET', authToken, teamName, undefined, searchQuery, 30),
+    SEARCH: <T>(endpoint: string, searchQuery: string, authToken: string, teamName?: string, page?: number) =>
+      request<T>(endpoint, 'GET', authToken, teamName, undefined, searchQuery, 30, page),
   };
 };

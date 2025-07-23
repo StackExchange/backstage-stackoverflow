@@ -12,7 +12,7 @@ import {
   Box,
 } from '@material-ui/core';
 import { Link, Progress, ResponseErrorPanel } from '@backstage/core-components';
-import { useStackOverflowData } from './hooks';
+import { useStackOverflowData, useStackOverflowSearch } from './hooks';
 import { StackOverflowSearchResultListItem } from './StackOverflowSearchResultListItem';
 import SearchIcon from '@material-ui/icons/Search';
 import { StackOverflowIcon } from '../../icons';
@@ -96,44 +96,120 @@ const filterAndSortQuestions = (questions: any[], activeFilter: string | null) =
   return filtered;
 };
 
+// Custom debounce hook
+const useDebounce = (value: string, delay: number) => {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+};
+
 export const StackOverflowQuestions = () => {
   const classes = useStyles();
   const stackOverflowTeamsApi = useApi(stackoverflowteamsApiRef);
   const [baseUrl, setBaseUrl] = useState<string>('');
-  const { data, loading, error } = useStackOverflowData('questions');
+  
+  // Questions API data
+  const { data: questionsData, loading: questionsLoading, error: questionsError } = useStackOverflowData('questions');
+  
+  // Search hook
+  const { 
+    searchData, 
+    loading: searchLoading, 
+    error: searchError, 
+    search, 
+    clearSearch, 
+    hasResults,
+    totalPages: searchTotalPages,
+    currentPage: searchCurrentPage,
+    totalCount: searchTotalCount
+  } = useStackOverflowSearch();
+  
+  // State
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState<string | null>('active');
-  const [currentPage, setCurrentPage] = useState(0);
+  const [questionsCurrentPage, setQuestionsCurrentPage] = useState(1); // Frontend pagination for questions
 
-  useEffect(() => {
-    setCurrentPage(0);
-  }, [searchTerm, activeFilter]);
+  // Debounce search term
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
+  // Determine if we're in search mode
+  const isSearchMode = !!searchTerm.trim() && hasResults;
 
   useEffect(() => {
     stackOverflowTeamsApi.getBaseUrl().then(url => setBaseUrl(url));
   }, [stackOverflowTeamsApi]);
 
+  // Reset questions pagination when filter changes
+  useEffect(() => {
+    setQuestionsCurrentPage(0);
+  }, [activeFilter]);
+
+  // Handle search when debounced term changes
+  useEffect(() => {
+    if (debouncedSearchTerm.trim()) {
+      search(debouncedSearchTerm, 1); // Start from page 1
+    } else {
+      clearSearch();
+    }
+  }, [debouncedSearchTerm, search, clearSearch]);
+
+  // Handle Enter key press for immediate search
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && searchTerm.trim()) {
+      search(searchTerm, 1);
+    }
+  };
+
+  // Handle search pagination
+  const handleSearchPageChange = (newPage: number) => {
+    if (searchTerm.trim()) {
+      search(searchTerm, newPage);
+    }
+  };
+
   const toggleFilter = (filterId: string) => {
     setActiveFilter(prev => prev === filterId ? null : filterId);
   };
 
-  const filteredQuestions = filterAndSortQuestions(
-    (data?.questions || []).filter(question =>
-      `${question.title} ${question.tags?.join(' ')}`
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()),
-    ),
-    activeFilter,
-  );
+  // Determine which data to use
+  const currentData = isSearchMode ? (searchData?.items || []) : (questionsData?.questions || []);
+  const currentLoading = isSearchMode ? searchLoading : questionsLoading;
+  const currentError = isSearchMode ? searchError : questionsError;
 
-  const totalPages = Math.ceil(filteredQuestions.length / 5);
-  const paginatedQuestions = filteredQuestions.slice(
-    currentPage * 5,
-    (currentPage + 1) * 5,
-  );
+  // Process data based on mode
+  let processedData = currentData;
+  let totalPages = 1;
+  let paginatedData = currentData;
+  let currentPageDisplay = 1;
 
-  if (loading) return <Progress />;
-  if (error) return <ResponseErrorPanel error={error} />;
+  if (isSearchMode) {
+    // Search mode: use backend pagination
+    paginatedData = currentData;
+    totalPages = searchTotalPages;
+    currentPageDisplay = searchCurrentPage;
+  } else {
+    // Questions mode: use frontend pagination with filters
+    processedData = filterAndSortQuestions(currentData, activeFilter);
+    totalPages = Math.ceil(processedData.length / 5);
+    paginatedData = processedData.slice(
+      questionsCurrentPage * 5,
+      (questionsCurrentPage + 1) * 5,
+    );
+    currentPageDisplay = questionsCurrentPage + 1;
+  }
+
+  if (questionsLoading && !isSearchMode) return <Progress />;
+  if (questionsError && !isSearchMode) return <ResponseErrorPanel error={questionsError} />;
 
   return (
     <div>
@@ -144,6 +220,7 @@ export const StackOverflowQuestions = () => {
           placeholder="Search questions..."
           value={searchTerm}
           onChange={e => setSearchTerm(e.target.value)}
+          onKeyDown={handleKeyPress}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -157,56 +234,88 @@ export const StackOverflowQuestions = () => {
 
       <div className={classes.pagination}>
         <Button
-          disabled={currentPage === 0}
-          onClick={() => setCurrentPage(prev => prev - 1)}
+          disabled={isSearchMode ? searchCurrentPage <= 1 : questionsCurrentPage === 0}
+          onClick={() => {
+            if (isSearchMode) {
+              handleSearchPageChange(searchCurrentPage - 1);
+            } else {
+              setQuestionsCurrentPage(prev => prev - 1);
+            }
+          }}
         >
           Previous
         </Button>
         <Typography variant="body1">
-          Page {currentPage + 1} of {totalPages || 1}
+          Page {currentPageDisplay} of {totalPages || 1}
         </Typography>
         <Button
-          disabled={currentPage >= totalPages - 1}
-          onClick={() => setCurrentPage(prev => prev + 1)}
+          disabled={isSearchMode ? searchCurrentPage >= searchTotalPages : questionsCurrentPage >= totalPages - 1}
+          onClick={() => {
+            if (isSearchMode) {
+              handleSearchPageChange(searchCurrentPage + 1);
+            } else {
+              setQuestionsCurrentPage(prev => prev + 1);
+            }
+          }}
         >
           Next
         </Button>
       </div>
 
-      <Paper className={classes.filters}>
-        <ButtonGroup className={classes.buttonGroup}>
-          {FILTERS.map(({ id, label }) => (
-            <Button
-              key={id}
-              variant={activeFilter === id ? 'contained' : 'outlined'}
-              color="primary"
-              onClick={() => toggleFilter(id)}
-            >
-              {label}
-            </Button>
-          ))}
-        </ButtonGroup>
-      </Paper>
+      {/* Only show filters when not in search mode */}
+      {!isSearchMode && (
+        <Paper className={classes.filters}>
+          <ButtonGroup className={classes.buttonGroup}>
+            {FILTERS.map(({ id, label }) => (
+              <Button
+                key={id}
+                variant={activeFilter === id ? 'contained' : 'outlined'}
+                color="primary"
+                onClick={() => toggleFilter(id)}
+              >
+                {label}
+              </Button>
+            ))}
+          </ButtonGroup>
+        </Paper>
+      )}
 
       <Typography className={classes.resultCount}>
-        {`Showing ${filteredQuestions.length} results`}
+        {isSearchMode 
+          ? `Search results: ${searchTotalCount} total found` 
+          : `Showing ${processedData.length} results`}
       </Typography>
 
-      {filteredQuestions.length === 0 && searchTerm !== '' ? (
+      {/* Loading state */}
+      {currentLoading && <Progress />}
+
+      {/* Error state */}
+      {currentError && <ResponseErrorPanel error={currentError} />}
+
+      {/* No results */}
+      {!currentLoading && !currentError && paginatedData.length === 0 && (
         <Box textAlign="center" py={4}>
           <Typography variant="body1" gutterBottom>
-            No questions found matching "{searchTerm}"
+            {searchTerm.trim()
+              ? `No questions found matching "${searchTerm}"`
+              : "No questions found"
+            }
           </Typography>
-          <Link
-            to={`${baseUrl}/search?q=${encodeURIComponent(searchTerm)}`}
-          >
-            However, you might find more questions on your Stack Overflow Team.
-          </Link>
+          {searchTerm.trim() && (
+            <Link
+              to={`${baseUrl}/search?q=${encodeURIComponent(searchTerm)}`}
+            >
+              However, you might find more questions on your Stack Overflow Team.
+            </Link>
+          )}
         </Box>
-      ) : (
+      )}
+
+      {/* Results */}
+      {!currentLoading && !currentError && paginatedData.length > 0 && (
         <>
           <Grid container spacing={2}>
-            {paginatedQuestions.map(question => (
+            {paginatedData.map(question => (
               <Grid item xs={12} key={question.id}>
                 <StackOverflowSearchResultListItem
                   result={{
@@ -231,7 +340,10 @@ export const StackOverflowQuestions = () => {
             ))}
           </Grid>
           <Box mt={2}>
-            <Link to={searchTerm ? `${baseUrl}/search?q=${encodeURIComponent(searchTerm)}` : `${baseUrl}/questions`}>
+            <Link to={searchTerm.trim()
+              ? `${baseUrl}/search?q=${encodeURIComponent(searchTerm)}` 
+              : `${baseUrl}/questions`}
+            >
               <Typography variant='body1'>
                 Explore more questions on your Stack Overflow Team
               </Typography>

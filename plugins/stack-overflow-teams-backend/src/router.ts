@@ -315,7 +315,7 @@ export async function createRouter({
   router.post('/search', async (req: Request, res: Response) => {
     try {
       const authToken = getValidAuthToken(req, res);
-      const { query } = req.body;
+      const { query, page } = req.body;
 
       if (!authToken) {
         return res
@@ -325,6 +325,7 @@ export async function createRouter({
       const searchResults = await stackOverflowService.getSearch(
         query,
         authToken,
+        page
       );
       return res.status(201).json(searchResults);
     } catch (error: any) {

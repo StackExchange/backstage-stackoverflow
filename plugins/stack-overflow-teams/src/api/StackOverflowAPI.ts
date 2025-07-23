@@ -17,7 +17,7 @@ interface BaseUrlResponse {
 }
 
 export interface StackOverflowAPI {
-  search(query: string): Promise<any>;
+  search(query: string, page?: number): Promise<any>;
   getQuestions(): Promise<ApiResponse<Question>>;
   getTags(search?: string): Promise<ApiResponse<Tag>>;
   getUsers(): Promise<ApiResponse<User>>;
@@ -64,7 +64,13 @@ export const createStackOverflowApi = (
   };
 
   return {
-    search: (query: string) => requestAPI<any>('search', 'POST', { query }),
+    search: (query: string, page?: number) => {
+      const body: { query: string; page?: number } = { query };
+      if (page !== undefined) {
+        body.page = page;
+      }
+      return requestAPI<any>('search', 'POST', body);
+    },
     getQuestions: () => requestAPI<ApiResponse<Question>>('questions'),
     getTags: (search?: string) => {
       const params = search ? [`search=${encodeURIComponent(search)}`] : undefined;

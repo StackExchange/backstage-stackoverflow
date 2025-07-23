@@ -36,7 +36,7 @@ export type Question = {
     totalCount: number
     pageSize: number
     page: number
-    totalPage: number
+    totalPages: number
     sort: string
     order: string
     items: T[];

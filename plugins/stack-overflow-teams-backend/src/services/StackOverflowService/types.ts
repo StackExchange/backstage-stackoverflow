@@ -74,5 +74,6 @@ export interface StackOverflowAPI {
   getSearch(
     query: string,
     authToken: string,
+    page?: number,
   ): Promise<PaginatedResponse<SearchItem>>;
 }

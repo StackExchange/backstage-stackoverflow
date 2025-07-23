@@ -60,12 +60,13 @@ export async function createStackOverflowService({
         teamName,
       ),
     // SEARCH
-    getSearch: (query: string, authToken: string) =>
+    getSearch: (query: string, authToken: string, page?: number) =>
       api.SEARCH<PaginatedResponse<SearchItem>>(
         '/search',
         query,
         authToken,
         teamName,
+        page,
       ),
   };
 }
