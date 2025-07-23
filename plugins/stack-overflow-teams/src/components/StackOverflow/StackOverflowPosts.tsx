@@ -190,7 +190,6 @@ const useEnhancedSearch = () => {
       return;
     }
     
-    // If we have cached data for this server page, don't refetch
     if (searchCache[cacheKey]) {
       return;
     }
@@ -272,7 +271,6 @@ export const StackOverflowQuestions = () => {
   const stackOverflowTeamsApi = useApi(stackoverflowteamsApiRef);
   const [baseUrl, setBaseUrl] = useState<string>('');
   
-  // Questions data using enhanced hook
   const { 
     data: questionsData, 
     loading: questionsLoading, 
@@ -283,7 +281,6 @@ export const StackOverflowQuestions = () => {
     fetchUnansweredQuestions
   } = useStackOverflowData('questions');
   
-  // Enhanced search hook
   const { 
     enhancedSearch,
     getSearchDisplayData,
@@ -291,7 +288,6 @@ export const StackOverflowQuestions = () => {
     clearSearchCache,
   } = useEnhancedSearch();
   
-  // State management
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState<string>('active');
   const [currentPage, setCurrentPage] = useState(1);
@@ -310,10 +306,8 @@ export const StackOverflowQuestions = () => {
     clearSearchCacheRef.current = clearSearchCache;
   });
 
-  // Debounce search term
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
-  // Determine if we're in search mode
   const isSearchMode = !!searchTerm.trim();
 
   useEffect(() => {
@@ -523,10 +517,9 @@ export const StackOverflowQuestions = () => {
         />
       </Box>
 
-      {/* Top pagination controls - always visible */}
       <PaginationControls />
 
-      {/* Only show filters when not in search mode - always visible */}
+      {/* Only show filters when not in search mode */}
       {!isSearchMode && (
         <Paper className={classes.filters}>
           <ButtonGroup className={classes.buttonGroup}>
@@ -550,10 +543,8 @@ export const StackOverflowQuestions = () => {
           : `Showing ${displayInfo.currentPageData.length} of ${displayInfo.totalCount} results`}
       </Typography>
 
-      {/* Show loading skeleton for initial loads and when switching pages */}
       {displayInfo.loading && <LoadingSkeleton />}
 
-      {/* Show content only when not loading */}
       {!displayInfo.loading && (
         <>
           {/* No results */}
@@ -618,8 +609,7 @@ export const StackOverflowQuestions = () => {
           )}
         </>
       )}
-
-      {/* Bottom pagination controls - always visible */}
+      
       <PaginationControls />
     </div>
   );
