@@ -37,7 +37,7 @@ export const StackOverflowHub = () => (
                 <Box display="flex" alignItems="center">
                   <QuestionAnswer style={{ marginRight: 8 }} />
                   <Typography variant="h5" gutterBottom>
-                    Questions and Articles
+                    Questions
                   </Typography>
                 </Box>
                 <Tooltip title="Browse and search through your team's questions and articles.">
