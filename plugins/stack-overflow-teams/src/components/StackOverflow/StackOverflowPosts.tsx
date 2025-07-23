@@ -11,7 +11,8 @@ import {
   InputAdornment,
   Box,
 } from '@material-ui/core';
-import { Link, Progress, ResponseErrorPanel } from '@backstage/core-components';
+import Skeleton from '@mui/material/Skeleton';
+import { Link, ResponseErrorPanel } from '@backstage/core-components';
 import { useStackOverflowSearch } from './hooks';
 import { useStackOverflowData } from './hooks';
 import { StackOverflowSearchResultListItem } from './StackOverflowSearchResultListItem';
@@ -45,6 +46,30 @@ const useStyles = makeStyles((theme: Theme) => ({
     marginTop: theme.spacing(2),
     marginBottom: theme.spacing(2),
   },
+  loadingContainer: {
+    minHeight: '600px', // Fixed height for consistency
+  },
+  loadingSkeletonItem: {
+    padding: theme.spacing(2),
+    marginBottom: theme.spacing(2),
+    borderRadius: theme.shape.borderRadius,
+  },
+  skeletonContent: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: theme.spacing(1),
+  },
+  skeletonHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: theme.spacing(1),
+    marginBottom: theme.spacing(1),
+  },
+  skeletonTags: {
+    display: 'flex',
+    gap: theme.spacing(1),
+    marginTop: theme.spacing(1),
+  },
 }));
 
 type FilterType = {
@@ -61,7 +86,7 @@ const FILTERS: FilterType[] = [
 
 const CLIENT_ITEMS_PER_PAGE = 5;
 const SERVER_ITEMS_PER_PAGE = 30;
-const SEARCH_ITEMS_PER_PAGE = 30; // Adjust this based on your search API
+const SEARCH_ITEMS_PER_PAGE = 30;
 
 // Custom debounce hook
 const useDebounce = (value: string, delay: number) => {
@@ -78,6 +103,53 @@ const useDebounce = (value: string, delay: number) => {
   }, [value, delay]);
 
   return debouncedValue;
+};
+
+// Loading skeleton component for consistent UI height
+  
+const LoadingSkeleton = () => {
+  const classes = useStyles();
+  
+  // Generate stable, unique keys for skeleton items
+  const skeletonKeys = useMemo(() => 
+    Array.from({ length: CLIENT_ITEMS_PER_PAGE }, (_, index) => 
+      `skeleton-${index}-${Math.random().toString(36).substr(2, 9)}`
+    ), []
+  );
+  
+  return (
+    <div className={classes.loadingContainer}>
+      {skeletonKeys.map(key => (
+        <Paper key={key} className={classes.loadingSkeletonItem} elevation={1}>
+          <div className={classes.skeletonContent}>
+            <div className={classes.skeletonHeader}>
+              <Skeleton variant="circular" width={32} height={32} />
+              <div style={{ flex: 1 }}>
+                <Skeleton variant="text" width="60%" height={20} />
+                <Skeleton variant="text" width="40%" height={16} />
+              </div>
+              <Skeleton variant="rectangular" width={60} height={24} />
+            </div>
+            
+            <Skeleton variant="text" width="90%" height={24} />
+            <Skeleton variant="text" width="75%" height={20} />
+            <Skeleton variant="text" width="60%" height={20} />
+            
+            <div className={classes.skeletonTags}>
+              <Skeleton variant="rectangular" width={60} height={20} />
+              <Skeleton variant="rectangular" width={80} height={20} />
+              <Skeleton variant="rectangular" width={45} height={20} />
+            </div>
+            
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
+              <Skeleton variant="text" width={120} height={16} />
+              <Skeleton variant="text" width={80} height={16} />
+            </div>
+          </div>
+        </Paper>
+      ))}
+    </div>
+  );
 };
 
 // Universal pagination utility functions
@@ -127,7 +199,6 @@ const useEnhancedSearch = () => {
     lastSearchRef.current = currentSearch;
     
     // Perform the search for the required server page
-    // The search hook handles query parameters internally
     searchHook.search(term, serverPage);
   }, [getActualSearchPageSize, searchCache, searchHook]);
 
@@ -218,16 +289,26 @@ export const StackOverflowQuestions = () => {
     getSearchDisplayData,
     clearSearch,
     clearSearchCache,
-    loading: searchLoading,
-    error: searchError
   } = useEnhancedSearch();
   
   // State management
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState<string>('active');
   const [currentPage, setCurrentPage] = useState(1);
-  const [questionsPage, setQuestionsPage] = useState(1); // Separate page state for questions
+  const [questionsPage, setQuestionsPage] = useState(1);
   const prevSearchModeRef = useRef(false);
+
+  // Store stable references to search functions
+  const enhancedSearchRef = useRef(enhancedSearch);
+  const clearSearchRef = useRef(clearSearch);
+  const clearSearchCacheRef = useRef(clearSearchCache);
+
+  // Update refs when functions change
+  useEffect(() => {
+    enhancedSearchRef.current = enhancedSearch;
+    clearSearchRef.current = clearSearch;
+    clearSearchCacheRef.current = clearSearchCache;
+  });
 
   // Debounce search term
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
@@ -244,33 +325,28 @@ export const StackOverflowQuestions = () => {
     return calculateServerPage(questionsPage, SERVER_ITEMS_PER_PAGE);
   }, [questionsPage]);
 
-  // Fetch questions based on filter
-  const fetchQuestionsForFilter = useCallback((filterId: string, page: number) => {
-    switch (filterId) {
-      case 'active':
-        fetchActiveQuestions(page);
-        break;
-      case 'newest':
-        fetchNewestQuestions(page);
-        break;
-      case 'score':
-        fetchTopScoredQuestions(page);
-        break;
-      case 'unanswered':
-        fetchUnansweredQuestions(page);
-        break;
-      default:
-        fetchActiveQuestions(page);
-        break;
-    }
-  }, [fetchActiveQuestions, fetchNewestQuestions, fetchTopScoredQuestions, fetchUnansweredQuestions]);
-
   // Load questions when filter or required server page changes (only in non-search mode)
   useEffect(() => {
     if (!isSearchMode) {
-      fetchQuestionsForFilter(activeFilter, requiredServerPage);
+      switch (activeFilter) {
+        case 'active':
+          fetchActiveQuestions(requiredServerPage);
+          break;
+        case 'newest':
+          fetchNewestQuestions(requiredServerPage);
+          break;
+        case 'score':
+          fetchTopScoredQuestions(requiredServerPage);
+          break;
+        case 'unanswered':
+          fetchUnansweredQuestions(requiredServerPage);
+          break;
+        default:
+          fetchActiveQuestions(requiredServerPage);
+          break;
+      }
     }
-  }, [activeFilter, requiredServerPage, fetchQuestionsForFilter, isSearchMode]);
+  }, [activeFilter, requiredServerPage, isSearchMode, fetchActiveQuestions, fetchNewestQuestions, fetchTopScoredQuestions, fetchUnansweredQuestions]);
 
   // Handle search mode transitions
   useEffect(() => {
@@ -301,18 +377,18 @@ export const StackOverflowQuestions = () => {
     if (debouncedSearchTerm.trim()) {
       // Only search if we're in search mode and current page is set
       if (isSearchMode) {
-        enhancedSearch(debouncedSearchTerm, currentPage);
+        enhancedSearchRef.current(debouncedSearchTerm, currentPage);
       }
     } else {
-      clearSearch();
-      clearSearchCache();
+      clearSearchRef.current();
+      clearSearchCacheRef.current();
     }
-  }, [debouncedSearchTerm, currentPage, enhancedSearch, clearSearch, clearSearchCache, isSearchMode]);
+  }, [debouncedSearchTerm, currentPage, isSearchMode]);
 
   // Handle Enter key press for immediate search
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && searchTerm.trim()) {
-      enhancedSearch(searchTerm, currentPage);
+      enhancedSearchRef.current(searchTerm, currentPage);
     }
   };
 
@@ -378,7 +454,7 @@ export const StackOverflowQuestions = () => {
     if (isSearchMode) {
       setCurrentPage(newPage);
       if (searchTerm.trim()) {
-        enhancedSearch(searchTerm, newPage);
+        enhancedSearchRef.current(searchTerm, newPage);
       }
     } else {
       setQuestionsPage(newPage);
@@ -393,8 +469,37 @@ export const StackOverflowQuestions = () => {
   // Get the correct page number to display
   const displayPageNumber = isSearchMode ? currentPage : questionsPage;
 
-  // Show loading only for initial loads
-  if (displayInfo.loading && displayPageNumber === 1) return <Progress />;
+  // Pagination component to reuse
+  const PaginationControls = () => {
+    // Only show pagination if we have data or are in a valid state
+    if (displayInfo.totalPages <= 1 && displayInfo.totalCount === 0 && !displayInfo.loading) {
+      return null;
+    }
+
+    return (
+      <div className={classes.pagination}>
+        <Button
+          disabled={displayPageNumber <= 1}
+          onClick={() => handlePageChange(displayPageNumber - 1)}
+          variant="outlined"
+        >
+          Previous
+        </Button>
+        <Typography variant="body1" style={{ margin: '0 16px' }}>
+          Page {displayPageNumber} of {displayInfo.totalPages || 1}
+        </Typography>
+        <Button
+          disabled={displayPageNumber >= (displayInfo.totalPages || 1)}
+          onClick={() => handlePageChange(displayPageNumber + 1)}
+          variant="outlined"
+        >
+          Next
+        </Button>
+      </div>
+    );
+  };
+
+  // Show error state
   if (displayInfo.error) return <ResponseErrorPanel error={displayInfo.error} />;
 
   return (
@@ -418,25 +523,10 @@ export const StackOverflowQuestions = () => {
         />
       </Box>
 
-      <div className={classes.pagination}>
-        <Button
-          disabled={displayPageNumber <= 1}
-          onClick={() => handlePageChange(displayPageNumber - 1)}
-        >
-          Previous
-        </Button>
-        <Typography variant="body1">
-          Page {displayPageNumber} of {displayInfo.totalPages || 1}
-        </Typography>
-        <Button
-          disabled={displayPageNumber >= displayInfo.totalPages}
-          onClick={() => handlePageChange(displayPageNumber + 1)}
-        >
-          Next
-        </Button>
-      </div>
+      {/* Top pagination controls - always visible */}
+      <PaginationControls />
 
-      {/* Only show filters when not in search mode */}
+      {/* Only show filters when not in search mode - always visible */}
       {!isSearchMode && (
         <Paper className={classes.filters}>
           <ButtonGroup className={classes.buttonGroup}>
@@ -460,69 +550,77 @@ export const StackOverflowQuestions = () => {
           : `Showing ${displayInfo.currentPageData.length} of ${displayInfo.totalCount} results`}
       </Typography>
 
-      {/* Loading state for pagination */}
-      {displayInfo.loading && displayPageNumber > 1 && <Progress />}
+      {/* Show loading skeleton for initial loads and when switching pages */}
+      {displayInfo.loading && <LoadingSkeleton />}
 
-      {/* No results */}
-      {!displayInfo.loading && displayInfo.currentPageData.length === 0 && (
-        <Box textAlign="center" py={4}>
-          <Typography variant="body1" gutterBottom>
-            {searchTerm.trim()
-              ? `No questions found matching "${searchTerm}"`
-              : "No questions found"
-            }
-          </Typography>
-          {searchTerm.trim() && (
-            <Link
-              to={`${baseUrl}/search?q=${encodeURIComponent(searchTerm)}`}
-            >
-              However, you might find more questions on your Stack Overflow Team.
-            </Link>
-          )}
-        </Box>
-      )}
-
-      {/* Results */}
-      {!displayInfo.loading && displayInfo.currentPageData.length > 0 && (
+      {/* Show content only when not loading */}
+      {!displayInfo.loading && (
         <>
-          <Grid container spacing={2}>
-            {displayInfo.currentPageData.map((question: any) => (
-              <Grid item xs={12} key={question.id}>
-                <StackOverflowSearchResultListItem
-                  result={{
-                    location: question.webUrl,
-                    title: question.title,
-                    text: question.owner?.name,
-                    answers: question.answerCount,
-                    tags: question.tags,
-                    created: question.creationDate,
-                    author: question.owner?.name,
-                    score: question.score,
-                    isAnswered: question.isAnswered,
-                    creationDate: question.creationDate,
-                    userRole: question.owner?.role,
-                    userProfile: question.owner?.webUrl,
-                    avatar: question.owner?.avatarUrl,
-                    userReputation: question.owner?.reputation,
-                  }}
-                  icon={<StackOverflowIcon />}
-                />
-              </Grid>
-            ))}
-          </Grid>
-
-          <Box mt={2}>
-            <Link to={searchTerm.trim()
-              ? `${baseUrl}/search?q=${encodeURIComponent(searchTerm)}` 
-              : `${baseUrl}/questions`}
-            >
-              <Typography variant='body1'>
-                Explore more questions on your Stack Overflow Team
+          {/* No results */}
+          {displayInfo.currentPageData.length === 0 && (
+            <Box textAlign="center" py={4}>
+              <Typography variant="body1" gutterBottom>
+                {searchTerm.trim()
+                  ? `No questions found matching "${searchTerm}"`
+                  : "No questions found"
+                }
               </Typography>
-            </Link>
-          </Box>
+              {searchTerm.trim() && (
+                <Link
+                  to={`${baseUrl}/search?q=${encodeURIComponent(searchTerm)}`}
+                >
+                  However, you might find more questions on your Stack Overflow Team.
+                </Link>
+              )}
+            </Box>
+          )}
+
+          {/* Results */}
+          {displayInfo.currentPageData.length > 0 && (
+            <>
+              <Grid container spacing={2}>
+                {displayInfo.currentPageData.map((question: any) => (
+                  <Grid item xs={12} key={question.id}>
+                    <StackOverflowSearchResultListItem
+                      result={{
+                        location: question.webUrl,
+                        title: question.title,
+                        text: question.owner?.name,
+                        answers: question.answerCount,
+                        tags: question.tags,
+                        created: question.creationDate,
+                        author: question.owner?.name,
+                        score: question.score,
+                        isAnswered: question.isAnswered,
+                        creationDate: question.creationDate,
+                        userRole: question.owner?.role,
+                        userProfile: question.owner?.webUrl,
+                        avatar: question.owner?.avatarUrl,
+                        userReputation: question.owner?.reputation,
+                      }}
+                      icon={<StackOverflowIcon />}
+                    />
+                  </Grid>
+                ))}
+              </Grid>
+
+              <Box mt={2}>
+                <Link to={searchTerm.trim()
+                  ? `${baseUrl}/search?q=${encodeURIComponent(searchTerm)}` 
+                  : `${baseUrl}/questions`}
+                >
+                  <Typography variant='body1'>
+                    Explore more questions on your Stack Overflow Team
+                  </Typography>
+                </Link>
+              </Box>
+            </>
+          )}
         </>
       )}
+
+      {/* Bottom pagination controls - always visible */}
+      <PaginationControls />
     </div>
   );
 };
