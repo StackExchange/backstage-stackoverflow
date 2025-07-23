@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import {
   makeStyles,
   Theme,
@@ -61,6 +61,7 @@ const FILTERS: FilterType[] = [
 
 const CLIENT_ITEMS_PER_PAGE = 5;
 const SERVER_ITEMS_PER_PAGE = 30;
+const SEARCH_ITEMS_PER_PAGE = 30; // Adjust this based on your search API
 
 // Custom debounce hook
 const useDebounce = (value: string, delay: number) => {
@@ -79,18 +80,120 @@ const useDebounce = (value: string, delay: number) => {
   return debouncedValue;
 };
 
-// Pagination utility functions
-const calculateServerPage = (clientPage: number): number => {
-  return Math.ceil((clientPage * CLIENT_ITEMS_PER_PAGE) / SERVER_ITEMS_PER_PAGE);
+// Universal pagination utility functions
+const calculateServerPage = (clientPage: number, serverPageSize: number = SERVER_ITEMS_PER_PAGE): number => {
+  return Math.ceil((clientPage * CLIENT_ITEMS_PER_PAGE) / serverPageSize);
 };
 
-const calculateItemsRange = (clientPage: number, serverPage: number) => {
+const calculateItemsRange = (clientPage: number, serverPage: number, serverPageSize: number = SERVER_ITEMS_PER_PAGE) => {
   const globalStartIndex = (clientPage - 1) * CLIENT_ITEMS_PER_PAGE;
-  const serverStartIndex = (serverPage - 1) * SERVER_ITEMS_PER_PAGE;
+  const serverStartIndex = (serverPage - 1) * serverPageSize;
   const localStartIndex = globalStartIndex - serverStartIndex;
   const localEndIndex = localStartIndex + CLIENT_ITEMS_PER_PAGE;
   
   return { localStartIndex, localEndIndex };
+};
+
+// Enhanced search data management
+const useEnhancedSearch = () => {
+  const searchHook = useStackOverflowSearch();
+  const [searchCache, setSearchCache] = useState<{[key: string]: any}>({});
+  const lastSearchRef = useRef<{term: string, page: number} | null>(null);
+
+  // Get the actual page size from the search response, fallback to our constant
+  const getActualSearchPageSize = useCallback(() => {
+    return searchHook.searchData?.pageSize || SEARCH_ITEMS_PER_PAGE;
+  }, [searchHook.searchData?.pageSize]);
+
+  const enhancedSearch = useCallback((term: string, clientPage: number) => {
+    const actualPageSize = getActualSearchPageSize();
+    const serverPage = calculateServerPage(clientPage, actualPageSize);
+    const cacheKey = `${term}-${serverPage}`;
+    
+    // Prevent duplicate requests
+    const currentSearch = { term, page: serverPage };
+    if (lastSearchRef.current && 
+        lastSearchRef.current.term === currentSearch.term && 
+        lastSearchRef.current.page === currentSearch.page) {
+      return;
+    }
+    
+    // If we have cached data for this server page, don't refetch
+    if (searchCache[cacheKey]) {
+      return;
+    }
+    
+    // Store the search reference to prevent duplicates
+    lastSearchRef.current = currentSearch;
+    
+    // Perform the search for the required server page
+    // The search hook handles query parameters internally
+    searchHook.search(term, serverPage);
+  }, [getActualSearchPageSize, searchCache, searchHook]);
+
+  // Cache search results when they arrive
+  useEffect(() => {
+    if (searchHook.searchData && lastSearchRef.current) {
+      const serverPage = searchHook.searchData.page;
+      const searchTerm = lastSearchRef.current.term;
+      const cacheKey = `${searchTerm}-${serverPage}`;
+      
+      setSearchCache(prev => ({
+        ...prev,
+        [cacheKey]: {
+          items: searchHook?.searchData?.items,
+          totalCount: searchHook?.searchData?.totalCount,
+          pageSize: searchHook?.searchData?.pageSize,
+          timestamp: Date.now()
+        }
+      }));
+    }
+  }, [searchHook.searchData]);
+
+  const getSearchDisplayData = useCallback((term: string, clientPage: number) => {
+    const actualPageSize = getActualSearchPageSize();
+    const serverPage = calculateServerPage(clientPage, actualPageSize);
+    const cacheKey = `${term}-${serverPage}`;
+    const cachedData = searchCache[cacheKey];
+    
+    if (!cachedData) {
+      return {
+        currentPageData: [],
+        totalCount: 0,
+        loading: searchHook.loading,
+        error: searchHook.error
+      };
+    }
+    
+    const { localStartIndex, localEndIndex } = calculateItemsRange(
+      clientPage, 
+      serverPage, 
+      cachedData.pageSize
+    );
+    
+    const currentPageData = cachedData.items.slice(localStartIndex, localEndIndex);
+    
+    return {
+      currentPageData,
+      totalCount: cachedData.totalCount,
+      loading: false,
+      error: null
+    };
+  }, [searchCache, searchHook.loading, searchHook.error, getActualSearchPageSize]);
+
+  const clearSearchCache = useCallback(() => {
+    setSearchCache({});
+    lastSearchRef.current = null;
+  }, []);
+
+  return {
+    enhancedSearch,
+    getSearchDisplayData,
+    clearSearch: searchHook.clearSearch,
+    clearSearchCache,
+    loading: searchHook.loading,
+    error: searchHook.error
+  };
 };
 
 export const StackOverflowQuestions = () => {
@@ -109,39 +212,37 @@ export const StackOverflowQuestions = () => {
     fetchUnansweredQuestions
   } = useStackOverflowData('questions');
   
-  // Search hook
+  // Enhanced search hook
   const { 
-    searchData, 
-    loading: searchLoading, 
-    error: searchError, 
-    search, 
-    clearSearch, 
-    hasResults,
-    totalPages: searchTotalPages,
-    currentPage: searchCurrentPage,
-    totalCount: searchTotalCount
-  } = useStackOverflowSearch();
+    enhancedSearch,
+    getSearchDisplayData,
+    clearSearch,
+    clearSearchCache,
+    loading: searchLoading,
+    error: searchError
+  } = useEnhancedSearch();
   
-  // Simplified state management
+  // State management
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState<string>('active');
   const [currentPage, setCurrentPage] = useState(1);
+  const [questionsPage, setQuestionsPage] = useState(1); // Separate page state for questions
+  const prevSearchModeRef = useRef(false);
 
   // Debounce search term
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   // Determine if we're in search mode
-  const isSearchMode = !!searchTerm.trim() && hasResults;
+  const isSearchMode = !!searchTerm.trim();
 
   useEffect(() => {
     stackOverflowTeamsApi.getBaseUrl().then(url => setBaseUrl(url));
   }, [stackOverflowTeamsApi]);
 
-  // Calculate required server page for current client page
+  // Calculate required server page for current client page (only for questions)
   const requiredServerPage = useMemo(() => {
-    if (isSearchMode) return searchCurrentPage;
-    return calculateServerPage(currentPage);
-  }, [currentPage, isSearchMode, searchCurrentPage]);
+    return calculateServerPage(questionsPage, SERVER_ITEMS_PER_PAGE);
+  }, [questionsPage]);
 
   // Fetch questions based on filter
   const fetchQuestionsForFilter = useCallback((filterId: string, page: number) => {
@@ -164,45 +265,69 @@ export const StackOverflowQuestions = () => {
     }
   }, [fetchActiveQuestions, fetchNewestQuestions, fetchTopScoredQuestions, fetchUnansweredQuestions]);
 
-  // Load questions when filter or required server page changes
+  // Load questions when filter or required server page changes (only in non-search mode)
   useEffect(() => {
     if (!isSearchMode) {
       fetchQuestionsForFilter(activeFilter, requiredServerPage);
     }
   }, [activeFilter, requiredServerPage, fetchQuestionsForFilter, isSearchMode]);
 
-  // Reset pagination when filter changes
+  // Handle search mode transitions
   useEffect(() => {
-    setCurrentPage(1);
-  }, [activeFilter]);
+    const wasInSearchMode = prevSearchModeRef.current;
+    
+    if (isSearchMode && !wasInSearchMode) {
+      // Entering search mode - reset search page to 1
+      setCurrentPage(1);
+    } else if (!isSearchMode && wasInSearchMode) {
+      // Exiting search mode - reset questions page to 1 and current page to 1
+      setQuestionsPage(1);
+      setCurrentPage(1);
+    }
+    
+    prevSearchModeRef.current = isSearchMode;
+  }, [isSearchMode]);
+
+  // Reset pagination when filter changes (only in non-search mode)
+  useEffect(() => {
+    if (!isSearchMode) {
+      setQuestionsPage(1);
+      setCurrentPage(1);
+    }
+  }, [activeFilter, isSearchMode]);
 
   // Handle search when debounced term changes
   useEffect(() => {
     if (debouncedSearchTerm.trim()) {
-      search(debouncedSearchTerm, 1);
-      setCurrentPage(1);
+      // Only search if we're in search mode and current page is set
+      if (isSearchMode) {
+        enhancedSearch(debouncedSearchTerm, currentPage);
+      }
     } else {
       clearSearch();
+      clearSearchCache();
     }
-  }, [debouncedSearchTerm, search, clearSearch]);
+  }, [debouncedSearchTerm, currentPage, enhancedSearch, clearSearch, clearSearchCache, isSearchMode]);
 
   // Handle Enter key press for immediate search
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && searchTerm.trim()) {
-      search(searchTerm, 1);
-      setCurrentPage(1);
+      enhancedSearch(searchTerm, currentPage);
     }
   };
 
   // Calculate display data and pagination info
   const displayInfo = useMemo(() => {
     if (isSearchMode) {
-      // For search, use the search pagination directly
+      const searchDisplayData = getSearchDisplayData(searchTerm, currentPage);
+      const totalPages = Math.ceil(searchDisplayData.totalCount / CLIENT_ITEMS_PER_PAGE);
+      
       return {
-        currentPageData: searchData?.items || [],
-        totalPages: searchTotalPages,
-        totalCount: searchTotalCount,
-        currentDisplayPage: searchCurrentPage,
+        currentPageData: searchDisplayData.currentPageData,
+        totalPages,
+        totalCount: searchDisplayData.totalCount,
+        loading: searchDisplayData.loading,
+        error: searchDisplayData.error
       };
     }
 
@@ -212,11 +337,16 @@ export const StackOverflowQuestions = () => {
         currentPageData: [],
         totalPages: 1,
         totalCount: 0,
-        currentDisplayPage: currentPage,
+        loading: questionsLoading,
+        error: questionsError
       };
     }
 
-    const { localStartIndex, localEndIndex } = calculateItemsRange(currentPage, requiredServerPage);
+    const { localStartIndex, localEndIndex } = calculateItemsRange(
+      questionsPage, 
+      requiredServerPage, 
+      SERVER_ITEMS_PER_PAGE
+    );
     const currentPageData = questionsData.questions.slice(localStartIndex, localEndIndex);
     
     // Calculate total pages based on total items from server
@@ -227,25 +357,31 @@ export const StackOverflowQuestions = () => {
       currentPageData,
       totalPages,
       totalCount: totalServerItems,
-      currentDisplayPage: currentPage,
+      loading: questionsLoading,
+      error: questionsError
     };
   }, [
     isSearchMode, 
-    searchData?.items, 
-    searchTotalPages, 
-    searchTotalCount, 
-    searchCurrentPage,
+    getSearchDisplayData,
+    searchTerm,
+    currentPage,
+    questionsPage,
     questionsData?.questions,
     questionsData?.totalCount,
-    currentPage,
-    requiredServerPage
+    requiredServerPage,
+    questionsLoading,
+    questionsError
   ]);
 
-  // Pagination handlers
+  // Unified pagination handler
   const handlePageChange = (newPage: number) => {
     if (isSearchMode) {
-      search(searchTerm, newPage);
+      setCurrentPage(newPage);
+      if (searchTerm.trim()) {
+        enhancedSearch(searchTerm, newPage);
+      }
     } else {
+      setQuestionsPage(newPage);
       setCurrentPage(newPage);
     }
   };
@@ -254,12 +390,12 @@ export const StackOverflowQuestions = () => {
     setActiveFilter(filterId);
   };
 
-  // Determine loading and error states
-  const currentLoading = isSearchMode ? searchLoading : questionsLoading;
-  const currentError = isSearchMode ? searchError : questionsError;
+  // Get the correct page number to display
+  const displayPageNumber = isSearchMode ? currentPage : questionsPage;
 
-  if (questionsLoading && !isSearchMode && currentPage === 1) return <Progress />;
-  if (questionsError && !isSearchMode) return <ResponseErrorPanel error={questionsError} />;
+  // Show loading only for initial loads
+  if (displayInfo.loading && displayPageNumber === 1) return <Progress />;
+  if (displayInfo.error) return <ResponseErrorPanel error={displayInfo.error} />;
 
   return (
     <div>
@@ -284,17 +420,17 @@ export const StackOverflowQuestions = () => {
 
       <div className={classes.pagination}>
         <Button
-          disabled={displayInfo.currentDisplayPage <= 1}
-          onClick={() => handlePageChange(displayInfo.currentDisplayPage - 1)}
+          disabled={displayPageNumber <= 1}
+          onClick={() => handlePageChange(displayPageNumber - 1)}
         >
           Previous
         </Button>
         <Typography variant="body1">
-          Page {displayInfo.currentDisplayPage} of {displayInfo.totalPages || 1}
+          Page {displayPageNumber} of {displayInfo.totalPages || 1}
         </Typography>
         <Button
-          disabled={displayInfo.currentDisplayPage >= displayInfo.totalPages}
-          onClick={() => handlePageChange(displayInfo.currentDisplayPage + 1)}
+          disabled={displayPageNumber >= displayInfo.totalPages}
+          onClick={() => handlePageChange(displayPageNumber + 1)}
         >
           Next
         </Button>
@@ -324,14 +460,11 @@ export const StackOverflowQuestions = () => {
           : `Showing ${displayInfo.currentPageData.length} of ${displayInfo.totalCount} results`}
       </Typography>
 
-      {/* Loading state */}
-      {currentLoading && <Progress />}
-
-      {/* Error state */}
-      {currentError && <ResponseErrorPanel error={currentError} />}
+      {/* Loading state for pagination */}
+      {displayInfo.loading && displayPageNumber > 1 && <Progress />}
 
       {/* No results */}
-      {!currentLoading && !currentError && displayInfo.currentPageData.length === 0 && (
+      {!displayInfo.loading && displayInfo.currentPageData.length === 0 && (
         <Box textAlign="center" py={4}>
           <Typography variant="body1" gutterBottom>
             {searchTerm.trim()
@@ -350,7 +483,7 @@ export const StackOverflowQuestions = () => {
       )}
 
       {/* Results */}
-      {!currentLoading && !currentError && displayInfo.currentPageData.length > 0 && (
+      {!displayInfo.loading && displayInfo.currentPageData.length > 0 && (
         <>
           <Grid container spacing={2}>
             {displayInfo.currentPageData.map((question: any) => (
