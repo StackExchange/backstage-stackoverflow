@@ -60,20 +60,32 @@ export type StackOverflowConfig = {
   authUrl?: string;
 };
 
+export interface QuestionFilters {
+  sort?: 'activity' | 'creation' | 'score';
+  order?: 'asc' | 'desc';
+  isAnswered?: boolean;
+  page?: number;
+  pageSize?: number;
+}
+
 export interface StackOverflowAPI {
-  getQuestions(authToken: string): Promise<PaginatedResponse<Question>>;
-  getTags(authToken: string, search?: string): Promise<PaginatedResponse<Tag>>;
-  getUsers(authToken: string): Promise<PaginatedResponse<User>>;
-  getMe(authToken: string): Promise<User>;
-  postQuestions(
-    title: string,
-    body: string,
-    tags: string[],
-    authToken: string,
-  ): Promise<Question>;
-  getSearch(
-    query: string,
-    authToken: string,
-    page?: number,
-  ): Promise<PaginatedResponse<SearchItem>>;
+  // Enhanced questions method with filtering
+  getQuestions: (authToken: string, filters?: QuestionFilters) => Promise<PaginatedResponse<Question>>;
+  
+  // Keep original signatures for tags and users
+  getTags: (authToken: string, search?: string) => Promise<PaginatedResponse<Tag>>;
+  getUsers: (authToken: string) => Promise<PaginatedResponse<User>>;
+  getMe: (authToken: string) => Promise<User>;
+  
+  // Convenience methods for common question filtering scenarios
+  getActiveQuestions: (authToken: string, page?: number) => Promise<PaginatedResponse<Question>>;
+  getNewestQuestions: (authToken: string, page?: number) => Promise<PaginatedResponse<Question>>;
+  getTopScoredQuestions: (authToken: string, page?: number) => Promise<PaginatedResponse<Question>>;
+  getUnansweredQuestions: (authToken: string, page?: number) => Promise<PaginatedResponse<Question>>;
+  
+  // POST
+  postQuestions: (title: string, body: string, tags: string[], authToken: string) => Promise<Question>;
+  
+  // SEARCH
+  getSearch: (query: string, authToken: string, page?: number) => Promise<PaginatedResponse<SearchItem>>;
 }

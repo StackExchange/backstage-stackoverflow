@@ -16,9 +16,18 @@ interface BaseUrlResponse {
   teamName: string
 }
 
+// Enhanced interface for questions filter options
+interface QuestionsFilter {
+  sort?: 'activity' | 'creation' | 'score';
+  order?: 'asc' | 'desc';
+  isAnswered?: boolean;
+  page?: number;
+  pageSize?: number;
+}
+
 export interface StackOverflowAPI {
   search(query: string, page?: number): Promise<any>;
-  getQuestions(): Promise<ApiResponse<Question>>;
+  getQuestions(filter?: QuestionsFilter): Promise<ApiResponse<Question>>;
   getTags(search?: string): Promise<ApiResponse<Tag>>;
   getUsers(): Promise<ApiResponse<User>>;
   getMe(): Promise<User>;
@@ -30,6 +39,12 @@ export interface StackOverflowAPI {
   getAuthStatus: () => Promise<boolean>;
   logout: () => Promise<boolean>;
   submitAccessToken: (token: string) => Promise<boolean>;
+  
+  // Convenience methods for common filtering scenarios
+  getActiveQuestions(page?: number): Promise<ApiResponse<Question>>;
+  getNewestQuestions(page?: number): Promise<ApiResponse<Question>>;
+  getTopScoredQuestions(page?: number): Promise<ApiResponse<Question>>;
+  getUnansweredQuestions(page?: number): Promise<ApiResponse<Question>>;
 }
 
 export const createStackOverflowApi = (
@@ -47,7 +62,7 @@ export const createStackOverflowApi = (
     const baseUrl = await getBaseUrl();
     const queryString = params ? `?${params.join('&')}` : '';
     const url = `${baseUrl}/${endpoint}${queryString}`;
-
+    
     const response = await fetchApi.fetch(url, {
       method,
       credentials: 'include',
@@ -63,6 +78,32 @@ export const createStackOverflowApi = (
     return response.json();
   };
 
+  const buildQuestionParams = (filter?: QuestionsFilter): string[] => {
+    const params: string[] = [];
+    
+    if (filter?.sort) {
+      params.push(`sort=${filter.sort}`);
+    }
+    
+    if (filter?.order) {
+      params.push(`order=${filter.order}`);
+    }
+    
+    if (filter?.isAnswered !== undefined) {
+      params.push(`isAnswered=${filter.isAnswered}`);
+    }
+    
+    if (filter?.page !== undefined) {
+      params.push(`page=${filter.page}`);
+    }
+    
+    if (filter?.pageSize !== undefined) {
+      params.push(`pageSize=${filter.pageSize}`);
+    }
+    
+    return params;
+  };
+
   return {
     search: (query: string, page?: number) => {
       const body: { query: string; page?: number } = { query };
@@ -71,7 +112,10 @@ export const createStackOverflowApi = (
       }
       return requestAPI<any>('search', 'POST', body);
     },
-    getQuestions: () => requestAPI<ApiResponse<Question>>('questions'),
+    getQuestions: (filter?: QuestionsFilter) => {
+      const params = buildQuestionParams(filter);
+      return requestAPI<ApiResponse<Question>>('questions', 'GET', undefined, params.length > 0 ? params : undefined);
+    },
     getTags: (search?: string) => {
       const params = search ? [`search=${encodeURIComponent(search)}`] : undefined;
       return requestAPI<ApiResponse<Tag>>('tags', 'GET', undefined, params);
@@ -121,6 +165,27 @@ export const createStackOverflowApi = (
       } catch {
         return false;
       }
+    },
+
+    // Convenience methods for common filtering scenarios
+    getActiveQuestions: (page?: number) => {
+      const params = buildQuestionParams({ sort: 'activity', order: 'desc', page });
+      return requestAPI<ApiResponse<Question>>('questions', 'GET', undefined, params);
+    },
+
+    getNewestQuestions: (page?: number) => {
+      const params = buildQuestionParams({ sort: 'creation', order: 'desc', page });
+      return requestAPI<ApiResponse<Question>>('questions', 'GET', undefined, params);
+    },
+
+    getTopScoredQuestions: (page?: number) => {
+      const params = buildQuestionParams({ sort: 'score', order: 'desc', page });
+      return requestAPI<ApiResponse<Question>>('questions', 'GET', undefined, params);
+    },
+
+    getUnansweredQuestions: (page?: number) => {
+      const params = buildQuestionParams({ isAnswered: false, sort: 'creation', order: 'desc', page });
+      return requestAPI<ApiResponse<Question>>('questions', 'GET', undefined, params);
     },
   };
 };

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   makeStyles,
   Theme,
@@ -12,7 +12,8 @@ import {
   Box,
 } from '@material-ui/core';
 import { Link, Progress, ResponseErrorPanel } from '@backstage/core-components';
-import { useStackOverflowData, useStackOverflowSearch } from './hooks';
+import { useStackOverflowSearch } from './hooks';
+import { useStackOverflowData } from './hooks';
 import { StackOverflowSearchResultListItem } from './StackOverflowSearchResultListItem';
 import SearchIcon from '@material-ui/icons/Search';
 import { StackOverflowIcon } from '../../icons';
@@ -53,48 +54,13 @@ type FilterType = {
 
 const FILTERS: FilterType[] = [
   { id: 'unanswered', label: 'Unanswered' },
-  { id: 'bountied', label: 'Bountied' },
   { id: 'newest', label: 'Newest' },
   { id: 'active', label: 'Active' },
   { id: 'score', label: 'Score' },
 ];
 
-const filterAndSortQuestions = (questions: any[], activeFilter: string | null) => {
-  let filtered = [...questions];
-
-  switch (activeFilter) {
-    case 'unanswered':
-      filtered = filtered.filter(q => !q.isAnswered);
-      break;
-    case 'bountied':
-      filtered = filtered.filter(q => q.bounty > 0);
-      break;
-    case 'newest':
-      filtered.sort(
-        (a, b) =>
-          new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime(),
-      );
-      break;
-    case 'active': {
-      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-      filtered = filtered.filter(
-        q => new Date(q.lastActivityDate) >= thirtyDaysAgo,
-      );
-      filtered.sort(
-        (a, b) =>
-          new Date(b.lastActivityDate).getTime() -
-          new Date(a.lastActivityDate).getTime(),
-      );
-      break;
-    }
-    case 'score':
-      filtered.sort((a, b) => b.score - a.score);
-      break;
-    default:
-  }
-
-  return filtered;
-};
+const CLIENT_ITEMS_PER_PAGE = 5;
+const SERVER_ITEMS_PER_PAGE = 30;
 
 // Custom debounce hook
 const useDebounce = (value: string, delay: number) => {
@@ -113,13 +79,35 @@ const useDebounce = (value: string, delay: number) => {
   return debouncedValue;
 };
 
+// Pagination utility functions
+const calculateServerPage = (clientPage: number): number => {
+  return Math.ceil((clientPage * CLIENT_ITEMS_PER_PAGE) / SERVER_ITEMS_PER_PAGE);
+};
+
+const calculateItemsRange = (clientPage: number, serverPage: number) => {
+  const globalStartIndex = (clientPage - 1) * CLIENT_ITEMS_PER_PAGE;
+  const serverStartIndex = (serverPage - 1) * SERVER_ITEMS_PER_PAGE;
+  const localStartIndex = globalStartIndex - serverStartIndex;
+  const localEndIndex = localStartIndex + CLIENT_ITEMS_PER_PAGE;
+  
+  return { localStartIndex, localEndIndex };
+};
+
 export const StackOverflowQuestions = () => {
   const classes = useStyles();
   const stackOverflowTeamsApi = useApi(stackoverflowteamsApiRef);
   const [baseUrl, setBaseUrl] = useState<string>('');
   
-  // Questions API data
-  const { data: questionsData, loading: questionsLoading, error: questionsError } = useStackOverflowData('questions');
+  // Questions data using enhanced hook
+  const { 
+    data: questionsData, 
+    loading: questionsLoading, 
+    error: questionsError,
+    fetchActiveQuestions,
+    fetchNewestQuestions,
+    fetchTopScoredQuestions,
+    fetchUnansweredQuestions
+  } = useStackOverflowData('questions');
   
   // Search hook
   const { 
@@ -134,10 +122,10 @@ export const StackOverflowQuestions = () => {
     totalCount: searchTotalCount
   } = useStackOverflowSearch();
   
-  // State
+  // Simplified state management
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeFilter, setActiveFilter] = useState<string | null>('active');
-  const [questionsCurrentPage, setQuestionsCurrentPage] = useState(1); // Frontend pagination for questions
+  const [activeFilter, setActiveFilter] = useState<string>('active');
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Debounce search term
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
@@ -149,15 +137,50 @@ export const StackOverflowQuestions = () => {
     stackOverflowTeamsApi.getBaseUrl().then(url => setBaseUrl(url));
   }, [stackOverflowTeamsApi]);
 
-  // Reset questions pagination when filter changes
+  // Calculate required server page for current client page
+  const requiredServerPage = useMemo(() => {
+    if (isSearchMode) return searchCurrentPage;
+    return calculateServerPage(currentPage);
+  }, [currentPage, isSearchMode, searchCurrentPage]);
+
+  // Fetch questions based on filter
+  const fetchQuestionsForFilter = useCallback((filterId: string, page: number) => {
+    switch (filterId) {
+      case 'active':
+        fetchActiveQuestions(page);
+        break;
+      case 'newest':
+        fetchNewestQuestions(page);
+        break;
+      case 'score':
+        fetchTopScoredQuestions(page);
+        break;
+      case 'unanswered':
+        fetchUnansweredQuestions(page);
+        break;
+      default:
+        fetchActiveQuestions(page);
+        break;
+    }
+  }, [fetchActiveQuestions, fetchNewestQuestions, fetchTopScoredQuestions, fetchUnansweredQuestions]);
+
+  // Load questions when filter or required server page changes
   useEffect(() => {
-    setQuestionsCurrentPage(0);
+    if (!isSearchMode) {
+      fetchQuestionsForFilter(activeFilter, requiredServerPage);
+    }
+  }, [activeFilter, requiredServerPage, fetchQuestionsForFilter, isSearchMode]);
+
+  // Reset pagination when filter changes
+  useEffect(() => {
+    setCurrentPage(1);
   }, [activeFilter]);
 
   // Handle search when debounced term changes
   useEffect(() => {
     if (debouncedSearchTerm.trim()) {
-      search(debouncedSearchTerm, 1); // Start from page 1
+      search(debouncedSearchTerm, 1);
+      setCurrentPage(1);
     } else {
       clearSearch();
     }
@@ -167,48 +190,75 @@ export const StackOverflowQuestions = () => {
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && searchTerm.trim()) {
       search(searchTerm, 1);
+      setCurrentPage(1);
     }
   };
 
-  // Handle search pagination
-  const handleSearchPageChange = (newPage: number) => {
-    if (searchTerm.trim()) {
+  // Calculate display data and pagination info
+  const displayInfo = useMemo(() => {
+    if (isSearchMode) {
+      // For search, use the search pagination directly
+      return {
+        currentPageData: searchData?.items || [],
+        totalPages: searchTotalPages,
+        totalCount: searchTotalCount,
+        currentDisplayPage: searchCurrentPage,
+      };
+    }
+
+    // For regular questions, slice the server data
+    if (!questionsData?.questions) {
+      return {
+        currentPageData: [],
+        totalPages: 1,
+        totalCount: 0,
+        currentDisplayPage: currentPage,
+      };
+    }
+
+    const { localStartIndex, localEndIndex } = calculateItemsRange(currentPage, requiredServerPage);
+    const currentPageData = questionsData.questions.slice(localStartIndex, localEndIndex);
+    
+    // Calculate total pages based on total items from server
+    const totalServerItems = questionsData.totalCount || 0;
+    const totalPages = Math.ceil(totalServerItems / CLIENT_ITEMS_PER_PAGE);
+
+    return {
+      currentPageData,
+      totalPages,
+      totalCount: totalServerItems,
+      currentDisplayPage: currentPage,
+    };
+  }, [
+    isSearchMode, 
+    searchData?.items, 
+    searchTotalPages, 
+    searchTotalCount, 
+    searchCurrentPage,
+    questionsData?.questions,
+    questionsData?.totalCount,
+    currentPage,
+    requiredServerPage
+  ]);
+
+  // Pagination handlers
+  const handlePageChange = (newPage: number) => {
+    if (isSearchMode) {
       search(searchTerm, newPage);
+    } else {
+      setCurrentPage(newPage);
     }
   };
 
   const toggleFilter = (filterId: string) => {
-    setActiveFilter(prev => prev === filterId ? null : filterId);
+    setActiveFilter(filterId);
   };
 
-  // Determine which data to use
-  const currentData = isSearchMode ? (searchData?.items || []) : (questionsData?.questions || []);
+  // Determine loading and error states
   const currentLoading = isSearchMode ? searchLoading : questionsLoading;
   const currentError = isSearchMode ? searchError : questionsError;
 
-  // Process data based on mode
-  let processedData = currentData;
-  let totalPages = 1;
-  let paginatedData = currentData;
-  let currentPageDisplay = 1;
-
-  if (isSearchMode) {
-    // Search mode: use backend pagination
-    paginatedData = currentData;
-    totalPages = searchTotalPages;
-    currentPageDisplay = searchCurrentPage;
-  } else {
-    // Questions mode: use frontend pagination with filters
-    processedData = filterAndSortQuestions(currentData, activeFilter);
-    totalPages = Math.ceil(processedData.length / 5);
-    paginatedData = processedData.slice(
-      questionsCurrentPage * 5,
-      (questionsCurrentPage + 1) * 5,
-    );
-    currentPageDisplay = questionsCurrentPage + 1;
-  }
-
-  if (questionsLoading && !isSearchMode) return <Progress />;
+  if (questionsLoading && !isSearchMode && currentPage === 1) return <Progress />;
   if (questionsError && !isSearchMode) return <ResponseErrorPanel error={questionsError} />;
 
   return (
@@ -234,29 +284,17 @@ export const StackOverflowQuestions = () => {
 
       <div className={classes.pagination}>
         <Button
-          disabled={isSearchMode ? searchCurrentPage <= 1 : questionsCurrentPage === 0}
-          onClick={() => {
-            if (isSearchMode) {
-              handleSearchPageChange(searchCurrentPage - 1);
-            } else {
-              setQuestionsCurrentPage(prev => prev - 1);
-            }
-          }}
+          disabled={displayInfo.currentDisplayPage <= 1}
+          onClick={() => handlePageChange(displayInfo.currentDisplayPage - 1)}
         >
           Previous
         </Button>
         <Typography variant="body1">
-          Page {currentPageDisplay} of {totalPages || 1}
+          Page {displayInfo.currentDisplayPage} of {displayInfo.totalPages || 1}
         </Typography>
         <Button
-          disabled={isSearchMode ? searchCurrentPage >= searchTotalPages : questionsCurrentPage >= totalPages - 1}
-          onClick={() => {
-            if (isSearchMode) {
-              handleSearchPageChange(searchCurrentPage + 1);
-            } else {
-              setQuestionsCurrentPage(prev => prev + 1);
-            }
-          }}
+          disabled={displayInfo.currentDisplayPage >= displayInfo.totalPages}
+          onClick={() => handlePageChange(displayInfo.currentDisplayPage + 1)}
         >
           Next
         </Button>
@@ -282,8 +320,8 @@ export const StackOverflowQuestions = () => {
 
       <Typography className={classes.resultCount}>
         {isSearchMode 
-          ? `Search results: ${searchTotalCount} total found` 
-          : `Showing ${processedData.length} results`}
+          ? `Search results: ${displayInfo.totalCount} total found` 
+          : `Showing ${displayInfo.currentPageData.length} of ${displayInfo.totalCount} results`}
       </Typography>
 
       {/* Loading state */}
@@ -293,7 +331,7 @@ export const StackOverflowQuestions = () => {
       {currentError && <ResponseErrorPanel error={currentError} />}
 
       {/* No results */}
-      {!currentLoading && !currentError && paginatedData.length === 0 && (
+      {!currentLoading && !currentError && displayInfo.currentPageData.length === 0 && (
         <Box textAlign="center" py={4}>
           <Typography variant="body1" gutterBottom>
             {searchTerm.trim()
@@ -312,10 +350,10 @@ export const StackOverflowQuestions = () => {
       )}
 
       {/* Results */}
-      {!currentLoading && !currentError && paginatedData.length > 0 && (
+      {!currentLoading && !currentError && displayInfo.currentPageData.length > 0 && (
         <>
           <Grid container spacing={2}>
-            {paginatedData.map(question => (
+            {displayInfo.currentPageData.map((question: any) => (
               <Grid item xs={12} key={question.id}>
                 <StackOverflowSearchResultListItem
                   result={{
@@ -339,6 +377,7 @@ export const StackOverflowQuestions = () => {
               </Grid>
             ))}
           </Grid>
+
           <Box mt={2}>
             <Link to={searchTerm.trim()
               ? `${baseUrl}/search?q=${encodeURIComponent(searchTerm)}` 
