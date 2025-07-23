@@ -5,6 +5,7 @@ import {
   SearchItem,
   StackOverflowAPI,
   StackOverflowConfig,
+  QuestionFilters,
   Tag,
   User,
 } from './types';
@@ -18,7 +19,6 @@ export async function createStackOverflowService({
   logger: LoggerService;
 }): Promise<StackOverflowAPI> {
   // LOGGER
-
   logger.info('Initializing Stack Overflow Service');
 
   if (config.baseUrl && config.teamName) {
@@ -32,11 +32,32 @@ export async function createStackOverflowService({
     baseUrl || 'https://api.stackoverflowteams.com',
   );
 
+  // Helper function to build query parameters
+  const buildParams = (filters: Record<string, any>): Record<string, string> => {
+    const params: Record<string, string> = {};
+    
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        params[key] = value.toString();
+      }
+    });
+    
+    return params;
+  };
+
   return {
-    // GET
-    getQuestions: authToken =>
-      api.GET<PaginatedResponse<Question>>('/questions', authToken, teamName, { sort: 'creation', order: 'desc' }),
-    getTags: (authToken, search?: string) => {
+    getQuestions: (authToken: string, filters?: QuestionFilters) => {
+      const params = buildParams({
+        sort: filters?.sort || 'creation',
+        order: filters?.order || 'desc',
+        isAnswered: filters?.isAnswered,
+        page: filters?.page,
+        pageSize: filters?.pageSize || 30,
+      });
+      
+      return api.GET<PaginatedResponse<Question>>('/questions', authToken, teamName, params);
+    },
+    getTags: (authToken: string, search?: string) => {
       const params: Record<string, string> = { sort: 'postCount', order: 'desc' };
       if (search) {
         params.partialName = search;
@@ -46,6 +67,24 @@ export async function createStackOverflowService({
     getUsers: authToken =>
       api.GET<PaginatedResponse<User>>('/users', authToken, teamName),
     getMe: authToken => api.GET<User>('/users/me', authToken, teamName),
+    
+    // Convenience methods for common filtering scenarios
+    getActiveQuestions: (authToken: string, page?: number) =>
+      api.GET<PaginatedResponse<Question>>('/questions', authToken, teamName, 
+        buildParams({ sort: 'activity', order: 'desc', page })),
+    
+    getNewestQuestions: (authToken: string, page?: number) =>
+      api.GET<PaginatedResponse<Question>>('/questions', authToken, teamName, 
+        buildParams({ sort: 'creation', order: 'desc', page })),
+    
+    getTopScoredQuestions: (authToken: string, page?: number) =>
+      api.GET<PaginatedResponse<Question>>('/questions', authToken, teamName, 
+        buildParams({ sort: 'score', order: 'desc', page })),
+    
+    getUnansweredQuestions: (authToken: string, page?: number) =>
+      api.GET<PaginatedResponse<Question>>('/questions', authToken, teamName, 
+        buildParams({ isAnswered: false, sort: 'creation', order: 'desc', page })),
+  
     // POST
     postQuestions: (
       title: string,
@@ -60,12 +99,13 @@ export async function createStackOverflowService({
         teamName,
       ),
     // SEARCH
-    getSearch: (query: string, authToken: string) =>
+    getSearch: (query: string, authToken: string, page?: number) =>
       api.SEARCH<PaginatedResponse<SearchItem>>(
         '/search',
         query,
         authToken,
         teamName,
+        page,
       ),
   };
 }
