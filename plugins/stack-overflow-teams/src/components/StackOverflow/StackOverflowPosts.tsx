@@ -268,8 +268,6 @@ const useEnhancedSearch = () => {
 
 export const StackOverflowQuestions = () => {
   const classes = useStyles();
-  const stackOverflowTeamsApi = useApi(stackoverflowteamsApiRef);
-  const [baseUrl, setBaseUrl] = useState<string>('');
   
   const { 
     data: questionsData, 
@@ -309,10 +307,6 @@ export const StackOverflowQuestions = () => {
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   const isSearchMode = !!searchTerm.trim();
-
-  useEffect(() => {
-    stackOverflowTeamsApi.getBaseUrl().then(url => setBaseUrl(url));
-  }, [stackOverflowTeamsApi]);
 
   // Calculate required server page for current client page (only for questions)
   const requiredServerPage = useMemo(() => {
@@ -548,7 +542,7 @@ export const StackOverflowQuestions = () => {
       {!displayInfo.loading && (
         <>
           {/* No results */}
-          {displayInfo.currentPageData.length === 0 && (
+          {displayInfo.currentPageData && displayInfo.totalCount === 0 && (
             <Box textAlign="center" py={4}>
               <Typography variant="body1" gutterBottom>
                 {searchTerm.trim()
@@ -556,13 +550,6 @@ export const StackOverflowQuestions = () => {
                   : "No questions found"
                 }
               </Typography>
-              {searchTerm.trim() && (
-                <Link
-                  to={`${baseUrl}/search?q=${encodeURIComponent(searchTerm)}`}
-                >
-                  However, you might find more questions on your Stack Overflow Team.
-                </Link>
-              )}
             </Box>
           )}
 
@@ -594,17 +581,6 @@ export const StackOverflowQuestions = () => {
                   </Grid>
                 ))}
               </Grid>
-
-              <Box mt={2}>
-                <Link to={searchTerm.trim()
-                  ? `${baseUrl}/search?q=${encodeURIComponent(searchTerm)}` 
-                  : `${baseUrl}/questions`}
-                >
-                  <Typography variant='body1'>
-                    Explore more questions on your Stack Overflow Team
-                  </Typography>
-                </Link>
-              </Box>
             </>
           )}
         </>

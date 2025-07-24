@@ -59,6 +59,6 @@ export const useStackOverflowSearch = () => {
     hasResults: !!searchData?.items.length,
     totalPages: searchData?.totalPages || 0,
     currentPage: searchData?.page || 1,
-    totalCount: searchData?.totalCount || 0,
+    totalCount: searchData?.totalCount,
   };
 };
