@@ -609,7 +609,7 @@ export const StackOverflowQuestions = () => {
           )}
         </>
       )}
-      
+
       <PaginationControls />
     </div>
   );

@@ -66,10 +66,6 @@ export const useStackOverflowData = (type: PostType, options?: UseStackOverflowD
     }
   }, [type, stackOverflowTeamsApi, options?.questionFilters, options?.tagSearch]);
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
   // Convenience methods for questions
   const fetchActiveQuestions = useCallback(async (page?: number) => {
     if (type !== 'questions') return;
@@ -155,6 +151,7 @@ export const useStackOverflowData = (type: PostType, options?: UseStackOverflowD
     data, 
     loading, 
     error, 
+    fetchData,
     // Convenience methods for questions
     fetchActiveQuestions,
     fetchNewestQuestions, 

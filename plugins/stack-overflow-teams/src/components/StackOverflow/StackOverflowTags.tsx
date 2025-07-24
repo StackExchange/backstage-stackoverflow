@@ -17,7 +17,7 @@ import { useApi } from '@backstage/core-plugin-api';
 const StackOverflowTagList = ({
   tags,
   searchTerm,
-  baseUrl, // Use the baseUrl prop
+  baseUrl,
 }: {
   tags: Tag[];
   searchTerm: string;
@@ -51,9 +51,9 @@ const StackOverflowTagList = ({
       ))}
 
       <Grid item xs={12}>
-        <Link to={ searchTerm ? `${baseUrl}/tags?query=${encodeURIComponent(searchTerm)}` :`${baseUrl}/tags`}>
-        <Typography variant='body1'>
-          Explore more tags on your Stack Overflow Team
+        <Link to={searchTerm ? `${baseUrl}/tags?query=${encodeURIComponent(searchTerm)}` : `${baseUrl}/tags`}>
+          <Typography variant='body1'>
+            Explore more tags on your Stack Overflow Team
           </Typography>
         </Link>
       </Grid>
@@ -62,14 +62,19 @@ const StackOverflowTagList = ({
 };
 
 export const StackOverflowTags = () => {
-  const { data, loading, error } = useStackOverflowData('tags');
+  const { data, loading, error, fetchData } = useStackOverflowData('tags');
   const [searchTerm, setSearchTerm] = useState('');
   const stackOverflowTeamsApi = useApi(stackoverflowteamsApiRef);
 
   const [baseUrl, setBaseUrl] = useState<string>('');
+  
   useEffect(() => {
     stackOverflowTeamsApi.getBaseUrl().then(url => setBaseUrl(url));
   }, [stackOverflowTeamsApi]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   if (loading) {
     return <Progress />;
