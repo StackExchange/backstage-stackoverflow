@@ -12,14 +12,12 @@ import {
   Box,
 } from '@material-ui/core';
 import Skeleton from '@mui/material/Skeleton';
-import { Link, ResponseErrorPanel } from '@backstage/core-components';
+import { ResponseErrorPanel } from '@backstage/core-components';
 import { useStackOverflowSearch } from './hooks';
 import { useStackOverflowData } from './hooks';
 import { StackOverflowSearchResultListItem } from './StackOverflowSearchResultListItem';
 import SearchIcon from '@material-ui/icons/Search';
 import { StackOverflowIcon } from '../../icons';
-import { useApi } from '@backstage/core-plugin-api';
-import { stackoverflowteamsApiRef } from '../../api';
 
 const useStyles = makeStyles((theme: Theme) => ({
   filters: {
