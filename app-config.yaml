@@ -12,7 +12,7 @@ stackoverflow:
   baseUrl: ${STACK_OVERFLOW_INSTANCE_URL}
   # Required only for Enteprise Tier.
 
-  teamName: ${STACK_OVERFLOW_TEAM_NAME}
+  # teamName: ${STACK_OVERFLOW_TEAM_NAME}
   # Required only for Basic and Business Tiers. 
 
   apiAccessToken: ${STACK_OVERFLOW_API_ACCESS_TOKEN}

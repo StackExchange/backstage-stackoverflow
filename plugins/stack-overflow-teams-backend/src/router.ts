@@ -4,6 +4,7 @@ import Router from 'express-promise-router';
 import {
   StackOverflowAPI,
   StackOverflowConfig,
+  QuestionFilters, 
 } from './services/StackOverflowService/types';
 import { createStackOverflowAuth } from './api';
 
@@ -49,6 +50,45 @@ export async function createRouter({
       res.clearCookie('stackoverflow-access-token');
       return null;
     }
+  }
+
+  // Helper function to build question filters from query parameters
+  function buildQuestionFilters(query: any): QuestionFilters | undefined {
+    const filters: QuestionFilters = {};
+    let hasFilters = false;
+
+    if (query.sort && ['activity', 'creation', 'score'].includes(query.sort)) {
+      filters.sort = query.sort;
+      hasFilters = true;
+    }
+
+    if (query.order && ['asc', 'desc'].includes(query.order)) {
+      filters.order = query.order;
+      hasFilters = true;
+    }
+
+    if (query.isAnswered !== undefined) {
+      filters.isAnswered = query.isAnswered === 'true';
+      hasFilters = true;
+    }
+
+    if (query.page !== undefined) {
+      const page = parseInt(query.page, 10);
+      if (!isNaN(page) && page > 0) {
+        filters.page = page;
+        hasFilters = true;
+      }
+    }
+
+    if (query.pageSize !== undefined) {
+      const pageSize = parseInt(query.pageSize, 10);
+      if (!isNaN(pageSize) && pageSize > 0) {
+        filters.pageSize = pageSize;
+        hasFilters = true;
+      }
+    }
+
+    return hasFilters ? filters : undefined;
   }
 
   // OAuth Authentication routes
@@ -225,7 +265,7 @@ export async function createRouter({
     try {
       const baseUrl = stackOverflowConfig.baseUrl;
       const teamsAPIUrl = 'https://api.stackoverflowteams.com';
-      const teamsBaseUrl = `https://stackoverflowteams.com/c/${stackOverflowConfig.teamName}`; // Fixed URL to match your previous code
+      const teamsBaseUrl = `https://stackoverflowteams.com/c/${stackOverflowConfig.teamName}`;
 
       if (baseUrl === teamsAPIUrl) {
         return res.json({ SOInstance: teamsBaseUrl, teamName: stackOverflowConfig.teamName });
@@ -264,13 +304,95 @@ export async function createRouter({
           .status(401)
           .json({ error: 'Missing Stack Overflow Teams Access Token' });
       }
-      const questions = await stackOverflowService.getQuestions(authToken);
+      
+      const filters = buildQuestionFilters(req.query);
+      const questions = await stackOverflowService.getQuestions(authToken, filters);
       return res.send(questions);
     } catch (error: any) {
-      // Fix type issue when including the error for some reason
       logger.error('Error fetching questions', { error });
       return res.status(500).send({
         error: `Failed to fetch questions from the Stack Overflow instance`,
+      });
+    }
+  });
+
+  // Convenience routes for common question filtering scenarios
+  router.get('/questions/active', async (req: Request, res: Response) => {
+    try {
+      const authToken = getValidAuthToken(req, res);
+      if (!authToken) {
+        return res
+          .status(401)
+          .json({ error: 'Missing Stack Overflow Teams Access Token' });
+      }
+      
+      const page = req.query.page ? parseInt(req.query.page as string, 10) : undefined;
+      const questions = await stackOverflowService.getActiveQuestions(authToken, page);
+      return res.send(questions);
+    } catch (error: any) {
+      logger.error('Error fetching active questions', { error });
+      return res.status(500).send({
+        error: `Failed to fetch active questions from the Stack Overflow instance`,
+      });
+    }
+  });
+
+  router.get('/questions/newest', async (req: Request, res: Response) => {
+    try {
+      const authToken = getValidAuthToken(req, res);
+      if (!authToken) {
+        return res
+          .status(401)
+          .json({ error: 'Missing Stack Overflow Teams Access Token' });
+      }
+      
+      const page = req.query.page ? parseInt(req.query.page as string, 10) : undefined;
+      const questions = await stackOverflowService.getNewestQuestions(authToken, page);
+      return res.send(questions);
+    } catch (error: any) {
+      logger.error('Error fetching newest questions', { error });
+      return res.status(500).send({
+        error: `Failed to fetch newest questions from the Stack Overflow instance`,
+      });
+    }
+  });
+
+  router.get('/questions/top-scored', async (req: Request, res: Response) => {
+    try {
+      const authToken = getValidAuthToken(req, res);
+      if (!authToken) {
+        return res
+          .status(401)
+          .json({ error: 'Missing Stack Overflow Teams Access Token' });
+      }
+      
+      const page = req.query.page ? parseInt(req.query.page as string, 10) : undefined;
+      const questions = await stackOverflowService.getTopScoredQuestions(authToken, page);
+      return res.send(questions);
+    } catch (error: any) {
+      logger.error('Error fetching top scored questions', { error });
+      return res.status(500).send({
+        error: `Failed to fetch top scored questions from the Stack Overflow instance`,
+      });
+    }
+  });
+
+  router.get('/questions/unanswered', async (req: Request, res: Response) => {
+    try {
+      const authToken = getValidAuthToken(req, res);
+      if (!authToken) {
+        return res
+          .status(401)
+          .json({ error: 'Missing Stack Overflow Teams Access Token' });
+      }
+      
+      const page = req.query.page ? parseInt(req.query.page as string, 10) : undefined;
+      const questions = await stackOverflowService.getUnansweredQuestions(authToken, page);
+      return res.send(questions);
+    } catch (error: any) {
+      logger.error('Error fetching unanswered questions', { error });
+      return res.status(500).send({
+        error: `Failed to fetch unanswered questions from the Stack Overflow instance`,
       });
     }
   });
@@ -283,7 +405,8 @@ export async function createRouter({
           .status(401)
           .json({ error: 'Missing Stack Overflow Teams Access Token' });
       }
-      const tags = await stackOverflowService.getTags(authToken);
+      const search = req.query.search as string | undefined;
+      const tags = await stackOverflowService.getTags(authToken, search);
       return res.send(tags);
     } catch (error: any) {
       logger.error('Error fetching tags', { error });
@@ -314,7 +437,7 @@ export async function createRouter({
   router.post('/search', async (req: Request, res: Response) => {
     try {
       const authToken = getValidAuthToken(req, res);
-      const { query } = req.body;
+      const { query, page } = req.body;
 
       if (!authToken) {
         return res
@@ -324,6 +447,7 @@ export async function createRouter({
       const searchResults = await stackOverflowService.getSearch(
         query,
         authToken,
+        page
       );
       return res.status(201).json(searchResults);
     } catch (error: any) {
