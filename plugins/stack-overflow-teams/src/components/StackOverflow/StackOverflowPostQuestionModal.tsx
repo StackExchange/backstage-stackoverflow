@@ -780,7 +780,7 @@ export const StackOverflowPostQuestionModal = () => {
     }
     if (success) {
       return (
-        <Box sx={{ textAlign: 'center', py: 4 }}>
+        <Box sx={{ textAlign: 'center', py: 4, display: 'flex', justifyContent: 'center' }}>
           <Alert severity="success">
             <AlertTitle>Question Posted Successfully!</AlertTitle>
             Your question has been posted and will open in a new tab.
@@ -808,7 +808,9 @@ export const StackOverflowPostQuestionModal = () => {
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          width: { xs: '95vw', sm: '90vw', md: '80vw', lg: '80vw', xl: '70vw' },
+          width: success 
+            ? { xs: 'full' }
+            : { xs: '95vw', sm: '90vw', md: '80vw', lg: '80vw', xl: '70vw' },
           maxHeight: '90vh',
           bgcolor: 'background.paper',
           boxShadow: 24,
