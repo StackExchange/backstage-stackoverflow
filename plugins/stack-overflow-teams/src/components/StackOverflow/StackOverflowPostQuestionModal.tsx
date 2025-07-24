@@ -743,7 +743,7 @@ export const StackOverflowPostQuestionModal = () => {
         </Alert>
       )} 
       
-      <Box mt={3} sx={{ borderTop: 1, borderColor: 'divider', pt: 2, display: 'flex', gap: 2 }}>
+      <Box my={3} sx={{ borderTop: 1, borderColor: 'divider', pt: 2, display: 'flex', gap: 2 }}>
         <Button
           variant="contained"
           className={classes.button}
@@ -793,7 +793,7 @@ export const StackOverflowPostQuestionModal = () => {
         <Grid item xs={12} md={8}>
           {renderQuestionForm()}
         </Grid>
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={4} >
           {renderRightPanel()}
         </Grid>
       </Grid>
@@ -808,7 +808,7 @@ export const StackOverflowPostQuestionModal = () => {
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          width: { xs: '95vw', sm: '90vw', md: '80vw', lg: '70vw' },
+          width: { xs: '95vw', sm: '90vw', md: '80vw', lg: '80vw', xl: '70vw' },
           maxHeight: '90vh',
           bgcolor: 'background.paper',
           boxShadow: 24,

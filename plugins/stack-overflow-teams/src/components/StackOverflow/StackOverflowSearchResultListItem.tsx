@@ -118,7 +118,6 @@ export const StackOverflowSearchResultListItem = (
             }
           />
           
-          {/* Author section - moved outside of ListItemText to avoid nested links */}
           <Box display="flex" alignItems="center" mt={1}>
             {/* Author Avatar */}
             {result.avatar && (

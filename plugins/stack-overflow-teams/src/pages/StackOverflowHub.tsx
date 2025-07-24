@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import packageJson from '../../package.json'
 import { Typography, Grid, Box, Paper, Tooltip } from '@material-ui/core';
 import Help from '@material-ui/icons/Help';
@@ -13,6 +13,8 @@ import {
   ContentHeader,
   HeaderLabel,
 } from '@backstage/core-components';
+import { useApi } from '@backstage/core-plugin-api';
+import { stackoverflowteamsApiRef } from '../api';
 import {
   StackOverflowQuestions,
   StackOverflowTags,
@@ -20,10 +22,35 @@ import {
   StackOverflowMe
 } from '../components/StackOverflow';
 
-export const StackOverflowHub = () => (
+export const StackOverflowHub = () => {
+  const api = useApi(stackoverflowteamsApiRef);
+  const [teamName, setTeamName] = useState('');
+  const [baseUrl, setBaseUrl] = useState('');
+
+  useEffect(() => {
+    const fetchHeaderData = async () => {
+      try {
+        const [teamNameResult, baseUrlResult] = await Promise.all([
+          api.getTeamName(),
+          api.getBaseUrl()
+        ]);
+        setTeamName(teamNameResult);
+        setBaseUrl(baseUrlResult);
+      } catch (error) {
+        setBaseUrl('Error retrieving BaseUrl/Team')
+      }
+    };
+
+    fetchHeaderData();
+  }, [api]);
+
+  // Use teamName if available, otherwise fall back to baseUrl
+  const instanceValue = teamName || baseUrl || "Loading...";
+
+  return (
   <Page themeId="plugin">
     <Header title="Welcome to Stack Overflow Teams!" subtitle="Your team's collective knowledge at your fingertips.">
-      <HeaderLabel label="Owner" value="Stack Overflow" />
+      <HeaderLabel label="Connected to" value={instanceValue} />
       <HeaderLabel label="Plugin Version" value={`v${packageJson.version}`} />
     </Header>
     <Content>
@@ -132,3 +159,4 @@ export const StackOverflowHub = () => (
     </Content>
   </Page>
 );
+};

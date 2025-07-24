@@ -265,7 +265,7 @@ export async function createRouter({
     try {
       const baseUrl = stackOverflowConfig.baseUrl;
       const teamsAPIUrl = 'https://api.stackoverflowteams.com';
-      const teamsBaseUrl = `https://stackoverflowteams.com/c/${stackOverflowConfig.teamName}`; // Fixed URL to match your previous code
+      const teamsBaseUrl = `https://stackoverflowteams.com/c/${stackOverflowConfig.teamName}`;
 
       if (baseUrl === teamsAPIUrl) {
         return res.json({ SOInstance: teamsBaseUrl, teamName: stackOverflowConfig.teamName });
@@ -296,7 +296,6 @@ export async function createRouter({
     }
   });
 
-  // Updated questions route with filtering support
   router.get('/questions', async (req: Request, res: Response) => {
     try {
       const authToken = getValidAuthToken(req, res);

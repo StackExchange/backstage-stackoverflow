@@ -40,6 +40,7 @@ export const createStackOverflowApi = (baseUrl: string) => {
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
+      'User-Agent': 'SOBackstage-Plugin',
       Authorization: `Bearer ${authToken}`,
     };
 

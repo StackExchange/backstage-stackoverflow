@@ -12,14 +12,12 @@ import {
   Box,
 } from '@material-ui/core';
 import Skeleton from '@mui/material/Skeleton';
-import { Link, ResponseErrorPanel } from '@backstage/core-components';
+import { ResponseErrorPanel } from '@backstage/core-components';
 import { useStackOverflowSearch } from './hooks';
 import { useStackOverflowData } from './hooks';
 import { StackOverflowSearchResultListItem } from './StackOverflowSearchResultListItem';
 import SearchIcon from '@material-ui/icons/Search';
 import { StackOverflowIcon } from '../../icons';
-import { useApi } from '@backstage/core-plugin-api';
-import { stackoverflowteamsApiRef } from '../../api';
 
 const useStyles = makeStyles((theme: Theme) => ({
   filters: {
@@ -190,7 +188,6 @@ const useEnhancedSearch = () => {
       return;
     }
     
-    // If we have cached data for this server page, don't refetch
     if (searchCache[cacheKey]) {
       return;
     }
@@ -269,10 +266,7 @@ const useEnhancedSearch = () => {
 
 export const StackOverflowQuestions = () => {
   const classes = useStyles();
-  const stackOverflowTeamsApi = useApi(stackoverflowteamsApiRef);
-  const [baseUrl, setBaseUrl] = useState<string>('');
   
-  // Questions data using enhanced hook
   const { 
     data: questionsData, 
     loading: questionsLoading, 
@@ -283,7 +277,6 @@ export const StackOverflowQuestions = () => {
     fetchUnansweredQuestions
   } = useStackOverflowData('questions');
   
-  // Enhanced search hook
   const { 
     enhancedSearch,
     getSearchDisplayData,
@@ -291,7 +284,6 @@ export const StackOverflowQuestions = () => {
     clearSearchCache,
   } = useEnhancedSearch();
   
-  // State management
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState<string>('active');
   const [currentPage, setCurrentPage] = useState(1);
@@ -310,15 +302,9 @@ export const StackOverflowQuestions = () => {
     clearSearchCacheRef.current = clearSearchCache;
   });
 
-  // Debounce search term
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
-  // Determine if we're in search mode
   const isSearchMode = !!searchTerm.trim();
-
-  useEffect(() => {
-    stackOverflowTeamsApi.getBaseUrl().then(url => setBaseUrl(url));
-  }, [stackOverflowTeamsApi]);
 
   // Calculate required server page for current client page (only for questions)
   const requiredServerPage = useMemo(() => {
@@ -523,10 +509,9 @@ export const StackOverflowQuestions = () => {
         />
       </Box>
 
-      {/* Top pagination controls - always visible */}
       <PaginationControls />
 
-      {/* Only show filters when not in search mode - always visible */}
+      {/* Only show filters when not in search mode */}
       {!isSearchMode && (
         <Paper className={classes.filters}>
           <ButtonGroup className={classes.buttonGroup}>
@@ -550,14 +535,12 @@ export const StackOverflowQuestions = () => {
           : `Showing ${displayInfo.currentPageData.length} of ${displayInfo.totalCount} results`}
       </Typography>
 
-      {/* Show loading skeleton for initial loads and when switching pages */}
       {displayInfo.loading && <LoadingSkeleton />}
 
-      {/* Show content only when not loading */}
       {!displayInfo.loading && (
         <>
           {/* No results */}
-          {displayInfo.currentPageData.length === 0 && (
+          {displayInfo.currentPageData && displayInfo.totalCount === 0 && (
             <Box textAlign="center" py={4}>
               <Typography variant="body1" gutterBottom>
                 {searchTerm.trim()
@@ -565,13 +548,6 @@ export const StackOverflowQuestions = () => {
                   : "No questions found"
                 }
               </Typography>
-              {searchTerm.trim() && (
-                <Link
-                  to={`${baseUrl}/search?q=${encodeURIComponent(searchTerm)}`}
-                >
-                  However, you might find more questions on your Stack Overflow Team.
-                </Link>
-              )}
             </Box>
           )}
 
@@ -603,23 +579,11 @@ export const StackOverflowQuestions = () => {
                   </Grid>
                 ))}
               </Grid>
-
-              <Box mt={2}>
-                <Link to={searchTerm.trim()
-                  ? `${baseUrl}/search?q=${encodeURIComponent(searchTerm)}` 
-                  : `${baseUrl}/questions`}
-                >
-                  <Typography variant='body1'>
-                    Explore more questions on your Stack Overflow Team
-                  </Typography>
-                </Link>
-              </Box>
             </>
           )}
         </>
       )}
 
-      {/* Bottom pagination controls - always visible */}
       <PaginationControls />
     </div>
   );

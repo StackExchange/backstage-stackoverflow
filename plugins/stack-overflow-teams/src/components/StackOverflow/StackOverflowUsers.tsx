@@ -236,7 +236,7 @@ const StackOverflowUserList = ({
 
 export const StackOverflowUsers = () => {
   const classes = useStyles();
-  const { data, loading, error } = useStackOverflowData('users');
+  const { data, loading, error, fetchData } = useStackOverflowData('users');
   const [searchTerm, setSearchTerm] = useState('');
   const stackOverflowTeamsApi = useApi(stackoverflowteamsApiRef);
   const [baseUrl, setBaseUrl] = useState<string>('');
@@ -244,6 +244,10 @@ export const StackOverflowUsers = () => {
   useEffect(() => {
     stackOverflowTeamsApi.getBaseUrl().then(url => setBaseUrl(url));
   }, [stackOverflowTeamsApi]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   if (loading) {
     return <Progress />;
