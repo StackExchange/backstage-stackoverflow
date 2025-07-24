@@ -306,23 +306,28 @@ export const TiptapEditor: React.FC<TiptapEditorProps> = ({
               borderLeft: `4px solid ${theme.palette.primary.main}`,
               paddingLeft: theme.spacing(2),
               margin: theme.spacing(2, 0),
-              fontStyle: 'italic',
-              color: theme.palette.text.secondary,
-              backgroundColor: theme.palette.grey[50],
+              backgroundColor: theme.palette.mode === 'dark' 
+                ? theme.palette.grey[700] 
+                : theme.palette.grey[50],
               borderRadius: theme.spacing(0, 1, 1, 0),
             },
             '& code': {
-              backgroundColor: theme.palette.grey[100],
-              padding: theme.spacing(0.25, 0.5),
+              backgroundColor: theme.palette.mode === 'dark' 
+                ? theme.palette.grey[700] 
+                : theme.palette.grey[100],
+              padding: theme.spacing(0.5, 0.75),
               borderRadius: theme.shape.borderRadius,
               fontFamily: 'Monaco, "Roboto Mono", monospace',
               fontSize: '0.875em',
-              color: theme.palette.primary.dark,
+              color: theme.palette.mode === 'dark'
+                ? theme.palette.primary.light
+                : theme.palette.primary.dark,
             },
             '& pre': {
-              backgroundColor: theme.palette.grey[100],
+              backgroundColor: theme.palette.mode === 'dark' 
+                ? theme.palette.grey[700] 
+                : theme.palette.grey[100],
               padding: theme.spacing(2),
-              borderRadius: theme.shape.borderRadius,
               overflow: 'auto',
               margin: theme.spacing(2, 0),
               border: `1px solid ${theme.palette.divider}`,
