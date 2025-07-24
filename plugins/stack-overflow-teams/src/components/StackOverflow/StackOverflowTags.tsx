@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Link, Progress, ResponseErrorPanel } from '@backstage/core-components';
 import { useStackOverflowData } from './hooks/';
 import {
@@ -17,23 +17,28 @@ import { useApi } from '@backstage/core-plugin-api';
 const StackOverflowTagList = ({
   tags,
   searchTerm,
-  baseUrl,
+  isApiSearch = false,
+  isSearching = false,
 }: {
   tags: Tag[];
   searchTerm: string;
   baseUrl: string;
+  isApiSearch?: boolean;
+  isSearching?: boolean;
 }) => {
+  if (isSearching) {
+    return null; 
+  }
+
   if (tags.length === 0) {
     return (
       <Box textAlign="center" py={4}>
         <Typography variant="body1" gutterBottom>
-          No matching tags were found for "{searchTerm}"
+          {isApiSearch 
+            ? `No tags found for "${searchTerm}" on your Stack Overflow Team`
+            : `No matching tags were found for "${searchTerm}"`
+          }
         </Typography>
-        <Link
-          to={`${baseUrl}/tags?query=${encodeURIComponent(searchTerm)}`}
-        >
-          However, you might find this tag on your Stack Overflow Team.
-        </Link>
       </Box>
     );
   }
@@ -49,14 +54,6 @@ const StackOverflowTagList = ({
           />
         </Link>
       ))}
-
-      <Grid item xs={12}>
-        <Link to={searchTerm ? `${baseUrl}/tags?query=${encodeURIComponent(searchTerm)}` : `${baseUrl}/tags`}>
-          <Typography variant='body1'>
-            Explore more tags on your Stack Overflow Team
-          </Typography>
-        </Link>
-      </Grid>
     </Grid>
   );
 };
@@ -64,6 +61,10 @@ const StackOverflowTagList = ({
 export const StackOverflowTags = () => {
   const { data, loading, error, fetchData } = useStackOverflowData('tags');
   const [searchTerm, setSearchTerm] = useState('');
+  const [apiSearchResults, setApiSearchResults] = useState<Tag[] | null>(null);
+  const [apiSearchLoading, setApiSearchLoading] = useState(false);
+  const [apiSearchError, setApiSearchError] = useState<Error | null>(null);
+  const [hasAttemptedApiSearch, setHasAttemptedApiSearch] = useState(false);
   const stackOverflowTeamsApi = useApi(stackoverflowteamsApiRef);
 
   const [baseUrl, setBaseUrl] = useState<string>('');
@@ -76,16 +77,66 @@ export const StackOverflowTags = () => {
     fetchData();
   }, [fetchData]);
 
-  if (loading) {
-    return <Progress />;
-  }
+  // Debounced API search function
+  const searchTagsViaApi = useCallback(async (searchQuery: string) => {
+    if (!searchQuery.trim()) {
+      setApiSearchResults(null);
+      setHasAttemptedApiSearch(false);
+      return;
+    }
 
-  if (error) {
-    return <ResponseErrorPanel error={error} />;
-  }
+    setApiSearchLoading(true);
+    setApiSearchError(null);
+    setHasAttemptedApiSearch(false);
+    
+    try {
+      const response = await stackOverflowTeamsApi.getTags(searchQuery);
+      setApiSearchResults(response.items || []);
+    } catch (err) {
+      setApiSearchError(err as Error);
+      setApiSearchResults([]);
+    } finally {
+      setApiSearchLoading(false);
+      setHasAttemptedApiSearch(true);
+    }
+  }, [stackOverflowTeamsApi]);
 
-  const filteredTags = (data?.tags || []).filter(tag =>
+  // Debounce the search to avoid too many API calls
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const localFilteredTags = (data?.tags || []).filter(tag =>
+        tag.name.toLowerCase().includes(searchTerm.toLowerCase()),
+      );
+
+      // If no local results and we have a search term, try API search
+      if (localFilteredTags.length === 0 && searchTerm.trim()) {
+        searchTagsViaApi(searchTerm);
+      } else {
+        // Reset API search results when we have local results or no search term
+        setApiSearchResults(null);
+        setApiSearchError(null);
+        setHasAttemptedApiSearch(false);
+      }
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(timer);
+  }, [searchTerm, data?.tags, searchTagsViaApi]);
+
+  const localFilteredTags = (data?.tags || []).filter(tag =>
     tag.name.toLowerCase().includes(searchTerm.toLowerCase()),
+  );
+
+  const shouldShowApiResults = localFilteredTags.length === 0 && searchTerm.trim() && hasAttemptedApiSearch && apiSearchResults !== null;
+  const tagsToShow = shouldShowApiResults ? apiSearchResults : localFilteredTags;
+  const isShowingApiResults = shouldShowApiResults;
+  const currentLoading = apiSearchLoading;
+  const currentError = apiSearchError;
+
+  const shouldShowResults = !currentLoading && !currentError && (
+    // Show local results if we have them
+    localFilteredTags.length > 0 ||
+    // Show API results if we have attempted API search and got results
+    (hasAttemptedApiSearch && apiSearchResults !== null)
   );
 
   return (
@@ -107,11 +158,33 @@ export const StackOverflowTags = () => {
         />
       </Box>
 
-      <StackOverflowTagList
-        tags={filteredTags}
-        searchTerm={searchTerm}
-        baseUrl={baseUrl}
-      />
+      {/* Show initial loading state */}
+      {loading && <Progress />}
+      
+      {/* Show initial error state */}
+      {error && <ResponseErrorPanel error={error} />}
+      
+      {/* Only show content when initial data is loaded */}
+      {!loading && !error && (
+        <>
+          {/* Show API search loading */}
+          {currentLoading && <Progress />}
+          
+          {/* Show API search error */}
+          {currentError && <ResponseErrorPanel error={currentError} />}
+          
+          {/* Show results when appropriate */}
+          {shouldShowResults && (
+            <StackOverflowTagList
+              tags={tagsToShow || []}
+              searchTerm={searchTerm}
+              baseUrl={baseUrl}
+              isApiSearch={!!isShowingApiResults}
+              isSearching={currentLoading}
+            />
+          )}
+        </>
+      )}
     </div>
   );
 };
