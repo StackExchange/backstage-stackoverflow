@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useApi } from '@backstage/core-plugin-api';
 import { Question, stackoverflowteamsApiRef, Tag, User } from '../../../api/';
 
