@@ -32,7 +32,6 @@ const useStyles = makeStyles(theme => ({
     transition: theme.transitions.create(['box-shadow', 'transform'], {
       duration: theme.transitions.duration.short,
     }),
-    cursor: 'pointer',
     '&:hover': {
       boxShadow: theme.shadows[4],
     },
@@ -105,81 +104,79 @@ const UserCard = ({ user }: { user: User }) => {
   const isModerator = user.role === 'Moderator';
   const isAdmin = user.role === 'Admin';
 
-  const handleCardClick = () => {
-    window.open(user.webUrl, '_blank', 'noopener,noreferrer');
-  };
-
   return (
-    <Card className={classes.userCard} onClick={handleCardClick}>
-      <CardContent className={classes.cardContent}>
-        <Box className={classes.cardHeader}>
-          <Avatar 
-            src={user.avatarUrl} 
-            alt={user.name}
-            className={classes.avatar}
-          >
-            <PersonIcon />
-          </Avatar>
-          <Box className={classes.userInfo}>
-            <Typography 
-              variant="h6" 
-              noWrap 
-              className={classes.userName}
+   <Link to={user.webUrl} target="_blank" rel="Backstage_Plugin" style={{ textDecoration: 'none' }}>
+      <Card className={classes.userCard}>
+        <CardContent className={classes.cardContent}>
+          <Box className={classes.cardHeader}>
+            <Avatar 
+              src={user.avatarUrl} 
+              alt={user.name}
+              className={classes.avatar}
             >
-              {user.name}
-            </Typography>
-            <Box className={classes.jobTitle}>
-              {user.jobTitle ? (
-                <Typography variant="body2" color="textSecondary" noWrap>
-                  {user.jobTitle}
-                </Typography>
-              ) : (
-                <Box /> // Empty box to maintain consistent spacing
-              )}
-            </Box>
-            <Box className={classes.departmentContainer}>
-              {user.department ? (
-                <Box display="flex" alignItems="center">
-                  <BusinessIcon fontSize="small" color="disabled" />
-                  <Box ml={0.5}>
-                    <Typography variant="body2" color="textSecondary" noWrap>
-                      {user.department}
-                    </Typography>
+              <PersonIcon />
+            </Avatar>
+            <Box className={classes.userInfo}>
+              <Typography 
+                variant="h6" 
+                noWrap 
+                className={classes.userName}
+              >
+                {user.name}
+              </Typography>
+              <Box className={classes.jobTitle}>
+                {user.jobTitle ? (
+                  <Typography variant="body2" color="textSecondary" noWrap>
+                    {user.jobTitle}
+                  </Typography>
+                ) : (
+                  <Box />
+                )}
+              </Box>
+              <Box className={classes.departmentContainer}>
+                {user.department ? (
+                  <Box display="flex" alignItems="center">
+                    <BusinessIcon fontSize="small" color="disabled" />
+                    <Box ml={0.5}>
+                      <Typography variant="body2" color="textSecondary" noWrap>
+                        {user.department}
+                      </Typography>
+                    </Box>
                   </Box>
-                </Box>
-              ) : (
-                <Box /> // Empty box to maintain consistent spacing
+                ) : (
+                  <Box />
+                )}
+              </Box>
+            </Box>
+            <IconButton size="small" aria-label="open profile">
+              <LaunchIcon fontSize="small" />
+            </IconButton>
+          </Box>
+          
+          <Box className={classes.cardFooter}>
+            <Chip
+              size="small"
+              label={`${user.reputation.toLocaleString()} rep`}
+              className={classes.reputationChip}
+              variant="default"
+            />
+            <Box>
+              {(isModerator || isAdmin) && (
+                <Chip
+                  label={isModerator ? 'Moderator' : 'Admin'}
+                  size="small"
+                  color={isModerator ? 'primary' : 'secondary'}
+                  variant="outlined"
+                  className={classes.roleChip}
+                />
               )}
             </Box>
           </Box>
-          <IconButton size="small" aria-label="open profile">
-            <LaunchIcon fontSize="small" />
-          </IconButton>
-        </Box>
-        
-        <Box className={classes.cardFooter}>
-          <Chip
-            size="small"
-            label={`${user.reputation.toLocaleString()} rep`}
-            className={classes.reputationChip}
-            variant="default"
-          />
-          <Box>
-            {(isModerator || isAdmin) && (
-              <Chip
-                label={isModerator ? 'Moderator' : 'Admin'}
-                size="small"
-                color={isModerator ? 'primary' : 'secondary'}
-                variant="outlined"
-                className={classes.roleChip}
-              />
-            )}
-          </Box>
-        </Box>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </Link>
   );
-};
+}
 
 const StackOverflowUserList = ({
   users,
