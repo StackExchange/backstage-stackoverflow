@@ -44,7 +44,7 @@ It adds a more Stack Overflow-like interface, including additional information s
 
 - **`<StackOverflowQuestion />`**
   
-  Retrieves questions from the API. Uses standard pagination, displaying only the first 30 API results.
+  Retrieves questions from the API. Uses API pagination to navigate all pages of questions available to the instance.
 
 - **`<StackOverflowTags />`**
   
