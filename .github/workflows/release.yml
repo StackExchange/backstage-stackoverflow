@@ -7,6 +7,11 @@ on:
       - 'plugins/**'
   workflow_dispatch:  
 
+# Required for trusted publishing
+permissions:
+  contents: read
+  id-token: write  # Needed for provenance and trusted publishing
+
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
@@ -21,7 +26,8 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 20.x
-          cache: 'yarn'  
+          cache: 'yarn'
+          registry-url: 'https://registry.npmjs.org'
 
       - name: Install Dependencies
         run: yarn install --frozen-lockfile
@@ -30,7 +36,6 @@ jobs:
         id: changesets
         uses: changesets/action@v1
         with:
-          publish: yarn changeset publish
+          publish: yarn changeset publish --provenance
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
