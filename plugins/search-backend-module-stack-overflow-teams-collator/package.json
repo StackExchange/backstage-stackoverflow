@@ -1,5 +1,5 @@
 {
-  "name": "backstage-stack-overflow-teams-collator",
+  "name": "@stackoverflow/backstage-stack-overflow-teams-collator",
   "version": "1.3.2",
   "description": "A module for the search backend that exports stack overflow for teams modules",
   "backstage": {
