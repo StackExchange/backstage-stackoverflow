@@ -8,7 +8,7 @@ It provides the UI and interacts with the [backend service](https://github.com/E
 
 ### Backend Dependency
 
-To fully utilize this plugin, you must also install and configure the corresponding **backend package** (`backstage-plugin-stack-overflow-teams-backend`) in your Backstage backend. The frontend plugin relies on the backend for API communication and authentication handling.
+To fully utilize this plugin, you must also install and configure the corresponding **backend package** (`@stackoverflow/backstage-plugin-stack-overflow-teams-backend`) in your Backstage backend. The frontend plugin relies on the backend for API communication and authentication handling.
 
 ## More details
 
