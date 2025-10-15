@@ -18,7 +18,7 @@ export interface Config {
     /**
      * Configuration options for the stack overflow for teams frontend plugin. 
      * 
-     * This configuration is shared with the backstage-plugin-stack-overflow-teams-backend and backstage-stack-overflow-teams-collator
+     * This configuration is shared with the @stackoverflow/backstage-plugin-stack-overflow-teams-backend and @stackoverflow/backstage-stack-overflow-teams-collator
      */
     stackoverflow?: {
       /**

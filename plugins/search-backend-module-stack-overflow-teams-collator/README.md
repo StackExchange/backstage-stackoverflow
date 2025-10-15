@@ -57,7 +57,7 @@ Add the module package as a dependency:
 
 ```bash
 # From your Backstage root directory
-yarn --cwd packages/backend add backstage-stack-overflow-teams-collator
+yarn --cwd packages/backend add @stackoverflow/backstage-stack-overflow-teams-collator
 ```
 
 Add the collator to your backend instance, along with the search plugin itself:
@@ -69,7 +69,7 @@ import { createBackend } from '@backstage/backend-defaults';
 const backend = createBackend();
 backend.add(import('@backstage/plugin-search-backend'));
 backend.add(
-  import('backstage-stack-overflow-teams-collator'),
+  import('@stackoverflow/backstage-stack-overflow-teams-collator'),
 );
 backend.start();
 ```

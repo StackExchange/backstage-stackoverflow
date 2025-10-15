@@ -11,8 +11,8 @@
     "role": "backend-plugin",
     "pluginId": "stack-overflow-teams",
     "pluginPackages": [
-      "backstage-plugin-stack-overflow-teams",
-      "backstage-plugin-stack-overflow-teams-backend"
+      "@stackoverflow/backstage-plugin-stack-overflow-teams",
+      "@stackoverflow/backstage-plugin-stack-overflow-teams-backend"
     ]
   },
   "repository": {

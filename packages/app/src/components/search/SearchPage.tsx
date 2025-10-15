@@ -19,7 +19,7 @@ import { useApi } from '@backstage/core-plugin-api';
 import {
   StackOverflowIcon,
   StackOverflowSearchResultListItem,
-} from 'backstage-plugin-stack-overflow-teams';
+} from '@stackoverflow/backstage-plugin-stack-overflow-teams';
 
 const useStyles = makeStyles((theme: Theme) => ({
   bar: {

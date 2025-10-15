@@ -1,4 +1,3 @@
-
 # Backstage - Stack Overflow for Teams Plugin
 
 ## Overview
@@ -9,26 +8,33 @@ These plugins also allow you to securely create **Stack Overflow for Teams** que
 
 ## Key Features
 
+### OAuth Authentication
+
+The plugin uses OAuth authentication to ensure that only authorised users can post questions to your Stack Overflow instance from Backstage. The OAuth process is secure, user-friendly, and integrates seamlessly with Backstage, providing a safe way to verify user identities before allowing access to question creation features.
+
 ### Top Users and Tags
 Displays the top users and tags from your Stack Overflow instance, giving you insights into the most active contributors and trending topics.
 
-![alt text](https://i.imgur.com/vsCQUx2.png)
-![alt text](https://i.imgur.com/Wd2mzfa.png)
+<img width="2260" height="1264" alt="image" src="https://github.com/user-attachments/assets/a28f5380-f9f8-453a-b60e-855c02c45f38" />
+<img width="449" height="316" alt="Screenshot 2025-08-05 at 23 14 15" src="https://github.com/user-attachments/assets/64fbb6bf-b1fd-422b-8be6-7b5b1a2d5483" />
+
 
 ### Question Indexing
-Retrieves all the questions from your Stack Overflow instance and indexes them into Backstage search. This makes it easier to search and discover questions across your organization.
+Retrieves all the questions from your Stack Overflow instance and indexes them into Backstage search. This makes it easier to search and discover questions across your organisation.
 
 ![alt text](https://i.imgur.com/HLKNAZb.png)
 
 ### Stack Overflow Hub
-A centralized hub within Backstage that showcases the top questions. The hub also allows you to filter questions like you would on Stack Overflow.
+A centralised hub within Backstage that showcases the top questions. The hub also allows you to filter questions like you would on Stack Overflow.
 
-![alt text](https://i.imgur.com/WUJMl48.png)
+<img width="2269" height="1260" alt="image" src="https://github.com/user-attachments/assets/da2059ec-3507-4b2c-86c4-ce799d2d4d67" />
 
-### OAuth Authentication for Secure Question Creation
-One of the most exciting features of this plugin is the ability to securely create questions on your Stack Overflow instance directly from Backstage using OAuth. The authentication process is secure, ensuring that only authorized users can post questions, and it is designed to seamlessly integrate with Backstage.
+### Question Creation Form
 
-![alt text](https://i.imgur.com/8VxMDys.png)
+Once authenticated, users can create questions using a dedicated form within Backstage. This form features a rich text editor for formatting questions, question tips and tag autocompletion to help users categorise their questions efficiently.
+
+<img width="2553" height="1263" alt="image" src="https://github.com/user-attachments/assets/2e3a89c6-291f-43d2-ba1e-7e284c7775bb" />
+
 
 ## Demo Docker Image
 

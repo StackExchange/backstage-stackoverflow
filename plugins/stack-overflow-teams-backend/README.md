@@ -37,10 +37,10 @@ The backend is the only component that directly utilizes the **encrypted Stack O
 
 ## Installation
 
-This plugin is installed via the `backstage-plugin-stack-overflow-teams-backend` package. To install it to your backend package, run the following command:
+This plugin is installed via the `@stackoverflow/backstage-plugin-stack-overflow-teams-backend` package. To install it to your backend package, run the following command:
 
 ```bash
-yarn --cwd packages/backend add backstage-plugin-stack-overflow-teams-backend
+yarn --cwd packages/backend add @stackoverflow/backstage-plugin-stack-overflow-teams-backend
 ```
 
 Then add the plugin to your backend in `packages/backend/src/index.ts`:
@@ -50,7 +50,7 @@ const backend = createBackend();
 
 // ...
 
-backend.add(import('backstage-plugin-stack-overflow-teams-backend'));
+backend.add(import('@stackoverflow/backstage-plugin-stack-overflow-teams-backend'));
 ```
 
 ## Development
