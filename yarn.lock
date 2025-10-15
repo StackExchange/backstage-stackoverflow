@@ -3021,7 +3021,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@backstage/plugin-auth-node@npm:^0.6.0, @backstage/plugin-auth-node@npm:^0.6.1, @backstage/plugin-auth-node@npm:^0.6.2, @backstage/plugin-auth-node@npm:^0.6.3, @backstage/plugin-auth-node@npm:^0.6.5, @backstage/plugin-auth-node@npm:^0.6.8":
+"@backstage/plugin-auth-node@npm:^0.6.0, @backstage/plugin-auth-node@npm:^0.6.2, @backstage/plugin-auth-node@npm:^0.6.3, @backstage/plugin-auth-node@npm:^0.6.5, @backstage/plugin-auth-node@npm:^0.6.8":
   version: 0.6.8
   resolution: "@backstage/plugin-auth-node@npm:0.6.8"
   dependencies:
@@ -3523,17 +3523,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@backstage/plugin-permission-backend@npm:^0.5.52":
-  version: 0.5.55
-  resolution: "@backstage/plugin-permission-backend@npm:0.5.55"
+"@backstage/plugin-permission-backend@npm:^0.6.0":
+  version: 0.6.0
+  resolution: "@backstage/plugin-permission-backend@npm:0.6.0"
   dependencies:
     "@backstage/backend-common": "npm:^0.25.0"
-    "@backstage/backend-plugin-api": "npm:^1.2.1"
+    "@backstage/backend-plugin-api": "npm:^1.3.0"
     "@backstage/config": "npm:^1.3.2"
     "@backstage/errors": "npm:^1.2.7"
-    "@backstage/plugin-auth-node": "npm:^0.6.1"
+    "@backstage/plugin-auth-node": "npm:^0.6.2"
     "@backstage/plugin-permission-common": "npm:^0.8.4"
-    "@backstage/plugin-permission-node": "npm:^0.9.0"
+    "@backstage/plugin-permission-node": "npm:^0.9.1"
     "@types/express": "npm:^4.17.6"
     dataloader: "npm:^2.0.0"
     express: "npm:^4.17.1"
@@ -3541,7 +3541,7 @@ __metadata:
     lodash: "npm:^4.17.21"
     yn: "npm:^4.0.0"
     zod: "npm:^3.22.4"
-  checksum: 10c0/e3ca593fba72286af2be7e656a7ce3a6f2b0a0a627f6155b07491aaf49972f934042d0c0bde5f6691ae33eb1c5eeb43403f8cdf40f76cd1143b443d1598ef039
+  checksum: 10c0/01ac3dc818d327dee615f3d42020d186029b45edc489c9511f55cbc4e89d3f5c2c7f9854a665ec614b1563b26c818315a7e59eccec735b566201f9d8d888b0f8
   languageName: node
   linkType: hard
 
@@ -3612,7 +3612,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@backstage/plugin-permission-node@npm:^0.9.0":
+"@backstage/plugin-permission-node@npm:^0.9.1":
   version: 0.9.1
   resolution: "@backstage/plugin-permission-node@npm:0.9.1"
   dependencies:
@@ -14376,12 +14376,12 @@ __metadata:
     "@backstage/plugin-catalog-backend-module-logs": "npm:^0.1.5"
     "@backstage/plugin-catalog-backend-module-scaffolder-entity-model": "npm:^0.2.3"
     "@backstage/plugin-kubernetes-backend": "npm:^0.19.1"
-    "@backstage/plugin-permission-backend": "npm:^0.5.52"
+    "@backstage/plugin-permission-backend": "npm:^0.6.0"
     "@backstage/plugin-permission-backend-module-allow-all-policy": "npm:^0.2.3"
     "@backstage/plugin-permission-common": "npm:^0.8.3"
     "@backstage/plugin-permission-node": "npm:^0.8.6"
     "@backstage/plugin-proxy-backend": "npm:^0.5.9"
-    "@backstage/plugin-scaffolder-backend": "npm:^1.28.0"
+    "@backstage/plugin-scaffolder-backend": "npm:^2.1.1"
     "@backstage/plugin-scaffolder-backend-module-github": "npm:^0.5.4"
     "@backstage/plugin-search-backend": "npm:^1.8.0"
     "@backstage/plugin-search-backend-module-catalog": "npm:^0.2.6"
