@@ -42,9 +42,6 @@ jobs:
 
       - name: Install Dependencies
         run: yarn install
-        env:
-          PYTHON: python3
-          NODE_OPTIONS: "--max-old-space-size=4096"
 
       - name: Create Release Pull Request or Publish to npm
         id: changesets
