@@ -1,6 +1,6 @@
 {
   "name": "@stackoverflow/backstage-stack-overflow-teams-collator",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "description": "A module for the search backend that exports stack overflow for teams modules",
   "backstage": {
     "role": "backend-plugin-module",
