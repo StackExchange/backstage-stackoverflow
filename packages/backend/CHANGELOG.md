@@ -1,13 +1,12 @@
-# @stackoverflow/backstage-stack-overflow-teams-collator
+# backend
 
-## 1.5.0
+## 0.1.0
 
 ### Minor Changes
 
 - ebbd62a: Fixed issue with collator NPM package, fixed UI issue with frontend plugin, updated backend and app local dev environments to the latest backstage version
 
-## 1.4.0
+### Patch Changes
 
-### Minor Changes
-
-- a30ff98: Changeset tracking added + NPM repository is now under Stackoverflow org
+- Updated dependencies [ebbd62a]
+  - @stackoverflow/backstage-stack-overflow-teams-collator@1.5.0
