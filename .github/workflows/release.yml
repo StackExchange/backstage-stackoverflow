@@ -9,7 +9,8 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write  
+  pull-requests: write  
   id-token: write
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
