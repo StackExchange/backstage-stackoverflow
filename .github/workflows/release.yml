@@ -8,11 +8,6 @@ on:
       - 'plugins/**'
   workflow_dispatch:
 
-permissions:
-  contents: write  
-  pull-requests: write  
-  id-token: write
-
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
