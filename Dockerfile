@@ -1,7 +1,7 @@
 # DO NOT USE THIS IN PRODUCTION
 # 
 # This Dockerfile builds a Docker image for a pre-configured Backstage instance
-# with the Stack Overflow plugins installed. It’s designed as a quick way to try 
+# with the Stack Overflow Internal plugins installed. It’s designed as a quick way to try 
 # out the integration without having to set it up yourself. 
 #
 # This is not intended for production use.

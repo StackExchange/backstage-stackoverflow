@@ -16,7 +16,7 @@
 import React from 'react';
 
 /**
- * Stack Overflow Icon
+ * Stack Overflow Internal Icon
  * @public
  */
 export const StackOverflowIcon = () => {

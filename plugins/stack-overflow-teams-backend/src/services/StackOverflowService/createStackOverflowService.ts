@@ -19,7 +19,7 @@ export async function createStackOverflowService({
   logger: LoggerService;
 }): Promise<StackOverflowAPI> {
   // LOGGER
-  logger.info('Initializing Stack Overflow Service');
+  logger.info('Initializing Stack Overflow Internal Service');
 
   if (config.baseUrl && config.teamName) {
     logger.warn(

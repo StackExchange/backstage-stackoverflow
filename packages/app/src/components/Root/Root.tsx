@@ -80,7 +80,7 @@ export const Root = ({ children }: PropsWithChildren<{}>) => (
         <SidebarItem
           icon={StackOverflowIcon}
           to="stack-overflow-teams"
-          text="Stack Overflow"
+          text="Stack Overflow Internal"
         />
         <SidebarItem
           icon={StackOverflowIcon}

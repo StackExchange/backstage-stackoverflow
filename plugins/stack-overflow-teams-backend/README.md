@@ -1,23 +1,23 @@
-# Stack Overflow Teams Backend Plugin
+# Stack Internal Backend Plugin
 
-Backend counterpart of the Stack Overflow for Teams Plugin.
+Backend counterpart of the Stack Internal Plugin.
 
 ## Areas of Responsibility
 
-The **Stack Overflow for Teams Backend plugin** is responsible for:
+The **Stack Internal Backend plugin** is responsible for:
 
-- **Indexing all questions** from the private Stack Overflow instance (an enhanced version of the existing community plugins in the Backstage repository).
-- **Handling API requests** via ``createStackOverflowApi`` and ``createStackOverflowService`` to the Stack Overflow instance for retrieving:
+- **Indexing all questions** from the private Stack Overflow Internal instance (an enhanced version of the existing community plugins in the Backstage repository).
+- **Handling API requests** via ``createStackOverflowApi`` and ``createStackOverflowService`` to the Stack Overflow Internal instance for retrieving:
   - `/users`
   - `/tags`
   - `/questions`
   - Posting new questions via `/questions`
-- **Managing OAuth authentication flow** to securely access Stack Overflow private instances via ``createStackOverflowAuth``
-- **HTTP-only cookie** the Stack Overflow Token is set as a secure http-only cookie to the frontend with 24 hours expiration.
+- **Managing OAuth authentication flow** to securely access Stack Overflow Internal private instances via ``createStackOverflowAuth``
+- **HTTP-only cookie** the Stack Overflow Internal Token is set as a secure http-only cookie to the frontend with 24 hours expiration.
 
 ## OAuth Authentication Flow
 
-The backend is the only component that directly utilizes the **encrypted Stack Overflow access tokens** for requests.
+The backend is the only component that directly utilizes the **encrypted Stack Overflow Internal access tokens** for requests.
 
 ### **Authorization Flow Details**
 
@@ -31,9 +31,9 @@ The backend is the only component that directly utilizes the **encrypted Stack O
 #### **`/callback`**
 
 - Retrieves the stored **Code Verifier** and **State**.
-- Validates that the received **state** matches the one from Stack Overflow's query string parameter.
+- Validates that the received **state** matches the one from Stack Overflow Internal's query string parameter.
 - The backend requests an **Access Token** using the stored **Code Verifier**.
-- Stores the **Stack Overflow Access Token** in a **secure, HTTP-only cookie**.
+- Stores the **Stack Overflow Internal Access Token** in a **secure, HTTP-only cookie**.
 
 ## Installation
 

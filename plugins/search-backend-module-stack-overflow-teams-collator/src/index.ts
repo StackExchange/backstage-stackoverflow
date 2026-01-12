@@ -16,7 +16,7 @@
 
 /**
  * @packageDocumentation
- * A module for the search backend that exports Stack Overflow modules.
+ * A module for the search backend that exports Stack Overflow Internal modules.
  */
 
 export * from './collators';

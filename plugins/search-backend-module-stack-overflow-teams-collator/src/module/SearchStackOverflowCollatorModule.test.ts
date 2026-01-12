@@ -25,7 +25,7 @@ describe('searchStackOverflowCollatorModule', () => {
     initialDelay: { seconds: 3 },
   };
 
-  it('should register the stack overflow collator to the search index registry extension point with factory and schedule', async () => {
+  it('should register the Stack Overflow Internal collator to the search index registry extension point with factory and schedule', async () => {
     const extensionPointMock = {
       addCollator: jest.fn(),
     };

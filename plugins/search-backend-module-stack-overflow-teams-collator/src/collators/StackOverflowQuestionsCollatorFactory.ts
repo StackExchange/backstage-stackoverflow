@@ -131,7 +131,7 @@ export class StackOverflowQuestionsCollatorFactory
   // Error logging and debugging
 
   async *execute(): AsyncGenerator<StackOverflowDocument> {
-    this.logger.info(`Retrieving data using Stack Overflow API Version 3`);
+    this.logger.info(`Retrieving data using Stack Overflow Internal API Version 3`);
 
     if (!this.baseUrl && this.teamName) {
       this.logger.info(
@@ -172,7 +172,7 @@ export class StackOverflowQuestionsCollatorFactory
     let totalPages = 1;
     const pageSize = this.requestParams.pageSize || 50;
     this.logger.warn(
-      'Starting collating Stack Overflow for Teams questions, wait for the success message',
+      'Starting collating Stack Internal questions, wait for the success message',
     );
     while (page <= totalPages) {
       const res = await fetch(

@@ -49,12 +49,12 @@ export const StackOverflowHub = () => {
 
   return (
   <Page themeId="plugin">
-    <Header title="Welcome to Stack Overflow Teams!" subtitle="Your team's collective knowledge at your fingertips.">
+    <Header title="Welcome to Stack Internal!" subtitle="Your team's collective knowledge at your fingertips.">
       <HeaderLabel label="Connected to" value={instanceValue} />
       <HeaderLabel label="Plugin Version" value={`v${packageJson.version}`} />
     </Header>
     <Content>
-      <ContentHeader title="Stack Overflow for Teams"/>
+      <ContentHeader title="Stack Internal"/>
       <Grid container spacing={3}>
         {/* Main Questions Section */}
         <Grid item xs={12} md={8}>
@@ -97,7 +97,7 @@ export const StackOverflowHub = () => {
                       </Box>
                       <StackOverflowMe />
                     </Box>
-                    <Tooltip title="Information from your Stack Overflow for Teams profile.">
+                    <Tooltip title="Information from your Stack Internal profile.">
                       
                         <Help />
                       
