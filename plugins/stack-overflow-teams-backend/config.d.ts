@@ -16,34 +16,34 @@
 
 export interface Config {
     /**
-     * Configuration options for the stack overflow for teams frontend plugin. 
+     * Configuration options for the Stack Internal frontend plugin. 
      * 
      * This configuration is shared with the @stackoverflow/backstage-plugin-stack-overflow-teams-backend and @stackoverflow/backstage-stack-overflow-teams-collator
      */
     stackoverflow?: {
       /**
-       * The base url of the Stack Overflow API used for the plugin
+       * The base url of the Stack Overflow Internal API used for the plugin
        */
       baseUrl: string;
   
       /**
-       * The API Access Token to authenticate to Stack Overflow API Version 3
+       * The API Access Token to authenticate to Stack Overflow Internal API Version 3
        * @visibility secret
        */
       apiAccessToken: string;
   
       /**
-       * The name of the team for a Stack Overflow for Teams account, required for Basic and Business tiers.
+       * The name of the team for a Stack Internal account, required for Basic and Business tiers.
        */
       teamName?: string;
 
       /**
-       * Client Id for the OAuth Application, required only for Stack Overflow Enterprise and write actions.
+       * Client Id for the OAuth Application, required only for Stack Internal Enterprise and write actions.
        */
       clientId?: number;
 
       /**
-       * RedirectUri for the OAuth Application, required only for Stack Overflow Enterprise and write actions.
+       * RedirectUri for the OAuth Application, required only for Stack Internal Enterprise and write actions.
        * 
        * This should be your Backstage application domain ending in the plugin's <StackOverflowTeamsPage /> route
        * If not specified this will got to your <app.baseUrl>/stack-overflow-teams

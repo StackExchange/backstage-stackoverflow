@@ -30,7 +30,7 @@ export const StackAuthFailed = () => {
        
         onClick={() => navigate('/stack-overflow-teams')} 
       >
-        Return to Stack Overflow for Teams
+        Return to Stack Internal
       </Button>
       </Box>
     </Box>

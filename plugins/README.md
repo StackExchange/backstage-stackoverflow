@@ -1,15 +1,15 @@
 
   
 
-# Stack Overflow for Teams Plugins for Backstage
+# Stack Internal Plugins for Backstage
 
   
 
-Based on the existing [**Community Plugins**](https://github.com/backstage/community-plugins/tree/main/workspaces/stack-overflow/plugins) for Stack Overflow, this version introduces two new plugins:
+Based on the existing [**Community Plugins**](https://github.com/backstage/community-plugins/tree/main/workspaces/stack-overflow/plugins) for Stack Overflow Internal, this version introduces two new plugins:
 
-- A **frontend plugin** responsible for displaying Stack Overflow for Teams data.
+- A **frontend plugin** responsible for displaying Stack Internal data.
 
-- A **backend plugin** responsible for fetching and creating Stack Overflow for Teams data.
+- A **backend plugin** responsible for fetching and creating Stack Internal data.
 
   
 
@@ -35,7 +35,7 @@ Displays information about the authenticated user.
 
 -  **`<StackOverflowPostQuestionModal />`**
 
-Provides a form for users to create a new Stack Overflow question. Once submitted, an API request is executed to create the question.
+Provides a form for users to create a new Stack Overflow Internal question. Once submitted, an API request is executed to create the question.
 
   
 
@@ -71,7 +71,7 @@ Initiates **`/auth/start`** on the backend.
 
 -  **`<StackAuthCallback />`**
 
-Receives the code and state from your Stack Overflow Enterprise instance as part of the OAuth process and initiates **`/callback`** in the backend.
+Receives the code and state from your Stack Internal Enterprise instance as part of the OAuth process and initiates **`/callback`** in the backend.
 
   
 
@@ -107,9 +107,9 @@ The **Backstage backend plugin** (the **Teams plugin**) is responsible for:
 
   
 
--  **Indexing all questions** from the private Stack Overflow instance (an enhanced version of the existing community plugins in the Backstage repository).
+-  **Indexing all questions** from the private Stack Overflow Internal instance (an enhanced version of the existing community plugins in the Backstage repository).
 
--  **Handling API requests** via ``createStackOverflowApi`` and ``createStackOverflowService`` to the Stack Overflow instance for retrieving:
+-  **Handling API requests** via ``createStackOverflowApi`` and ``createStackOverflowService`` to the Stack Overflow Internal instance for retrieving:
 
 -  `/users`
 
@@ -119,7 +119,7 @@ The **Backstage backend plugin** (the **Teams plugin**) is responsible for:
 
 - Posting new questions via `/questions`
 
--  **Managing OAuth authentication flow** to securely access Stack Overflow. via ``createStackOverflowAuth``
+-  **Managing OAuth authentication flow** to securely access Stack Overflow Internal. via ``createStackOverflowAuth``
 
   
 
@@ -127,7 +127,7 @@ The **Backstage backend plugin** (the **Teams plugin**) is responsible for:
 
   
 
-The backend is the only component that directly utilizes **Stack Overflow access tokens** for requests.
+The backend is the only component that directly utilizes **Stack Overflow Internal access tokens** for requests.
 
   
 
@@ -151,8 +151,8 @@ The backend is the only component that directly utilizes **Stack Overflow access
 
 - Retrieves the stored **Code Verifier** and **State**.
 
-- Validates that the received **state** matches the one from Stack Overflow's query string parameter.
+- Validates that the received **state** matches the one from Stack Overflow Internal's query string parameter.
 
 - The backend requests an **Access Token** using the stored **Code Verifier**.
 
-- Stores the **Stack Overflow Access Token** in a **secure, HTTP-only cookie**.
+- Stores the **Stack Overflow Internal Access Token** in a **secure, HTTP-only cookie**.

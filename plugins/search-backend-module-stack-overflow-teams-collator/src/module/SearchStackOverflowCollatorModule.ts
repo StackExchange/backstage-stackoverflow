@@ -24,7 +24,7 @@ import { StackOverflowQuestionsCollatorFactory } from '../collators';
 
 /**
  * @public
- * Search backend module for the Stack Overflow index.
+ * Search backend module for the Stack Overflow Internal index.
  */
 export const searchStackOverflowCollatorModule = createBackendModule({
   pluginId: 'search',

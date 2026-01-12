@@ -34,7 +34,7 @@ export const StackOverflowAuthStart = () => {
         const teamNameValue = await stackOverflowTeamsApi.getTeamName();
         setTeamName(teamNameValue);
       } catch (error) {
-        setAuthError('Failed to fetch Stack Overflow instance information.');
+        setAuthError('Failed to fetch Stack Overflow Internal instance information.');
       } finally {
         setIsLoading(false);
       }
@@ -97,7 +97,7 @@ export const StackOverflowAuthStart = () => {
         justifyContent="center"
         height="100vh"
       >
-        <Typography variant="body1">Loading Stack Overflow configuration...</Typography>
+        <Typography variant="body1">Loading Stack Overflow Internal configuration...</Typography>
       </Box>
     );
   }
@@ -124,7 +124,7 @@ export const StackOverflowAuthStart = () => {
       >
         <StackOverflowIcon />
         <Typography variant="h5" gutterBottom>
-          Stack Overflow for Teams
+          Stack Internal
         </Typography>
 
         {/* Standard OAuth login - only displayed if NOT on basic/business plan */}
@@ -136,7 +136,7 @@ export const StackOverflowAuthStart = () => {
               align="center"
               gutterBottom
             >
-              Connect with your Stack Overflow for Enterprise account
+              Connect with your Stack Internal Enterprise account
             </Typography>
 
             <Box mt={2} display="flex" justifyContent="center">
@@ -147,7 +147,7 @@ export const StackOverflowAuthStart = () => {
                 disabled={isSubmitting}
                 fullWidth
               >
-                Login with Stack Overflow
+                Login with Stack Overflow Internal
               </Button>
             </Box>
           </Box>
@@ -237,7 +237,7 @@ export const StackOverflowAuthStart = () => {
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
         <Alert severity="success" variant="filled">
-          Stack Overflow token accepted successfully!
+          Stack Overflow Internal token accepted successfully!
         </Alert>
       </Snackbar>
     </Box>

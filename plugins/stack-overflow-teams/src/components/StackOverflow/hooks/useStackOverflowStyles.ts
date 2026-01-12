@@ -1,7 +1,7 @@
 import { makeStyles, Theme } from '@material-ui/core/styles';
 
 /**
- * Reusable styles for Stack Overflow-themed components with dark mode support
+ * Reusable styles for Stack Overflow Internal-themed components with dark mode support
  */
 export const useStackOverflowStyles = makeStyles((theme: Theme) => ({
   title: {
@@ -19,7 +19,7 @@ export const useStackOverflowStyles = makeStyles((theme: Theme) => ({
     padding: '4px 8px',
   },
   button: {
-    backgroundColor: '#F48024', // Stack Overflow orange
+    backgroundColor: '#F48024', // Stack Overflow Internal orange
     color: '#fff',
     '&:hover': {
       backgroundColor: theme.palette.type === 'dark' ? '#C15C17' : '#D4691E',

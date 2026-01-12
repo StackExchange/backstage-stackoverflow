@@ -46,7 +46,7 @@ export async function createRouter({
       }
       return authToken;
     } catch (error: any) {
-      logger.error('Invalid or malformed Stack Overflow token', error);
+      logger.error('Invalid or malformed Stack Overflow Internal token', error);
       res.clearCookie('stackoverflow-access-token');
       return null;
     }
@@ -147,7 +147,7 @@ export async function createRouter({
         .clearCookie('socodeverifier')
         .clearCookie('state')
         .status(500)
-        .json({ error: 'Failed to authenticate to Stack Overflow for Teams' });
+        .json({ error: 'Failed to authenticate to Stack Internal' });
     }
   });
 
@@ -159,7 +159,7 @@ export async function createRouter({
         res.clearCookie('stackoverflow-access-token');
         return res
           .status(401)
-          .json({ error: 'Missing Stack Overflow Teams Access Token' });
+          .json({ error: 'Missing Stack Internal Access Token' });
       }
 
       const baseUrl = stackOverflowConfig.baseUrl;
@@ -187,7 +187,7 @@ export async function createRouter({
 
       return res
         .status(200)
-        .json({ ok: 'Stack Overflow Teams Access Token detected' });
+        .json({ ok: 'Stack Internal Access Token detected' });
     } catch (error: any) {
       logger.error('Error getting authentication status:', error);
       return res.status(500).json({ error: 'Internal Server Error' });
@@ -222,7 +222,7 @@ export async function createRouter({
         validationResponse.status === 401 ||
         validationResponse.status === 403
       ) {
-        return res.status(401).json({ error: 'Invalid Stack Overflow token' });
+        return res.status(401).json({ error: 'Invalid Stack Overflow Internal token' });
       }
 
       if (!validationResponse.ok) {
@@ -238,7 +238,7 @@ export async function createRouter({
           secure: process.env.NODE_ENV === 'production',
           sameSite: 'strict',
         })
-        .json({ ok: true, message: 'Stack Overflow token accepted' });
+        .json({ ok: true, message: 'Stack Overflow Internal token accepted' });
     } catch (error: any) {
       logger.error('Error setting manual access token:', error);
       return res.status(500).json({ error: 'Internal Server Error' });
@@ -273,10 +273,10 @@ export async function createRouter({
 
       return res.json({ SOInstance: baseUrl });
     } catch (error) {
-      console.error('Error fetching Stack Overflow base URL:', error);
+      console.error('Error fetching Stack Overflow Internal base URL:', error);
       return res
         .status(500)
-        .json({ error: 'Failed to fetch Stack Overflow base URL' });
+        .json({ error: 'Failed to fetch Stack Overflow Internal base URL' });
     }
   });
 
@@ -291,7 +291,7 @@ export async function createRouter({
       // Fix type issue when including the error for some reason
       logger.error('Error fetching questions', { error });
       res.status(500).send({
-        error: `Failed to fetch questions from the Stack Overflow instance`,
+        error: `Failed to fetch questions from the Stack Overflow Internal instance`,
       });
     }
   });
@@ -302,7 +302,7 @@ export async function createRouter({
       if (!authToken) {
         return res
           .status(401)
-          .json({ error: 'Missing Stack Overflow Teams Access Token' });
+          .json({ error: 'Missing Stack Internal Access Token' });
       }
       
       const filters = buildQuestionFilters(req.query);
@@ -311,7 +311,7 @@ export async function createRouter({
     } catch (error: any) {
       logger.error('Error fetching questions', { error });
       return res.status(500).send({
-        error: `Failed to fetch questions from the Stack Overflow instance`,
+        error: `Failed to fetch questions from the Stack Overflow Internal instance`,
       });
     }
   });
@@ -323,7 +323,7 @@ export async function createRouter({
       if (!authToken) {
         return res
           .status(401)
-          .json({ error: 'Missing Stack Overflow Teams Access Token' });
+          .json({ error: 'Missing Stack Internal Access Token' });
       }
       
       const page = req.query.page ? parseInt(req.query.page as string, 10) : undefined;
@@ -332,7 +332,7 @@ export async function createRouter({
     } catch (error: any) {
       logger.error('Error fetching active questions', { error });
       return res.status(500).send({
-        error: `Failed to fetch active questions from the Stack Overflow instance`,
+        error: `Failed to fetch active questions from the Stack Overflow Internal instance`,
       });
     }
   });
@@ -343,7 +343,7 @@ export async function createRouter({
       if (!authToken) {
         return res
           .status(401)
-          .json({ error: 'Missing Stack Overflow Teams Access Token' });
+          .json({ error: 'Missing Stack Internal Access Token' });
       }
       
       const page = req.query.page ? parseInt(req.query.page as string, 10) : undefined;
@@ -352,7 +352,7 @@ export async function createRouter({
     } catch (error: any) {
       logger.error('Error fetching newest questions', { error });
       return res.status(500).send({
-        error: `Failed to fetch newest questions from the Stack Overflow instance`,
+        error: `Failed to fetch newest questions from the Stack Overflow Internal instance`,
       });
     }
   });
@@ -363,7 +363,7 @@ export async function createRouter({
       if (!authToken) {
         return res
           .status(401)
-          .json({ error: 'Missing Stack Overflow Teams Access Token' });
+          .json({ error: 'Missing Stack Internal Access Token' });
       }
       
       const page = req.query.page ? parseInt(req.query.page as string, 10) : undefined;
@@ -372,7 +372,7 @@ export async function createRouter({
     } catch (error: any) {
       logger.error('Error fetching top scored questions', { error });
       return res.status(500).send({
-        error: `Failed to fetch top scored questions from the Stack Overflow instance`,
+        error: `Failed to fetch top scored questions from the Stack Overflow Internal instance`,
       });
     }
   });
@@ -383,7 +383,7 @@ export async function createRouter({
       if (!authToken) {
         return res
           .status(401)
-          .json({ error: 'Missing Stack Overflow Teams Access Token' });
+          .json({ error: 'Missing Stack Internal Access Token' });
       }
       
       const page = req.query.page ? parseInt(req.query.page as string, 10) : undefined;
@@ -392,7 +392,7 @@ export async function createRouter({
     } catch (error: any) {
       logger.error('Error fetching unanswered questions', { error });
       return res.status(500).send({
-        error: `Failed to fetch unanswered questions from the Stack Overflow instance`,
+        error: `Failed to fetch unanswered questions from the Stack Overflow Internal instance`,
       });
     }
   });
@@ -403,7 +403,7 @@ export async function createRouter({
       if (!authToken) {
         return res
           .status(401)
-          .json({ error: 'Missing Stack Overflow Teams Access Token' });
+          .json({ error: 'Missing Stack Internal Access Token' });
       }
       const search = req.query.search as string | undefined;
       const tags = await stackOverflowService.getTags(authToken, search);
@@ -411,7 +411,7 @@ export async function createRouter({
     } catch (error: any) {
       logger.error('Error fetching tags', { error });
       return res.status(500).send({
-        error: `Failed to fetch tags from the Stack Overflow instance`,
+        error: `Failed to fetch tags from the Stack Overflow Internal instance`,
       });
     }
   });
@@ -422,14 +422,14 @@ export async function createRouter({
       if (!authToken) {
         return res
           .status(401)
-          .json({ error: 'Missing Stack Overflow Teams Access Token' });
+          .json({ error: 'Missing Stack Internal Access Token' });
       }
       const users = await stackOverflowService.getUsers(authToken);
       return res.send(users);
     } catch (error: any) {
       logger.error('Error fetching users', { error });
       return res.status(500).send({
-        error: `Failed to fetch users from the Stack Overflow instance`,
+        error: `Failed to fetch users from the Stack Overflow Internal instance`,
       });
     }
   });
@@ -442,7 +442,7 @@ export async function createRouter({
       if (!authToken) {
         return res
           .status(401)
-          .json({ error: 'Missing Stack Overflow Teams Access Token' });
+          .json({ error: 'Missing Stack Internal Access Token' });
       }
       const searchResults = await stackOverflowService.getSearch(
         query,
@@ -453,7 +453,7 @@ export async function createRouter({
     } catch (error: any) {
       logger.error('Error searching items', { error });
       return res.status(500).json({
-        error: `Failed to search items on the Stack Overflow instance`,
+        error: `Failed to search items on the Stack Overflow Internal instance`,
       });
     }
   });
@@ -467,7 +467,7 @@ export async function createRouter({
       if (!authToken) {
         return res
           .status(401)
-          .json({ error: 'Missing Stack Overflow Teams Access Token' });
+          .json({ error: 'Missing Stack Internal Access Token' });
       }
       const question = await stackOverflowService.postQuestions(
         title,
@@ -484,7 +484,7 @@ export async function createRouter({
         });
       }
       return res.status(500).json({
-        error: `Failed to post question to the Stack Overflow instance`,
+        error: `Failed to post question to the Stack Overflow Internal instance`,
       });
     }
   });

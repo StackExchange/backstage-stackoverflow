@@ -35,7 +35,7 @@ const StackOverflowTagList = ({
       <Box textAlign="center" py={4}>
         <Typography variant="body1" gutterBottom>
           {isApiSearch 
-            ? `No tags found for "${searchTerm}" on your Stack Overflow Team`
+            ? `No tags found for "${searchTerm}" on your Stack Overflow Internal Team`
             : `No matching tags were found for "${searchTerm}"`
           }
         </Typography>

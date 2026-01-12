@@ -19,12 +19,12 @@ export const StackAuthSuccess = () => {
       <StackOverflowIcon />
       <Box mt={2}>
       <Typography variant="h5" >
-        You have successfully logged in with Stack Overflow!
+        You have successfully logged in with Stack Overflow Internal!
       </Typography>
       </Box>
       <Box mt={1}>
       <Typography variant="body1" >
-        You can now access all Stack Overflow features from Backstage
+        You can now access all Stack Overflow Internal features from Backstage
       </Typography>
       </Box>
       <Box mt={2}>
@@ -33,7 +33,7 @@ export const StackAuthSuccess = () => {
         className={classes.button}
         onClick={() => navigate('/stack-overflow-teams')}
       >
-        Return to Stack Overflow for Teams
+        Return to Stack Internal
       </Button>
       </Box>
     </Box>
