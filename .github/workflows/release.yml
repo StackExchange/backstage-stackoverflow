@@ -48,7 +48,7 @@ jobs:
         run: yarn tsc
 
       - name: Build plugins
-        run: yarn workspaces foreach --include 'plugins/*' run build
+        run: yarn workspaces foreach --all --include 'plugins/*' run build
 
       - name: Create Release Pull Request or Publish to npm
         id: changesets
