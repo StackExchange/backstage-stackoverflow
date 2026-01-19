@@ -1,6 +1,6 @@
 import { useApi } from '@backstage/core-plugin-api';
 import { stackoverflowteamsApiRef } from '../../api';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { StackAuthSuccess } from './StackAuthSuccess';
 import { StackAuthLoading } from './StackAuthLoading';

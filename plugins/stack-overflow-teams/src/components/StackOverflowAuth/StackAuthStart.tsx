@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useApi } from '@backstage/core-plugin-api';
 import { stackoverflowteamsApiRef } from '../../api';
 import Button from '@mui/material/Button';

@@ -1,4 +1,3 @@
-import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import { Box, Button, Typography } from '@mui/material';
 import { StackOverflowIcon } from '../../icons';

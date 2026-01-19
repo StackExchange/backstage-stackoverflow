@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useApi } from '@backstage/core-plugin-api';
 import { stackoverflowteamsApiRef } from '../api';
 import { useLocation } from 'react-router-dom';

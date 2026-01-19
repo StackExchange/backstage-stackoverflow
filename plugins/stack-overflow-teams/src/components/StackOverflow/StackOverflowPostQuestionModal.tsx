@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useApi } from '@backstage/core-plugin-api';
 import Chip from '@mui/material/Chip';
 import { stackoverflowteamsApiRef } from '../../api';

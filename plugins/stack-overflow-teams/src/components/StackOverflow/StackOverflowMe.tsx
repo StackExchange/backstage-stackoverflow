@@ -1,7 +1,6 @@
 import { useApi } from '@backstage/core-plugin-api';
 import { stackoverflowteamsApiRef, User } from '../../api';
 import { useEffect, useState } from 'react';
-import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {
   Box,

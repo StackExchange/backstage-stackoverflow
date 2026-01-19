@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import packageJson from '../../package.json'
 import { Typography, Grid, Box, Paper, Tooltip } from '@material-ui/core';
 import Help from '@material-ui/icons/Help';

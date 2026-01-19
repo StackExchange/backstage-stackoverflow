@@ -1,4 +1,3 @@
-import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import { Box, Typography, CircularProgress } from '@mui/material';
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, Progress, ResponseErrorPanel } from '@backstage/core-components';
 import { useStackOverflowData } from './hooks/';
 import {
