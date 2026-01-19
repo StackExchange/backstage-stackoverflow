@@ -1,5 +1,12 @@
 # app
 
+## 0.1.2
+
+### Patch Changes
+
+- Updated dependencies [d338a50]
+  - @stackoverflow/backstage-plugin-stack-overflow-teams@1.6.2
+
 ## 0.1.1
 
 ### Patch Changes
