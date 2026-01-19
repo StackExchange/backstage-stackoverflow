@@ -7,7 +7,7 @@
 # This is not intended for production use.
 
 # Stage 1 - Create yarn install skeleton layer
-FROM node:20-bookworm-slim AS packages
+FROM node:24-bookworm-slim AS packages
 
 WORKDIR /app
 COPY backstage.json package.json yarn.lock ./
