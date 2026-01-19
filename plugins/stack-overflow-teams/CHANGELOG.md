@@ -1,5 +1,11 @@
 # @stackoverflow/backstage-plugin-stack-overflow-teams
 
+## 1.6.2
+
+### Patch Changes
+
+- d338a50: Removed unnecessary React imports
+
 ## 1.6.1
 
 ### Patch Changes
