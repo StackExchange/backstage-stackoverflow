@@ -6,7 +6,7 @@ on:
       - "v*"
   
 env:
-  REGISTRY_IMAGE: estoesmoises/stackoverflow-backstage-demo
+  REGISTRY_IMAGE: stackoverflowdocker/stackoverflow-backstage-demo
 
 jobs:
   build-multi-arch:
