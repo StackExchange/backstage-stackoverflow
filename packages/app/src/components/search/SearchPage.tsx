@@ -60,7 +60,7 @@ const SearchPage = () => {
                 },
                 {
                   value: 'stack-overflow',
-                  name: 'Stack Overflow',
+                  name: 'Stack Internal',
                   icon: <StackOverflowIcon />,
                 },
               ]}
