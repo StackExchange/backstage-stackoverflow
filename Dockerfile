@@ -27,11 +27,15 @@ FROM node:22-bookworm-slim AS build
 # Set Python interpreter for `node-gyp` to use
 ENV PYTHON=/usr/bin/python3
 
+# Critical: Increase memory and timeout for ARM64 cross-compilation
+ENV NODE_OPTIONS="--max-old-space-size=8192"
+ENV YARN_NETWORK_TIMEOUT=300000
+
 # Install isolate-vm dependencies, these are needed by the @backstage/plugin-scaffolder-backend.
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get update && \
-    apt-get install -y --no-install-recommends python3 g++ build-essential && \
+    apt-get install -y --no-install-recommends python3 g++ build-essential git && \
     rm -rf /var/lib/apt/lists/*
 
 # Install sqlite3 dependencies. You can skip this if you don't use sqlite3 in the image,
@@ -47,8 +51,8 @@ WORKDIR /app
 
 COPY --from=packages --chown=node:node /app .
 
-RUN --mount=type=cache,target=/home/node/.cache/yarn,sharing=locked,uid=1000,gid=1000 \
-    yarn install --immutable
+# Install with increased timeout and without cache mount to avoid cross-platform issues
+RUN yarn install --immutable --network-timeout 300000
 
 COPY --chown=node:node . .
 
@@ -99,9 +103,7 @@ COPY --from=build --chown=node:node /app/yarn.lock /app/package.json /app/packag
 # Note: The skeleton bundle only includes package.json files -- if your app has
 # plugins that define a `bin` export, the bin files need to be copied as well to
 # be linked in node_modules/.bin during yarn install.
-
-RUN --mount=type=cache,target=/home/node/.cache/yarn,sharing=locked,uid=1000,gid=1000 \
-    yarn workspaces focus --all --production && rm -rf "$(yarn cache clean)"
+RUN yarn workspaces focus --all --production && rm -rf "$(yarn cache clean)"
 
 # Copy the built packages from the build stage
 COPY --from=build --chown=node:node /app/packages/backend/dist/bundle/ ./
