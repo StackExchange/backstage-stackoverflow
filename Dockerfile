@@ -27,10 +27,6 @@ FROM node:22-bookworm-slim AS build
 # Set Python interpreter for `node-gyp` to use
 ENV PYTHON=/usr/bin/python3
 
-# Critical: Increase memory and timeout for ARM64 cross-compilation
-ENV NODE_OPTIONS="--max-old-space-size=8192"
-ENV YARN_NETWORK_TIMEOUT=300000
-
 # Install isolate-vm dependencies, these are needed by the @backstage/plugin-scaffolder-backend.
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
