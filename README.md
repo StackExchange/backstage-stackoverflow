@@ -40,7 +40,7 @@ Once authenticated, users can create questions using a dedicated form within Bac
 
 If you’d like to quickly see how this integration works without setting up your own Backstage instance, you can use my Docker image:
 
-**`estoesmoises/stackoverflow-backstage-demo:latest`**
+**`stackoverflowdocker/stackoverflow-backstage-demo:latest`**
 
 This image runs a Backstage instance pre-configured with the Stack Internal plugin. You just need to pass a few environment variables when starting the container to connect it to your Stack Internal instance.
 
@@ -119,7 +119,7 @@ Follow these steps to install and run the plugin locally:
 6.  To start the Backstage application, run:
     
     ```bash
-    yarn dev
+    yarn start
     
     ```
     
