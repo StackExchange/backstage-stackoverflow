@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
+import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import {
   makeStyles,
   Theme,
@@ -10,6 +10,7 @@ import {
   TextField,
   InputAdornment,
   Box,
+  IconButton,
 } from '@material-ui/core';
 import Skeleton from '@mui/material/Skeleton';
 import { ResponseErrorPanel } from '@backstage/core-components';
@@ -17,40 +18,61 @@ import { useStackOverflowSearch } from './hooks';
 import { useStackOverflowData } from './hooks';
 import { StackOverflowSearchResultListItem } from './StackOverflowSearchResultListItem';
 import SearchIcon from '@material-ui/icons/Search';
+import CloseIcon from '@material-ui/icons/Close';
+import QuestionAnswerOutlined from '@material-ui/icons/QuestionAnswerOutlined';
 import { StackOverflowIcon } from '../../icons';
 
 const useStyles = makeStyles((theme: Theme) => ({
   filters: {
-    padding: theme.spacing(2),
-    marginTop: theme.spacing(2),
+    display: 'flex',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: theme.spacing(1.5),
   },
   buttonGroup: {
     flexWrap: 'wrap',
   },
+  filterLabel: {
+    color: theme.palette.text.secondary,
+    fontWeight: 600,
+  },
+  toolbar: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: theme.spacing(1.5),
+    marginBottom: theme.spacing(1),
+  },
   resultCount: {
-    marginTop: theme.spacing(1),
     fontSize: '0.875rem',
     color: theme.palette.text.secondary,
+    fontVariantNumeric: 'tabular-nums',
   },
   searchField: {
-    borderRadius: 40,
-    paddingLeft: 16,
-    paddingRight: 16,
+    '& .MuiOutlinedInput-root': {
+      borderRadius: 8,
+    },
   },
   pagination: {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: theme.spacing(1.5),
     marginTop: theme.spacing(2),
-    marginBottom: theme.spacing(2),
+    paddingTop: theme.spacing(1),
+  },
+  paginationLabel: {
+    color: theme.palette.text.secondary,
+    fontVariantNumeric: 'tabular-nums',
   },
   loadingContainer: {
-    minHeight: '600px', // Fixed height for consistency
+    paddingTop: theme.spacing(1),
   },
   loadingSkeletonItem: {
-    padding: theme.spacing(2),
-    marginBottom: theme.spacing(2),
-    borderRadius: theme.shape.borderRadius,
+    padding: theme.spacing(2, 0),
+    borderRadius: 0,
   },
   skeletonContent: {
     display: 'flex',
@@ -67,6 +89,18 @@ const useStyles = makeStyles((theme: Theme) => ({
     display: 'flex',
     gap: theme.spacing(1),
     marginTop: theme.spacing(1),
+  },
+  emptyState: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    padding: theme.spacing(6, 2),
+    color: theme.palette.text.secondary,
+  },
+  emptyIcon: {
+    marginBottom: theme.spacing(1.5),
+    fontSize: 40,
+    color: theme.palette.text.disabled,
   },
 }));
 
@@ -108,17 +142,15 @@ const useDebounce = (value: string, delay: number) => {
 const LoadingSkeleton = () => {
   const classes = useStyles();
   
-  // Generate stable, unique keys for skeleton items
-  const skeletonKeys = useMemo(() => 
-    Array.from({ length: CLIENT_ITEMS_PER_PAGE }, (_, index) => 
-      `skeleton-${index}-${Math.random().toString(36).substr(2, 9)}`
-    ), []
+  const skeletonKeys = useMemo(
+    () => Array.from({ length: CLIENT_ITEMS_PER_PAGE }, (_, index) => `skeleton-${index}`),
+    [],
   );
   
   return (
     <div className={classes.loadingContainer}>
       {skeletonKeys.map(key => (
-        <Paper key={key} className={classes.loadingSkeletonItem} elevation={1}>
+        <Paper key={key} className={classes.loadingSkeletonItem} elevation={0}>
           <div className={classes.skeletonContent}>
             <div className={classes.skeletonHeader}>
               <Skeleton variant="circular" width={32} height={32} />
@@ -471,7 +503,7 @@ export const StackOverflowQuestions = () => {
         >
           Previous
         </Button>
-        <Typography variant="body1" style={{ margin: '0 16px' }}>
+        <Typography variant="body2" className={classes.paginationLabel}>
           Page {displayPageNumber} of {displayInfo.totalPages || 1}
         </Typography>
         <Button
@@ -494,46 +526,65 @@ export const StackOverflowQuestions = () => {
         <TextField
           fullWidth
           variant="outlined"
-          placeholder="Search questions..."
+          label="Search questions"
+          placeholder="Try a topic, keyword, or error message"
           value={searchTerm}
           onChange={e => setSearchTerm(e.target.value)}
           onKeyDown={handleKeyPress}
+          className={classes.searchField}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
                 <SearchIcon />
               </InputAdornment>
             ),
-            className: classes.searchField,
+            endAdornment: searchTerm ? (
+              <InputAdornment position="end">
+                <IconButton
+                  size="small"
+                  aria-label="Clear question search"
+                  onClick={() => setSearchTerm('')}
+                >
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              </InputAdornment>
+            ) : undefined,
           }}
         />
       </Box>
 
-      <PaginationControls />
+      <Box className={classes.toolbar}>
+        {!isSearchMode && (
+          <Box className={classes.filters}>
+            <Typography variant="body2" className={classes.filterLabel}>
+              View
+            </Typography>
+            <ButtonGroup
+              className={classes.buttonGroup}
+              size="small"
+              aria-label="Question view"
+            >
+              {FILTERS.map(({ id, label }) => (
+                <Button
+                  key={id}
+                  variant={activeFilter === id ? 'contained' : 'outlined'}
+                  color="primary"
+                  aria-pressed={activeFilter === id}
+                  onClick={() => toggleFilter(id)}
+                >
+                  {label}
+                </Button>
+              ))}
+            </ButtonGroup>
+          </Box>
+        )}
 
-      {/* Only show filters when not in search mode */}
-      {!isSearchMode && (
-        <Paper className={classes.filters}>
-          <ButtonGroup className={classes.buttonGroup}>
-            {FILTERS.map(({ id, label }) => (
-              <Button
-                key={id}
-                variant={activeFilter === id ? 'contained' : 'outlined'}
-                color="primary"
-                onClick={() => toggleFilter(id)}
-              >
-                {label}
-              </Button>
-            ))}
-          </ButtonGroup>
-        </Paper>
-      )}
-
-      <Typography className={classes.resultCount}>
-        {isSearchMode 
-          ? `Search results: ${displayInfo.totalCount} total found` 
-          : `Showing ${displayInfo.currentPageData.length} of ${displayInfo.totalCount} results`}
-      </Typography>
+        <Typography className={classes.resultCount} aria-live="polite">
+          {isSearchMode
+            ? `${displayInfo.totalCount.toLocaleString()} search results`
+            : `${displayInfo.currentPageData.length} shown · ${displayInfo.totalCount.toLocaleString()} total`}
+        </Typography>
+      </Box>
 
       {displayInfo.loading && <LoadingSkeleton />}
 
@@ -541,12 +592,18 @@ export const StackOverflowQuestions = () => {
         <>
           {/* No results */}
           {displayInfo.currentPageData && displayInfo.totalCount === 0 && (
-            <Box textAlign="center" py={4}>
-              <Typography variant="body1" gutterBottom>
+            <Box className={classes.emptyState}>
+              <QuestionAnswerOutlined className={classes.emptyIcon} />
+              <Typography variant="h6" gutterBottom color="textPrimary">
                 {searchTerm.trim()
-                  ? `No questions found matching "${searchTerm}"`
-                  : "No questions found"
+                  ? `No questions match “${searchTerm}”`
+                  : 'No questions to show'
                 }
+              </Typography>
+              <Typography variant="body2">
+                {searchTerm.trim()
+                  ? 'Try a broader term or clear the search.'
+                  : 'Questions will appear here when your team starts sharing knowledge.'}
               </Typography>
             </Box>
           )}

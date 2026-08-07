@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, Progress, ResponseErrorPanel } from '@backstage/core-components';
 import { useStackOverflowData } from './hooks/';
 import {
@@ -11,7 +11,6 @@ import {
   CardContent,
   Avatar,
   Chip,
-  IconButton,
 } from '@material-ui/core';
 import { stackoverflowteamsApiRef, User } from '../../api';
 import SearchIcon from '@material-ui/icons/Search';
@@ -25,15 +24,34 @@ const useStyles = makeStyles(theme => ({
   searchBox: {
     marginBottom: theme.spacing(3),
   },
+  searchField: {
+    '& .MuiOutlinedInput-root': {
+      borderRadius: 8,
+    },
+  },
+  userLink: {
+    display: 'block',
+    height: '100%',
+    borderRadius: 12,
+    textDecoration: 'none',
+    '&:focus-visible': {
+      outline: `3px solid ${theme.palette.type === 'dark' ? '#FFB679' : '#A84200'}`,
+      outlineOffset: 3,
+    },
+  },
   userCard: {
     height: '100%',
     display: 'flex',
     flexDirection: 'column',
-    transition: theme.transitions.create(['box-shadow', 'transform'], {
+    border: `1px solid ${theme.palette.divider}`,
+    borderRadius: 12,
+    boxShadow: 'none',
+    transition: theme.transitions.create(['border-color', 'background-color'], {
       duration: theme.transitions.duration.short,
     }),
     '&:hover': {
-      boxShadow: theme.shadows[4],
+      borderColor: theme.palette.type === 'dark' ? '#8A5A35' : '#C75B0A',
+      backgroundColor: theme.palette.action.hover,
     },
   },
   cardContent: {
@@ -46,66 +64,71 @@ const useStyles = makeStyles(theme => ({
   },
   cardHeader: {
     display: 'flex',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     gap: theme.spacing(2),
     marginBottom: theme.spacing(2),
-    minHeight: theme.spacing(6), // Ensures consistent header height
   },
   userInfo: {
     flex: 1,
     minWidth: 0,
     display: 'flex',
     flexDirection: 'column',
-    gap: theme.spacing(0.5),
+    gap: theme.spacing(0.25),
   },
   userName: {
     lineHeight: 1.2,
-    minHeight: theme.spacing(3), // Consistent name height
-  },
-  jobTitle: {
-    minHeight: theme.spacing(2.5), // Consistent job title height
-  },
-  departmentContainer: {
-    minHeight: theme.spacing(2.5), // Consistent department height
+    fontWeight: 700,
   },
   cardFooter: {
-    marginTop: 'auto', // Push footer to bottom
+    marginTop: 'auto',
     paddingTop: theme.spacing(1),
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    minHeight: theme.spacing(4), // Consistent footer height
+    gap: theme.spacing(1),
   },
   reputationChip: {
-    backgroundColor: theme.palette.primary.main,
-    color: theme.palette.primary.contrastText,
-    minWidth: theme.spacing(8), // Consistent chip width
+    color: theme.palette.type === 'dark' ? '#FFD2B0' : '#7A3300',
+    backgroundColor: theme.palette.type === 'dark' ? '#422615' : '#FFF0E4',
+    fontWeight: 700,
   },
   roleChip: {
-    minWidth: theme.spacing(7), // Consistent role chip width
+    fontWeight: 700,
   },
   avatar: {
-    width: theme.spacing(5),
-    height: theme.spacing(5),
+    width: theme.spacing(6),
+    height: theme.spacing(6),
+  },
+  launchIcon: {
+    color: theme.palette.text.secondary,
+    flexShrink: 0,
   },
   emptyState: {
     textAlign: 'center',
     padding: theme.spacing(6, 2),
   },
   exploreMore: {
-    textAlign: 'center',
     marginTop: theme.spacing(3),
-    padding: theme.spacing(2),
+    paddingTop: theme.spacing(2),
+    borderTop: `1px solid ${theme.palette.divider}`,
+    textAlign: 'right',
   },
 }));
 
-const UserCard = ({ user }: { user: User }) => {
+const UserCard: React.FC<{ user: User }> = ({ user }) => {
   const classes = useStyles();
   const isModerator = user.role === 'Moderator';
   const isAdmin = user.role === 'Admin';
 
   return (
-   <Link to={user.webUrl} target="_blank" rel="Backstage_Plugin" style={{ textDecoration: 'none' }}>
+    <Link
+      to={user.webUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      noTrack
+      className={classes.userLink}
+      aria-label={`Open ${user.name}’s Stack Internal profile`}
+    >
       <Card className={classes.userCard}>
         <CardContent className={classes.cardContent}>
           <Box className={classes.cardHeader}>
@@ -117,40 +140,26 @@ const UserCard = ({ user }: { user: User }) => {
               <PersonIcon />
             </Avatar>
             <Box className={classes.userInfo}>
-              <Typography 
-                variant="h6" 
-                noWrap 
-                className={classes.userName}
-              >
+              <Typography variant="subtitle1" noWrap className={classes.userName}>
                 {user.name}
               </Typography>
-              <Box className={classes.jobTitle}>
-                {user.jobTitle ? (
-                  <Typography variant="body2" color="textSecondary" noWrap>
-                    {user.jobTitle}
-                  </Typography>
-                ) : (
-                  <Box />
-                )}
-              </Box>
-              <Box className={classes.departmentContainer}>
-                {user.department ? (
-                  <Box display="flex" alignItems="center">
-                    <BusinessIcon fontSize="small" color="disabled" />
-                    <Box ml={0.5}>
-                      <Typography variant="body2" color="textSecondary" noWrap>
-                        {user.department}
-                      </Typography>
-                    </Box>
+              {user.jobTitle && (
+                <Typography variant="body2" color="textSecondary" noWrap>
+                  {user.jobTitle}
+                </Typography>
+              )}
+              {user.department && (
+                <Box display="flex" alignItems="center">
+                  <BusinessIcon fontSize="small" color="disabled" />
+                  <Box ml={0.5} minWidth={0}>
+                    <Typography variant="body2" color="textSecondary" noWrap>
+                      {user.department}
+                    </Typography>
                   </Box>
-                ) : (
-                  <Box />
-                )}
-              </Box>
+                </Box>
+              )}
             </Box>
-            <IconButton size="small" aria-label="open profile">
-              <LaunchIcon fontSize="small" />
-            </IconButton>
+            <LaunchIcon fontSize="small" className={classes.launchIcon} />
           </Box>
           
           <Box className={classes.cardFooter}>
@@ -158,7 +167,6 @@ const UserCard = ({ user }: { user: User }) => {
               size="small"
               label={`${user.reputation.toLocaleString()} rep`}
               className={classes.reputationChip}
-              variant="default"
             />
             <Box>
               {(isModerator || isAdmin) && (
@@ -176,16 +184,16 @@ const UserCard = ({ user }: { user: User }) => {
       </Card>
     </Link>
   );
-}
+};
 
-const StackOverflowUserList = ({
-  users,
-  searchTerm,
-  baseUrl,
-}: {
+const StackOverflowUserList: React.FC<{
   users: User[];
   searchTerm: string;
   baseUrl: string;
+}> = ({
+  users,
+  searchTerm,
+  baseUrl,
 }) => {
   const classes = useStyles();
 
@@ -194,14 +202,16 @@ const StackOverflowUserList = ({
       <Box className={classes.emptyState}>
         <PersonIcon fontSize="large" color="disabled" />
         <Typography variant="h6" gutterBottom>
-          No users found matching "{searchTerm}"
+          {searchTerm ? `No members match “${searchTerm}”` : 'No members to show'}
         </Typography>
         <Typography variant="body2" color="textSecondary" paragraph>
-          Try adjusting your search terms
+          {searchTerm
+            ? 'Try a name, role, department, or job title.'
+            : 'Team members will appear when profiles become available.'}
         </Typography>
         <Link to={`${baseUrl}/users`}>
           <Typography variant="body1" color="primary">
-            Browse all users →
+            Browse all team members →
           </Typography>
         </Link>
       </Box>
@@ -222,7 +232,7 @@ const StackOverflowUserList = ({
         <Box className={classes.exploreMore}>
           <Link to={`${baseUrl}/users`}>
             <Typography variant="body1" color="primary">
-              Explore more users →
+              Explore all team members →
             </Typography>
           </Link>
         </Box>
@@ -231,7 +241,7 @@ const StackOverflowUserList = ({
   );
 };
 
-export const StackOverflowUsers = () => {
+export const StackOverflowUsers: React.FC = () => {
   const classes = useStyles();
   const { data, loading, error, fetchData } = useStackOverflowData('users');
   const [searchTerm, setSearchTerm] = useState('');
@@ -254,7 +264,7 @@ export const StackOverflowUsers = () => {
     return <ResponseErrorPanel error={error} />;
   }
 
-  const filteredUsers = (data?.users || [])
+  const filteredUsers = [...(data?.users || [])]
     .sort((a, b) => b.reputation - a.reputation)
     .filter(user =>
       `${user.name} ${user.jobTitle} ${user.department} ${user.role}`
@@ -268,9 +278,11 @@ export const StackOverflowUsers = () => {
         <TextField
           fullWidth
           variant="outlined"
-          placeholder="Search users..."
+          label="Search team members"
+          placeholder="Name, role, department, or job title"
           value={searchTerm}
           onChange={e => setSearchTerm(e.target.value)}
+          className={classes.searchField}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">

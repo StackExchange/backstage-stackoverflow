@@ -1,7 +1,16 @@
-import { useEffect, useState } from 'react';
-import packageJson from '../../package.json'
-import { Typography, Grid, Box, Paper, Tooltip } from '@material-ui/core';
-import Help from '@material-ui/icons/Help';
+import React, { ReactNode, useEffect, useState } from 'react';
+import packageJson from '../../package.json';
+import {
+  Box,
+  Button,
+  Grid,
+  IconButton,
+  Paper,
+  Tooltip,
+  Typography,
+} from '@material-ui/core';
+import { makeStyles, Theme } from '@material-ui/core/styles';
+import HelpOutline from '@material-ui/icons/HelpOutline';
 import QuestionAnswer from '@material-ui/icons/QuestionAnswer';
 import Person from '@material-ui/icons/Person';
 import LocalOffer from '@material-ui/icons/LocalOffer';
@@ -10,7 +19,6 @@ import {
   Header,
   Page,
   Content,
-  ContentHeader,
   HeaderLabel,
 } from '@backstage/core-components';
 import { useApi } from '@backstage/core-plugin-api';
@@ -19,10 +27,144 @@ import {
   StackOverflowQuestions,
   StackOverflowTags,
   StackOverflowUsers,
-  StackOverflowMe
+  StackOverflowMe,
 } from '../components/StackOverflow';
 
-export const StackOverflowHub = () => {
+const useStyles = makeStyles((theme: Theme) => ({
+  content: {
+    backgroundColor: theme.palette.background.default,
+  },
+  introduction: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: theme.spacing(3),
+    padding: theme.spacing(1, 0, 4),
+    [theme.breakpoints.down('sm')]: {
+      alignItems: 'flex-start',
+      flexDirection: 'column',
+    },
+  },
+  introductionCopy: {
+    maxWidth: '70ch',
+  },
+  introductionTitle: {
+    fontWeight: 700,
+    letterSpacing: '-0.02em',
+    marginBottom: theme.spacing(1),
+  },
+  actionButton: {
+    flexShrink: 0,
+    backgroundColor: '#F48024',
+    color: '#fff',
+    fontWeight: 700,
+    padding: theme.spacing(1.25, 2.25),
+    '&:hover': {
+      backgroundColor: theme.palette.type === 'dark' ? '#FF9D52' : '#D9680F',
+    },
+    '&:focus-visible': {
+      outline: `3px solid ${theme.palette.type === 'dark' ? '#FFB679' : '#9E4800'}`,
+      outlineOffset: 2,
+    },
+  },
+  section: {
+    height: '100%',
+    overflow: 'hidden',
+    border: `1px solid ${theme.palette.divider}`,
+    borderRadius: 12,
+    boxShadow:
+      theme.palette.type === 'dark'
+        ? '0 10px 28px rgba(0, 0, 0, 0.22)'
+        : '0 10px 28px rgba(31, 35, 40, 0.07)',
+  },
+  sectionContent: {
+    padding: theme.spacing(3),
+    [theme.breakpoints.down('xs')]: {
+      padding: theme.spacing(2),
+    },
+  },
+  sectionHeader: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: theme.spacing(2),
+    marginBottom: theme.spacing(3),
+  },
+  sectionIdentity: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: theme.spacing(1.5),
+    minWidth: 0,
+  },
+  sectionIcon: {
+    display: 'grid',
+    placeItems: 'center',
+    width: 40,
+    height: 40,
+    flexShrink: 0,
+    borderRadius: 12,
+    color: theme.palette.type === 'dark' ? '#FFB37A' : '#A84200',
+    backgroundColor: theme.palette.type === 'dark' ? '#442514' : '#FFF0E4',
+  },
+  sectionTitle: {
+    fontWeight: 700,
+    letterSpacing: '-0.015em',
+  },
+  sectionDescription: {
+    color: theme.palette.text.secondary,
+    marginTop: theme.spacing(0.25),
+  },
+  helpButton: {
+    color: theme.palette.text.secondary,
+    marginTop: -4,
+  },
+}));
+
+type SectionHeaderProps = {
+  title: string;
+  description: string;
+  helpText: string;
+  icon: ReactNode;
+};
+
+const SectionHeader: React.FC<SectionHeaderProps> = ({
+  title,
+  description,
+  helpText,
+  icon,
+}: SectionHeaderProps) => {
+  const classes = useStyles();
+
+  return (
+    <Box className={classes.sectionHeader}>
+      <Box className={classes.sectionIdentity}>
+        <Box className={classes.sectionIcon} aria-hidden="true">
+          {icon}
+        </Box>
+        <Box minWidth={0}>
+          <Typography variant="h5" className={classes.sectionTitle}>
+            {title}
+          </Typography>
+          <Typography variant="body2" className={classes.sectionDescription}>
+            {description}
+          </Typography>
+        </Box>
+      </Box>
+      <Tooltip title={helpText} arrow>
+        <IconButton
+          size="small"
+          className={classes.helpButton}
+          aria-label={`About ${title}`}
+        >
+          <HelpOutline fontSize="small" />
+        </IconButton>
+      </Tooltip>
+    </Box>
+  );
+};
+
+export const StackOverflowHub: React.FC = () => {
+  const classes = useStyles();
   const api = useApi(stackoverflowteamsApiRef);
   const [teamName, setTeamName] = useState('');
   const [baseUrl, setBaseUrl] = useState('');
@@ -32,131 +174,114 @@ export const StackOverflowHub = () => {
       try {
         const [teamNameResult, baseUrlResult] = await Promise.all([
           api.getTeamName(),
-          api.getBaseUrl()
+          api.getBaseUrl(),
         ]);
         setTeamName(teamNameResult);
         setBaseUrl(baseUrlResult);
       } catch (error) {
-        setBaseUrl('Error retrieving BaseUrl/Team')
+        setBaseUrl('Connection unavailable');
       }
     };
 
     fetchHeaderData();
   }, [api]);
 
-  // Use teamName if available, otherwise fall back to baseUrl
-  const instanceValue = teamName || baseUrl || "Loading...";
+  const instanceValue = teamName || baseUrl || 'Connecting…';
+  const openAskQuestionModal = () =>
+    window.dispatchEvent(new Event('openAskQuestionModal'));
 
   return (
-  <Page themeId="plugin">
-    <Header title="Welcome to Stack Internal!" subtitle="Your team's collective knowledge at your fingertips.">
-      <HeaderLabel label="Connected to" value={instanceValue} />
-      <HeaderLabel label="Plugin Version" value={`v${packageJson.version}`} />
-    </Header>
-    <Content>
-      <ContentHeader title="Stack Internal"/>
-      <Grid container spacing={3}>
-        {/* Main Questions Section */}
-        <Grid item xs={12} md={8}>
-          <Paper elevation={3}>
-            <Box p={3}>
-              <Box display="flex" justifyContent="space-between" alignItems="center">
-                <Box display="flex" alignItems="center">
-                  <QuestionAnswer style={{ marginRight: 8 }} />
-                  <Typography variant="h5" gutterBottom>
-                    Questions
-                  </Typography>
-                </Box>
-                <Tooltip title="Browse and search through your team's questions and articles.">
-                  
-                    <Help />
-                  
-                </Tooltip>
-              </Box>
-              <Box mt={1}>
-                  <StackOverflowQuestions />
-              </Box>
-            </Box>
-          </Paper>
-        </Grid>
+    <Page themeId="plugin">
+      <Header
+        title="Stack Internal"
+        subtitle="Your team’s collective knowledge, available without leaving Backstage."
+      >
+        <HeaderLabel label="Connected to" value={instanceValue} />
+        <HeaderLabel label="Plugin version" value={`v${packageJson.version}`} />
+      </Header>
+      <Content className={classes.content}>
+        <Box className={classes.introduction}>
+          <Box className={classes.introductionCopy}>
+            <Typography variant="h4" className={classes.introductionTitle}>
+              Find answers. Share what you know.
+            </Typography>
+            <Typography variant="body1" color="textSecondary">
+              Search trusted team knowledge, explore the topics people use most,
+              and connect with the experts behind the answers.
+            </Typography>
+          </Box>
+          <Button
+            variant="contained"
+            disableElevation
+            startIcon={<QuestionAnswer />}
+            className={classes.actionButton}
+            onClick={openAskQuestionModal}
+          >
+            Ask a question
+          </Button>
+        </Box>
 
-        {/* User Info & Tags Section */}
-        <Grid item xs={12} md={4}>
-          <Grid container spacing={3}>
-            {/* StackOverflowMe Section */}
-            <Grid item xs={12}>
-              <Paper elevation={3}>
-                <Box p={3}>
-                  <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
-                    <Box flex={1}>
-                      <Box display="flex" alignItems="center" mb={2}>
-                        <Person style={{ marginRight: 8 }} />
-                        <Typography variant="h6">
-                          My Profile
-                        </Typography>
-                      </Box>
-                      <StackOverflowMe />
-                    </Box>
-                    <Tooltip title="Information from your Stack Internal profile.">
-                      
-                        <Help />
-                      
-                    </Tooltip>
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={8}>
+            <Paper elevation={0} className={classes.section}>
+              <Box className={classes.sectionContent}>
+                <SectionHeader
+                  icon={<QuestionAnswer />}
+                  title="Questions"
+                  description="Recent conversations and answers from across your team."
+                  helpText="Browse, filter, and search your team’s questions and articles."
+                />
+                <StackOverflowQuestions />
+              </Box>
+            </Paper>
+          </Grid>
+
+          <Grid item xs={12} md={4}>
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <Paper elevation={0} className={classes.section}>
+                  <Box className={classes.sectionContent}>
+                    <SectionHeader
+                      icon={<Person />}
+                      title="My profile"
+                      description="Your identity and reputation in this community."
+                      helpText="Profile information from your Stack Internal account."
+                    />
+                    <StackOverflowMe />
                   </Box>
-                </Box>
-              </Paper>
-            </Grid>
-            {/* Tags Section */}
-            <Grid item xs={12}>
-              <Paper elevation={3}>
-                <Box p={2}>
-                  <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-                    <Box display="flex" alignItems="center">
-                      <LocalOffer style={{ marginRight: 8 }} />
-                      <Typography variant="h6">
-                        Tags
-                      </Typography>
-                    </Box>
-                    <Tooltip title="Popular tags used in your team to categorize and organize questions">
-                      
-                        <Help />
-                      
-                    </Tooltip>
-                  </Box>
-                  <Box mt={1}>
+                </Paper>
+              </Grid>
+              <Grid item xs={12}>
+                <Paper elevation={0} className={classes.section}>
+                  <Box className={classes.sectionContent}>
+                    <SectionHeader
+                      icon={<LocalOffer />}
+                      title="Popular tags"
+                      description="Topics your team is discussing right now."
+                      helpText="Popular tags used to organize your team’s questions."
+                    />
                     <StackOverflowTags />
                   </Box>
-                </Box>
-              </Paper>
+                </Paper>
+              </Grid>
             </Grid>
           </Grid>
-        </Grid>
 
-        {/* Users Section */}
-        <Grid item xs={12}>
-          <Paper elevation={3}>
-            <Box p={3}>
-              <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                <Box display="flex" alignItems="center">
-                  <People style={{ marginRight: 8 }} />
-                  <Typography variant="h5">
-                    Team Members
-                  </Typography>
-                </Box>
-                <Tooltip title="Team members, their role, reputation scores.">
-                  
-                    <Help />
-                  
-                </Tooltip>
-              </Box>
-              <Box mt={2}>
+          <Grid item xs={12}>
+            <Paper elevation={0} className={classes.section}>
+              <Box className={classes.sectionContent}>
+                <SectionHeader
+                  icon={<People />}
+                  title="Team members"
+                  description="Discover contributors and find people with relevant expertise."
+                  helpText="Team members, their roles, and their reputation scores."
+                />
                 <StackOverflowUsers />
               </Box>
-            </Box>
-          </Paper>
+            </Paper>
+          </Grid>
         </Grid>
-      </Grid>
-    </Content>
-  </Page>
-);
+      </Content>
+    </Page>
+  );
 };

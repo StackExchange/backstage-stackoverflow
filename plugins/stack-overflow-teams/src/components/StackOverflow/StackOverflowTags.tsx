@@ -1,64 +1,108 @@
-import { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Link, Progress, ResponseErrorPanel } from '@backstage/core-components';
 import { useStackOverflowData } from './hooks/';
 import {
   Chip,
-  Grid,
   TextField,
   Box,
   Typography,
   InputAdornment,
 } from '@material-ui/core';
+import { makeStyles, Theme } from '@material-ui/core/styles';
 import { Tag } from '../../types';
 import SearchIcon from '@material-ui/icons/Search';
+import LocalOfferOutlined from '@material-ui/icons/LocalOfferOutlined';
 import { stackoverflowteamsApiRef } from '../../api';
 import { useApi } from '@backstage/core-plugin-api';
 
-const StackOverflowTagList = ({
-  tags,
-  searchTerm,
-  isApiSearch = false,
-  isSearching = false,
-}: {
+const useStyles = makeStyles((theme: Theme) => ({
+  searchField: {
+    '& .MuiOutlinedInput-root': {
+      borderRadius: 8,
+    },
+  },
+  tagList: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: theme.spacing(1),
+  },
+  tag: {
+    height: 30,
+    color: theme.palette.type === 'dark' ? '#D5E8F7' : '#294E68',
+    backgroundColor: theme.palette.type === 'dark' ? '#253746' : '#EAF3F8',
+    borderColor: theme.palette.type === 'dark' ? '#466176' : '#B8D2E4',
+    borderRadius: 5,
+    fontWeight: 600,
+  },
+  emptyState: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    padding: theme.spacing(4, 2),
+    textAlign: 'center',
+  },
+  emptyIcon: {
+    color: theme.palette.text.disabled,
+    fontSize: 36,
+    marginBottom: theme.spacing(1),
+  },
+  searchStatus: {
+    color: theme.palette.text.secondary,
+    marginBottom: theme.spacing(1.5),
+  },
+}));
+
+const StackOverflowTagList: React.FC<{
   tags: Tag[];
   searchTerm: string;
-  baseUrl: string;
-  isApiSearch?: boolean;
   isSearching?: boolean;
+}> = ({
+  tags,
+  searchTerm,
+  isSearching = false,
 }) => {
+  const classes = useStyles();
+
   if (isSearching) {
-    return null; 
+    return null;
   }
 
   if (tags.length === 0) {
     return (
-      <Box textAlign="center" py={4}>
-        <Typography variant="body1" gutterBottom>
-          {isApiSearch 
-            ? `No tags found for "${searchTerm}" on your Stack Overflow Internal Team`
-            : `No matching tags were found for "${searchTerm}"`
-          }
+      <Box className={classes.emptyState}>
+        <LocalOfferOutlined className={classes.emptyIcon} />
+        <Typography variant="subtitle1" gutterBottom>
+          {searchTerm
+            ? `No tags match “${searchTerm}”`
+            : 'No tags available yet'}
+        </Typography>
+        <Typography variant="body2" color="textSecondary">
+          {searchTerm
+            ? 'Try a shorter or more general topic.'
+            : 'Tags will appear as your team organizes its knowledge.'}
         </Typography>
       </Box>
     );
   }
 
   return (
-    <Grid container spacing={1}>
+    <Box className={classes.tagList}>
       {tags.map(tag => (
         <Link key={tag.name} to={tag.webUrl} noTrack>
           <Chip
-            label={`${tag.name}(${tag.postCount})`}
+            label={`${tag.name} · ${tag.postCount.toLocaleString()}`}
             variant="outlined"
             clickable
+            className={classes.tag}
           />
         </Link>
       ))}
-    </Grid>
+    </Box>
   );
 };
 
-export const StackOverflowTags = () => {
+export const StackOverflowTags: React.FC = () => {
+  const classes = useStyles();
   const { data, loading, error, fetchData } = useStackOverflowData('tags');
   const [searchTerm, setSearchTerm] = useState('');
   const [apiSearchResults, setApiSearchResults] = useState<Tag[] | null>(null);
@@ -66,12 +110,6 @@ export const StackOverflowTags = () => {
   const [apiSearchError, setApiSearchError] = useState<Error | null>(null);
   const [hasAttemptedApiSearch, setHasAttemptedApiSearch] = useState(false);
   const stackOverflowTeamsApi = useApi(stackoverflowteamsApiRef);
-
-  const [baseUrl, setBaseUrl] = useState<string>('');
-  
-  useEffect(() => {
-    stackOverflowTeamsApi.getBaseUrl().then(url => setBaseUrl(url));
-  }, [stackOverflowTeamsApi]);
 
   useEffect(() => {
     fetchData();
@@ -128,16 +166,8 @@ export const StackOverflowTags = () => {
 
   const shouldShowApiResults = localFilteredTags.length === 0 && searchTerm.trim() && hasAttemptedApiSearch && apiSearchResults !== null;
   const tagsToShow = shouldShowApiResults ? apiSearchResults : localFilteredTags;
-  const isShowingApiResults = shouldShowApiResults;
   const currentLoading = apiSearchLoading;
   const currentError = apiSearchError;
-
-  const shouldShowResults = !currentLoading && !currentError && (
-    // Show local results if we have them
-    localFilteredTags.length > 0 ||
-    // Show API results if we have attempted API search and got results
-    (hasAttemptedApiSearch && apiSearchResults !== null)
-  );
 
   return (
     <div>
@@ -145,9 +175,11 @@ export const StackOverflowTags = () => {
         <TextField
           fullWidth
           variant="outlined"
-          placeholder="Filter tags..."
+          label="Filter tags"
+          placeholder="Search by topic"
           value={searchTerm}
           onChange={e => setSearchTerm(e.target.value)}
+          className={classes.searchField}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -168,18 +200,22 @@ export const StackOverflowTags = () => {
       {!loading && !error && (
         <>
           {/* Show API search loading */}
-          {currentLoading && <Progress />}
+          {currentLoading && (
+            <>
+              <Typography variant="body2" className={classes.searchStatus}>
+                Searching all team tags…
+              </Typography>
+              <Progress />
+            </>
+          )}
           
           {/* Show API search error */}
           {currentError && <ResponseErrorPanel error={currentError} />}
           
-          {/* Show results when appropriate */}
-          {shouldShowResults && (
+          {!currentLoading && !currentError && (
             <StackOverflowTagList
               tags={tagsToShow || []}
               searchTerm={searchTerm}
-              baseUrl={baseUrl}
-              isApiSearch={!!isShowingApiResults}
               isSearching={currentLoading}
             />
           )}
