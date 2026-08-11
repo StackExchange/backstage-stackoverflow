@@ -39,6 +39,8 @@ describe('searchStackOverflowCollatorModule', () => {
         mockServices.rootConfig.factory({
           data: {
             stackoverflow: {
+              baseUrl: 'https://stack.example.com',
+              apiAccessToken: 'test-token',
               schedule,
             },
           },
