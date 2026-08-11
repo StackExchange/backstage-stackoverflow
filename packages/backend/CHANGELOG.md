@@ -1,5 +1,13 @@
 # backend
 
+## 0.1.2
+
+### Patch Changes
+
+- Updated dependencies [3703b54]
+  - @stackoverflow/backstage-plugin-stack-overflow-teams-backend@1.6.4
+  - @stackoverflow/backstage-stack-overflow-teams-collator@1.6.4
+
 ## 0.1.1
 
 ### Patch Changes

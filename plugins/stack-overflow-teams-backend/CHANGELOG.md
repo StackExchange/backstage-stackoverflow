@@ -1,5 +1,11 @@
 # @stackoverflow/backstage-plugin-stack-overflow-teams-backend
 
+## 1.6.4
+
+### Patch Changes
+
+- 3703b54: Bumped `@backstage/*` dependencies to match the Backstage 1.46 baseline used by this repository, and dropped the unused `msw` dev dependency from the collator.
+
 ## 1.5.1
 
 ### Patch Changes
