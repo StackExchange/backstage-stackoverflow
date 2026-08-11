@@ -4,8 +4,10 @@ import {
   renderInTestApp,
   renderTestApp,
 } from '@backstage/frontend-test-utils';
+import { useLocation } from 'react-router-dom';
 import {
   ApiBlueprint,
+  AppRootElementBlueprint,
   NavItemBlueprint,
   coreExtensionData,
 } from '@backstage/frontend-plugin-api';
@@ -80,7 +82,30 @@ const testPlugin = stackOverflowTeamsPlugin.withOverrides({
   ],
 });
 
+/**
+ * Records every location the router visits, so a test can assert that a click
+ * did not navigate. Node identity of the page underneath is not enough: two
+ * `navigate` calls in one tick batch into a single React commit, so a
+ * navigate-and-come-back is invisible in the DOM.
+ */
+const visitedPaths: string[] = [];
+
+const LocationRecorder = () => {
+  const { pathname } = useLocation();
+  visitedPaths.push(pathname);
+  return null;
+};
+
+const locationRecorderExtension = AppRootElementBlueprint.make({
+  name: 'test-location-recorder',
+  params: { element: <LocationRecorder /> },
+});
+
 describe('stackOverflowTeamsPlugin (new frontend system)', () => {
+  beforeEach(() => {
+    visitedPaths.length = 0;
+  });
+
   it('is a frontend plugin that exposes its root route', () => {
     expect(stackOverflowTeamsPlugin.id).toBe('stack-overflow-teams');
     expect(stackOverflowTeamsPlugin.routes.root).toBe(rootRouteRef);
@@ -224,24 +249,29 @@ describe('stackOverflowTeamsPlugin (new frontend system)', () => {
   it('opens the ask-question modal from the nav item without navigating away', async () => {
     renderTestApp({
       features: [testPlugin],
+      extensions: [locationRecorderExtension],
       initialRouteEntries: ['/stack-overflow-teams'],
     });
 
-    expect(
-      await screen.findByText('Find answers. Share what you know.', undefined, {
-        timeout: APP_RENDER_TIMEOUT_MS,
-      }),
-    ).toBeInTheDocument();
+    await screen.findByText('Find answers. Share what you know.', undefined, {
+      timeout: APP_RENDER_TIMEOUT_MS,
+    });
 
     fireEvent.click(screen.getByRole('link', { name: 'Ask a Question' }));
 
     expect(
       await screen.findByRole('heading', { name: 'Ask a Question' }),
     ).toBeInTheDocument();
-    // The page underneath is untouched — the click never reached the router.
     expect(
       screen.getByText('Find answers. Share what you know.'),
     ).toBeInTheDocument();
+
+    // The tripwire for the click interception in `AskQuestionRouteListener`.
+    // If a future Backstage stops rendering nav items as links, or the router
+    // stops honouring preventDefault, the click navigates and the trigger
+    // route shows up here — even though the fallback would send it straight
+    // back and leave no trace in the DOM.
+    expect(visitedPaths).not.toContain('/stack-overflow-teams/ask');
   }, 60_000);
 
   it('opens the ask-question modal when the app lands on that route directly', async () => {
