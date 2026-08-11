@@ -89,3 +89,75 @@ It adds a more Stack Overflow Internal-like interface, including additional info
 ### API Requests
 
 The frontend plugin creates an API Ref for Stack Internal, which can be found under the `/api` folder. **All API requests from the frontend are directed to Backstage's backend**.
+
+## New frontend system
+
+The plugin supports both the legacy frontend system and the [new frontend system](https://backstage.io/docs/frontend-system/). Everything documented above is the legacy interface and keeps working unchanged; the new frontend system is served from the separate `/alpha` entry point.
+
+In an app created with `@backstage/frontend-defaults`, install the plugin by adding it to your features:
+
+```tsx
+// packages/app/src/index.tsx
+import { createApp } from '@backstage/frontend-defaults';
+import stackOverflowTeamsPlugin from '@stackoverflow/backstage-plugin-stack-overflow-teams/alpha';
+
+const app = createApp({
+  features: [stackOverflowTeamsPlugin],
+});
+```
+
+If your app discovers features automatically through `app.packages` config, no code change is needed at all.
+
+### Extensions
+
+| Extension ID                                                | What it does                                                                                                                  |
+| :---------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------- |
+| `page:stack-overflow-teams`                                  | The Stack Internal hub, mounted at `/stack-overflow-teams`.                                                                     |
+| `page:stack-overflow-teams/ask-question`                     | Trigger route for the ask-a-question modal at `/stack-overflow-teams/ask`. Renders nothing; see below.                          |
+| `nav-item:stack-overflow-teams`                              | The "Stack Internal" sidebar item.                                                                                             |
+| `nav-item:stack-overflow-teams/ask-question`                 | The "Ask a Question" sidebar item.                                                                                             |
+| `api:stack-overflow-teams`                                   | The Stack Internal API client, talking to the backend plugin.                                                                   |
+| `search-result-list-item:stack-overflow-teams`               | Renders indexed Stack Internal questions on the search page.                                                                    |
+| `search-filter-result-type:stack-overflow-teams`             | Adds "Stack Internal" to the search page result type filter.                                                                    |
+| `app-root-element:stack-overflow-teams/ask-question-modal`   | Mounts `<StackOverflowPostQuestionModal />` at the app root, so the `openAskQuestionModal` event works from anywhere in the app. |
+
+#### How the "Ask a Question" nav item works
+
+Clicking it opens the modal over whatever page you are on. Nothing navigates, nothing remounts, and the page underneath keeps its state.
+
+Getting there takes a small amount of machinery, because the new frontend system has no `onClick` nav item: `NavItemBlueprint` only accepts a `routeRef`, and the nav bar is rendered by the app rather than by plugins. So the plugin:
+
+1. mounts a trigger route at `/stack-overflow-teams/ask` that renders nothing, purely so the route ref resolves and the nav item can point at it, and
+2. intercepts clicks on that link in the capture phase, before the router sees them, and opens the modal instead.
+
+If the route is reached some other way — a bookmark, a pasted URL — the modal still opens and the router steps back out to the page you came from, or to the hub.
+
+The `openAskQuestionModal` window event is unchanged and still works from anywhere in the app, so your own triggers keep working:
+
+```tsx
+<button onClick={() => window.dispatchEvent(new Event('openAskQuestionModal'))}>
+  Ask a question
+</button>
+```
+
+All of them are enabled by default and can be configured or disabled through `app.extensions` config, for example:
+
+```yaml
+app:
+  extensions:
+    # Serve the hub from a different path. Remember to update
+    # stackoverflow.redirectUri to match, since the OAuth flow returns here.
+    - page:stack-overflow-teams:
+        config:
+          path: /stack-internal
+    # Opt out of the sidebar item
+    - nav-item:stack-overflow-teams: false
+```
+
+### Local development
+
+`packages/app-next` in this repository is a small app on the new frontend system with this plugin installed. Run it against the backend with:
+
+```bash
+yarn start:next
+```

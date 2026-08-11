@@ -123,6 +123,29 @@ Follow these steps to install and run the plugin locally:
     
     ```
     
+## Frontend systems
+
+The frontend plugin works with both Backstage frontend systems.
+
+- **Legacy frontend system** — the default entry point. `packages/app` in this repository is an example, and `yarn start` runs it.
+- **[New frontend system](https://backstage.io/docs/frontend-system/)** — served from the `/alpha` entry point. `packages/app-next` is an example, and `yarn start:next` runs it.
+
+To install the plugin in an app built with `@backstage/frontend-defaults`:
+
+```tsx
+// packages/app/src/index.tsx
+import { createApp } from '@backstage/frontend-defaults';
+import stackOverflowTeamsPlugin from '@stackoverflow/backstage-plugin-stack-overflow-teams/alpha';
+
+const app = createApp({
+  features: [stackOverflowTeamsPlugin],
+});
+```
+
+That single feature brings the hub page, both sidebar items ("Stack Internal" and "Ask a Question"), the Stack Internal API, the search result item and result type filter, and the ask-a-question modal — no `Root.tsx` edits needed, unlike the legacy installation. See the [frontend plugin README](./plugins/stack-overflow-teams/README.md#new-frontend-system) for the full list of extensions and how to configure them.
+
+The demo Docker image and the published backend plugins are unaffected by which frontend system you use.
+
 ## Contributing
 
 Feel free to fork this repository and submit pull requests. Contributions, suggestions, and bug reports are welcome!
