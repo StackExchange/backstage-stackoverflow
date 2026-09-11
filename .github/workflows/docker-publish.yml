@@ -12,7 +12,9 @@ on:
         type: string
 
 env:
-  REGISTRY_IMAGE: stackoverflowdocker/stackoverflow-backstage-demo
+  # Set the DOCKER_IMAGE repository variable to publish to a different Docker Hub
+  # repo; DOCKER_USERNAME/DOCKER_PASSWORD must be able to push to it.
+  REGISTRY_IMAGE: ${{ vars.DOCKER_IMAGE || 'stackoverflowdocker/stackoverflow-backstage-demo' }}
 
 jobs:
   build-and-push:
