@@ -5,6 +5,11 @@ on:
     tags:
       - "v*"
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Image version to publish (e.g. 1.7.0). Required unless run from a v* tag."
+        required: false
+        type: string
 
 env:
   REGISTRY_IMAGE: stackoverflowdocker/stackoverflow-backstage-demo
@@ -17,15 +22,25 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Changesets releases create per-package tags, not v* tags, so a manual
+      # run from a branch has no semver ref to derive image tags from. The
+      # `version` input supplies it; on a v* tag push it is empty and the git
+      # tag is used instead.
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY_IMAGE }}
           tags: |
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=raw,value=latest,enable=${{ github.ref_type == 'tag' }}
+            type=semver,pattern={{version}},value=${{ inputs.version }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ inputs.version }}
+            type=raw,value=latest,enable=${{ github.ref_type == 'tag' || inputs.version != '' }}
+
+      - name: Check image tags
+        if: steps.meta.outputs.tags == ''
+        run: |
+          echo "::error::No image tags were generated. Run this workflow from a v* tag, or pass a semver 'version' input (e.g. 1.7.0)."
+          exit 1
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
